@@ -53,9 +53,6 @@ class TestCoreFunctionality(TestCase):
         self.assertNotIn("John Doe", cloaked_prompt)
         self.assertNotIn("192.168.1.1", cloaked_prompt)
         self.assertNotIn("378282246310005", cloaked_prompt)
-        # Print for debugging
-        print("\nCloaked prompt:", cloaked_prompt)
-        print("\nEntity map:", entity_map)
 
     def test_uncloak(self):
         """Test that cloaked entities are properly restored."""
@@ -81,17 +78,13 @@ class TestCoreFunctionality(TestCase):
         # Updated test input
         test_input = "Hi, I'm John Doe (john.doe@example.com)"
         response = shield.ask(
-            test_input,
             start_delimiter=self.start_delimiter,
-            end_delimiter=self.end_delimiter
+            end_delimiter=self.end_delimiter,
+            message=test_input,
         )
 
         # Test the entity map
         _, entity_map = shield.cloak(test_input)
-
-        # Print for debugging
-        print("\nEntity map:", entity_map)
-        print("\nResponse:", response)
 
         self.assertIn("John Doe", response)
         self.assertIn("john.doe@example.com", response)
@@ -142,10 +135,6 @@ class TestCoreFunctionality(TestCase):
             cloaked, entity_map = self.shield.cloak(input_text)
 
             # Print debug information
-            print(f"\nTest case {i}:")
-            print(f"Input: {input_text}")
-            print(f"Cloaked: {cloaked}")
-            print(f"Entity map: {entity_map}")
             # Verify each expected entity is found
             for entity_text, entity_type in expected.items():
                 found = False

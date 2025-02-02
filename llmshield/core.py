@@ -1,6 +1,23 @@
 """
 Core module for llmshield.
+
+This module provides the main LLMShield class for protecting sensitive information
+in Large Language Model (LLM) interactions. It handles cloaking of sensitive entities
+in prompts before sending to LLMs, and uncloaking of responses to restore the
+original information.
+
+Key features:
+- Entity detection and protection (names, emails, numbers, etc.)
+- Configurable delimiters for entity placeholders
+- Direct LLM function integration
+- Zero dependencies
+
+Example:
+    >>> shield = LLMShield()
+    >>> safe_prompt, entities = shield.cloak("Hi, I'm John (john@example.com)")
+    >>> response = shield.uncloak(llm_response, entities)
 """
+
 
 from typing import Tuple, Dict, Optional, Callable
 
@@ -33,9 +50,10 @@ class LLMShield:
         """
         Initialise LLMShield.
 
-        @param start_delimiter: Character(s) to wrap entity placeholders (default: '<')
-        @param end_delimiter: Character(s) to wrap entity placeholders (default: '>')
-        @param llm_func: Optional function that calls your LLM (enables direct usage)
+        Args:
+            start_delimiter: Character(s) to wrap entity placeholders (default: '<')
+            end_delimiter: Character(s) to wrap entity placeholders (default: '>')
+            llm_func: Optional function that calls your LLM (enables direct usage)
         """
         if not is_valid_delimiter(start_delimiter):
             raise ValueError("Invalid start delimiter")
@@ -54,9 +72,11 @@ class LLMShield:
         """
         Cloak sensitive information in the prompt.
 
-        @param prompt: The original prompt containing sensitive information
+        Args:
+            prompt: The original prompt containing sensitive information
 
-        @return: Tuple of (cloaked_prompt, entity_mapping)
+        Returns:
+            Tuple of (cloaked_prompt, entity_mapping)
         """
         cloaked, entity_map = _cloak_prompt(prompt, self.start_delimiter, self.end_delimiter)
         self._last_entity_map = entity_map
@@ -67,11 +87,19 @@ class LLMShield:
         """
         Restore original entities in the LLM response.
 
-        @param response: The LLM response containing placeholders
-        @param entity_map: Mapping of placeholders to original values
-                          (if None, uses mapping from last cloak call)
+        Limitations:
+            - Does not support streaming.
+            - Does not support tool calls.
+            - Does not support structured outputs.
+            - Does not support multiple messages (multi-shot requests).
 
-        @return: Response with original entities restored
+        Args:
+            response: The LLM response containing placeholders
+            entity_map: Mapping of placeholders to original values
+                        (if None, uses mapping from last cloak call)
+
+        Returns:
+            Response with original entities restored
         """
         # * Validate inputs
         if not response or not isinstance(response, str):
@@ -83,25 +111,65 @@ class LLMShield:
         return _uncloak_response(response, entity_map)
 
 
-    def ask(self, prompt: str, **kwargs) -> str:
+    def ask(self, **kwargs) -> str:
         """
         Complete end-to-end LLM interaction with automatic protection.
 
-        @param prompt: Original prompt with sensitive information
-        @param **kwargs: Additional arguments to pass to your LLM function if
-                         provided during initialisation.
+        Limitations:
+            - Does not support streaming.
+            - Does not support tool calls.
+            - Does not support structured outputs.
+            - Does not support multiple messages (multi-shot requests).
 
-        @return: Uncloaked LLM response
+        Args:
+            prompt/message: Original prompt with sensitive information. This will be cloaked
+                   and passed to your LLM function. Do not pass both, and do not use any other
+                   parameter names as they are unrecognised by the shield.
+            **kwargs: Additional arguments to pass to your LLM function, such as:
+                    - model: The model to use (e.g., "gpt-4")
+                    - system_prompt: System instructions
+                    - temperature: Sampling temperature
+                    - max_tokens: Maximum tokens in response
+                    etc.
+        ! The arguments do not have to be in any specific order!
 
-        @raise ValueError: If no LLM function was provided during initialization
+        Returns:
+            str: Uncloaked LLM response
+
+        Raises:
+            ValueError: If no LLM function was provided during initialization,
+                       if prompt is invalid, or if both prompt and message are provided
         """
-        # * Validate inputs
-        if not prompt or not isinstance(prompt, str):
-            raise ValueError("Prompt must be a string!")
+        # * 1. Validate inputs
         if self._llm_func is None:
             raise ValueError("No LLM function provided. Either provide llm_func in constructor "
                            "or use cloak/uncloak separately.")
 
-        cloaked_prompt, entity_map = self.cloak(prompt)
-        llm_response = self._llm_func(cloaked_prompt, **kwargs)
+        if 'prompt' not in kwargs and 'message' not in kwargs:
+            raise ValueError("Either 'prompt' or 'message' must be provided!")
+
+
+        if 'prompt' in kwargs and 'message' in kwargs:
+            raise ValueError("Do not provide both 'prompt' and 'message'. Use only 'prompt' "
+                           "parameter - it will be automatically passed to your LLM function "
+                           "under the correct parameter name.")
+
+        # * 2. Get the input text and determine parameter name
+        input_param = 'message' if 'message' in kwargs else 'prompt'
+        input_text = kwargs[input_param]
+
+        # * 3. Cloak the input text
+        cloaked_text, entity_map = self.cloak(input_text)
+
+        # * 4. Pass the cloaked text under the correct parameter name for the LLM function
+        func_preferred_param = 'message' if 'message' in self._llm_func.__code__.co_varnames else 'prompt'
+
+        # Remove the original parameter and add under the LLM's preferred name
+        del kwargs[input_param]
+        kwargs[func_preferred_param] = cloaked_text
+
+        # * 5. Get response from LLM
+        llm_response = self._llm_func(**kwargs)
+
+        # * 6. Uncloak and return
         return self.uncloak(llm_response, entity_map)

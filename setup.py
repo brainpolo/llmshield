@@ -5,7 +5,6 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="llmshield",
-    version="0.1.0",
     packages=find_packages(exclude=["tests", "tests.*"]),
     # Development Dependencies
     extras_require={

@@ -314,12 +314,12 @@ class EntityDetector:
     def _is_person(self, p_noun: str) -> bool:
         """
         Check if the given proper noun qualifies as a person.
-        The function first checks against common words, then cleans the name 
-        (removing a leading honorific) and applies simple heuristics 
+        The function first checks against common words, then cleans the name
+        (removing a leading honorific) and applies simple heuristics
         (e.g. no digits, limited disallowed punctuation).
         """
         # First check: reject common words (case-insensitive)
-        if any(word.lower() in (w.lower() for w in self.en_common_words) 
+        if any(word.lower() in (w.lower() for w in self.en_common_words)
                for word in p_noun.split()):
             return False
 

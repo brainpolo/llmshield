@@ -13,7 +13,7 @@ Direct usage with LLM:
     ...     return response
 
     >>> shield = LLMShield(llm_func=my_llm)
-    >>> response = shield.ask("Hi, I'm John (john@example.com)")
+    >>> response = shield.ask(prompt="Hi, I'm John (john@example.com)")
 """
 
 from .core import LLMShield

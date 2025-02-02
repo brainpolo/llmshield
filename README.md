@@ -10,19 +10,16 @@ pattern-based, and probabilistic approaches.
 ## Key Features
 
 - 🔒 **Secure Entity Detection**: Identifies and protects sensitive information including:
-  - Personal names
-  - Email addresses
-  - Phone numbers
-  - IP addresses
-  - URLs
-  - Credit card numbers
-  - Reference/Order numbers
-  - And more...
+  - Proper nouns (Persons, Places, Organisations, Concepts)
+  - Locators (Email addresses, URLs)
+  - Numbers (Phone numbers, Credit card numbers)
+
+_Additional PII types are in development._
 
 - 🚀 **High Performance**: Optimised for minimal latency in LLM interactions
-- 🔌 **Zero Dependencies**: Pure Python implementation with no external requirements
-- 🛡️ **Bidirectional Protection**: Secures both prompts and responses
-- 🎯 **Flexible Integration**: Works with any LLM provider
+- 🔌 **Zero Dependencies**: Pure Pythonic implementation with no external requirements
+- 🛡️ **End-to-End Protection**: Cloaks and uncloaks both prompts and responses
+- 🎯 **Flexible Integration**: Works directly with your existing LLM function.
 
 ## Installation
 
@@ -54,7 +51,7 @@ def my_llm_function(prompt: str) -> str:
     return response
 
 shield = LLMShield(llm_func=my_llm_function)
-response = shield.ask("Hi, I'm John Doe (john.doe@example.com)")
+response = shield.ask(prompt="Hi, I'm John Doe (john.doe@example.com)")
 ```
 
 ## Configuration
@@ -94,30 +91,26 @@ shield = LLMShield(llm_func=your_llm_function)
 - Officially supports English and Spanish texts only.
 - May work with other languages with lower accuracy and potential PII leakage.
 
-## Performance
 
-llmshield is optimized for minimal latency:
+## Support
 
-- Compiled regex patterns
-- Efficient entity detection algorithms
-- No external API calls
-- Minimal memory footprint
-
-## Security Considerations
-
-- Entity maps contain sensitive information and should be handled securely
-- Consider your LLM provider's security guidelines when choosing delimiters
-- Regular updates are recommended for the latest security features
+- GitHub Issues: [Report bugs or request features](https://github.com/yourusername/llmshield/issues)
 
 ## Contributing
 
 Contributions are welcome! Please follow these guidelines:
 
-1. **Code Quality**:
-   - Follow black and isort formatting
+0. **Recommended IDE Development Packages**:
+   - Black
+   - Isort
+   - Markdownlint
+
+1. **Code Quality and Formatting Guidelines**:
+   - Follow black and isort rules
    - Add tests for new features
-   - Maintain zero dependencies
-   - Use British English across naming and documentation
+   - Do not break existing tests (unless justifying the change)
+   - Maintain zero (non-development) dependencies (non-negotiable)
+   - Use British English in all naming and documentation
 
 2. **Testing**:
 
@@ -130,30 +123,27 @@ Contributions are welcome! Please follow these guidelines:
    - Keep README.md current
    - Add examples for new features
 
+4. **Build for development**
+
+```bash
+pip install -e ".[dev]"
+```
+
+5. **Build and publish**
+
+```bash
+python -m build
+python -m twine upload dist/*
+```
+
+Note: You will need to have a PyPI account and be authenticated.
+
 ## License
 
 GNU APGLv3 License - See LICENSE.txt file for details
-
-## Support
-
-- GitHub Issues: [Report bugs or request features](https://github.com/yourusername/llmshield/issues)
-- Documentation: [Full documentation](https://llmshield.readthedocs.io/)
 
 ## Notable Uses
 
 llmshield is currently used by:
 
 - [brainful.ai](https://brainful.ai)
-
-
-## Building
-
-```bash
-rm -rf build/ dist/ *.egg-info/
-python setup.py build
-python setup.py sdist bdist_wheel
-pip uninstall llmshield -y
-pip install -e .
-pip install dist/llmshield-*.whl
-
-```
