@@ -131,8 +131,8 @@ class LLMShield:
             model_class = response.__class__
             uncloaked_dict = _uncloak_response(response.model_dump(), entity_map)
             return model_class.model_validate(uncloaked_dict)
-        else:
-            return _uncloak_response(response, entity_map)
+
+        return _uncloak_response(response, entity_map)
 
     def ask(self, **kwargs) -> str:
         """

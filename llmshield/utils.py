@@ -24,6 +24,7 @@ class PydanticLike(Protocol):
     - model_dump() -> dict
     - model_validate(data: dict) -> Any
     """
+
     def model_dump(self) -> dict: ...
     @classmethod
     def model_validate(cls, data: dict) -> Any: ...

@@ -15,13 +15,14 @@ from enum import Enum
 from importlib import resources
 
 
-ENT_REPLACEMENT = "\n" # Use to void overlap with another entity
+ENT_REPLACEMENT = "\n"  # Use to void overlap with another entity
 
 SPACE = " "
 
 
 class EntityType(str, Enum):
     """Primary classification of entity types"""
+
     # Proper Nouns
     PERSON = "PERSON"
     ORGANISATION = "ORGANISATION"
@@ -37,8 +38,10 @@ class EntityType(str, Enum):
     URL = "URL"
     IP_ADDRESS = "IP_ADDRESS"
 
+
 class EntityGroup(str, Enum):
     """Groups of related entity types"""
+
     PNOUN = "PNOUN"
     NUMBER = "NUMBER"
     LOCATOR = "LOCATOR"
@@ -64,9 +67,11 @@ class EntityGroup(str, Enum):
         }
         return group_map[self]
 
+
 @dataclass(frozen=True)
 class Entity:
     """Represents a detected entity in text"""
+
     type: EntityType
     value: str
 
@@ -134,7 +139,6 @@ class EntityDetector:
 
         self.luhn_check = _luhn_check
 
-
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt"""
@@ -152,7 +156,6 @@ class EntityDetector:
         """Load organisations from lists/organisations.txt"""
         with resources.files('llmshield.matchers.dicts').joinpath('organisations.txt').open('r') as f:
             return [org.strip() for org in f.read().splitlines() if org.strip()]
-
 
     def detect_entities(self, text: str) -> set[Entity]:
         """Main entry point for entity detection using waterfall methodology."""
@@ -202,6 +205,7 @@ class EntityDetector:
         """
         Collect sequential proper nouns from text.
         """
+
         sequential_pnouns = []
         normalised_text = self.normalise_spaces(text)
         fragments = self.split_fragments(normalised_text)
@@ -418,10 +422,8 @@ class EntityDetector:
             ))
             reduced_text = reduced_text.replace(phone_number.group(), ENT_REPLACEMENT)
 
-
         # * 4. Return the reduced text and entities found
         return entities, reduced_text
-
 
     def _detect_locators(self, text: str) -> tuple[set[Entity], str]:
         """Detect locators in the text."""
@@ -446,7 +448,6 @@ class EntityDetector:
             ))
             reduced_text = reduced_text.replace(email.group(), ENT_REPLACEMENT)
 
-
         # * 3. Detect IP addresses
         ip_addresses = self.ip_address_pattern.finditer(text)
         for ip_address in ip_addresses:
@@ -458,4 +459,3 @@ class EntityDetector:
 
         # * 4. Return the reduced text and entities found
         return entities, reduced_text
-
