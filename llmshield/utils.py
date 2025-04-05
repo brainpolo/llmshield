@@ -3,9 +3,30 @@ Module for utility functions for the llmshield library.
 """
 
 
+# Python imports
 import re
+from typing import Any, Protocol, runtime_checkable
 
+# Local imports
 from llmshield.entity_detector import EntityType
+
+
+@runtime_checkable
+class PydanticLike(Protocol):
+    """
+    A protocol for types that behave like Pydantic models.
+
+    This is to provide type-safety for the uncloak function, which can accept
+    either a string, list, dict, or a Pydantic model for LLM responses which
+    return structured outputs.
+
+    Pydantic models have the following methods:
+    - model_dump() -> dict
+    - model_validate(data: dict) -> Any
+    """
+    def model_dump(self) -> dict: ...
+    @classmethod
+    def model_validate(cls, data: dict) -> Any: ...
 
 
 def split_fragments(text: str) -> list[str]:

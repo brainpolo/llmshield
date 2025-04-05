@@ -5,17 +5,24 @@ Module for securely uncloaking LLM responses by replacing placeholders with orig
 """
 
 
+# Python imports
 from typing import Any
 
+# Local imports
+from llmshield.utils import PydanticLike
 
-def _uncloak_response(response: Any, entity_map: dict[str, str]) -> str | list[Any] | dict[str, Any]:
+
+def _uncloak_response(
+        response: Any,
+        entity_map: dict[str, str]
+) -> str | list[Any] | dict[str, Any] | PydanticLike:
     """
-    Securely uncloaks the LLM response by replacing validated placeholders with their original values.
+    Securely uncloaks the LLM response by replacing validated placeholders with
+    their original values.
     Includes strict validation and safety checks for placeholder format and content.
 
     ! Do not call this function directly, use `LLMShield.uncloak()` instead. This
-    ! is because this function is not type-safe as it recursively uncloaks the
-    ! response and can return a value of any type.
+    ! is because this function is not type-safe.
 
     Args:
         response: The LLM response containing placeholders (e.g., [EMAIL_0], [PHONE_1]).
@@ -40,6 +47,10 @@ def _uncloak_response(response: Any, entity_map: dict[str, str]) -> str | list[A
 
     if isinstance(response, dict):  # Apply uncloaking to each key and value in the dict
         return {key: _uncloak_response(value, entity_map) for key, value in response.items()}
+
+    if isinstance(response, PydanticLike):
+        # convert back to dict and reprocess
+        return _uncloak_response(response.model_dump(), entity_map)
 
     # Return the response if not in [str, list, dict] (e.g. int value of dict key)
     return response

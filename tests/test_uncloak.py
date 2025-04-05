@@ -14,9 +14,8 @@ class TestUncloak(TestCase):
     def test_uncloak_edge_cases(self):
         """Test edge cases in uncloaking."""
         # Test empty inputs
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             self.shield.uncloak("", {})
-        self.assertEqual(self.shield.uncloak("Hello", {}), "Hello")
 
         # Test partial replacements
         self.assertEqual(

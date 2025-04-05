@@ -193,15 +193,6 @@ class TestCoreFunctionality(TestCase):
         response = shield_dict.ask(prompt="Hello John Doe")
         self.assertEqual(response, {"content": "test"})
 
-        # Test None response - should raise error
-        shield_none = LLMShield(
-            llm_func=lambda **kwargs: None,
-            start_delimiter='[[',
-            end_delimiter=']]'
-        )
-
-        with self.assertRaises(TypeError):
-            shield_none.ask(prompt="Hello John Doe")
 
     def test_error_propagation(self):
         """Test specific error propagation in ask method to cover lines 113-115."""

@@ -19,9 +19,11 @@ Example:
 """
 
 
+# Python imports
 from typing import Callable, Any
 
-from .utils import is_valid_delimiter
+# Local imports
+from .utils import is_valid_delimiter, PydanticLike
 from .cloak_prompt import _cloak_prompt
 from .uncloak_response import _uncloak_response
 
@@ -68,7 +70,6 @@ class LLMShield:
         self._llm_func = llm_func
         self._last_entity_map = None
 
-
     def cloak(self, prompt: str) -> tuple[str, dict[str, str]]:
         """
         Cloak sensitive information in the prompt.
@@ -79,16 +80,19 @@ class LLMShield:
         Returns:
             Tuple of (cloaked_prompt, entity_mapping)
         """
-        cloaked, entity_map = _cloak_prompt(prompt, self.start_delimiter, self.end_delimiter)
+        cloaked, entity_map = _cloak_prompt(
+            prompt,
+            self.start_delimiter,
+            self.end_delimiter
+        )
         self._last_entity_map = entity_map
         return cloaked, entity_map
 
-
     def uncloak(
             self,
-            response: str | list[Any] | dict[str, Any],
+            response: str | list[Any] | dict[str, Any] | PydanticLike,
             entity_map: dict[str, str] | None = None
-    ) -> str | list[Any] | dict[str, Any]:
+    ) -> str | list[Any] | dict[str, Any] | PydanticLike:
         """
         Restore original entities in the LLM response. It supports strings and
         structured outputs consisting of any combination of strings, lists, and
@@ -111,17 +115,24 @@ class LLMShield:
             TypeError: If response parameters of invalid type.
             ValueError: If no entity mapping is provided and no previous cloak call.s
         """
-        # * Validate inputs
-        if not response or not isinstance(response, (str, list, dict)):
-            raise TypeError("Response must be in [str, list, dict], but got: "
-                            f"{type(response)}!")
+        # Validate inputs
+        if not response:
+            raise ValueError("Response cannot be empty")
+
+        if not isinstance(response, (str, list, dict, PydanticLike)):
+            raise TypeError(f"Response must be in [str, list, dict] or a Pydantic model, but got: {type(response)}!")
+
         if entity_map is None:
             if self._last_entity_map is None:
                 raise ValueError("No entity mapping provided or stored from previous cloak!")
             entity_map = self._last_entity_map
 
-        return _uncloak_response(response, entity_map)
-
+        if isinstance(response, PydanticLike):
+            model_class = response.__class__
+            uncloaked_dict = _uncloak_response(response.model_dump(), entity_map)
+            return model_class.model_validate(uncloaked_dict)
+        else:
+            return _uncloak_response(response, entity_map)
 
     def ask(self, **kwargs) -> str:
         """

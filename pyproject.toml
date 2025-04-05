@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.4"
+version = "0.0.5"
 description = "Shields your confidential data from third party LLM providers"
 readme = "README.md"
 authors = [{ name = "Aditya Dedhia", email = "adityadedhia@hey.com" }]

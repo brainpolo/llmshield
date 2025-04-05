@@ -22,4 +22,4 @@ jobs:
           pip install pylint
       - name: Run pylint
         run: |
-          python -m pylint --fail-under=9.0 llmshield tests
+          python -m pylint --fail-under=9.5 llmshield tests
