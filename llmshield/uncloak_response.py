@@ -4,30 +4,42 @@ Module for securely uncloaking LLM responses by replacing placeholders with orig
 ! Module is intended for internal use only.
 """
 
-from typing import Dict
 
-def _uncloak_response(response: str, entity_map: Dict[str, str]) -> str:
+from typing import Any
+
+
+def _uncloak_response(response: Any, entity_map: dict[str, str]) -> str | list[Any] | dict[str, Any]:
     """
     Securely uncloaks the LLM response by replacing validated placeholders with their original values.
     Includes strict validation and safety checks for placeholder format and content.
 
-    Example:
-        >>> response = "Contact at [EMAIL_0] or [PHONE_1]"
-        >>> entity_map = {
-        ...     "[EMAIL_0]": "john.doe@example.com",
-        ...     "[PHONE_1]": "(123) 456-7890"
-        ... }
-        >>> uncloak_response(response, entity_map, "[", "]")
-        "Contact at john.doe@example.com or (123) 456-7890"
+    ! Do not call this function directly, use `LLMShield.uncloak()` instead. This
+    ! is because this function is not type-safe as it recursively uncloaks the
+    ! response and can return a value of any type.
 
-    @param response: The LLM response containing placeholders (e.g., [EMAIL_0], [PHONE_1])
-    @param entity_map: Mapping of placeholders to their original values
+    Args:
+        response: The LLM response containing placeholders (e.g., [EMAIL_0], [PHONE_1]).
+        Supports both strings and structured outputs (dicts). However, note that
+        keys in dicts will NOT be uncloaked for integrity of the data structure,
+        nor will non string values in dicts be uncloaked.
+        entity_map: Mapping of placeholders to their original values
 
-    @return: Uncloaked response with original values restored
+    Returns:
+        Uncloaked response with original values restored
     """
-    uncloaked = response
+    if not entity_map:
+        return response
 
-    for placeholder in entity_map.keys():
-        uncloaked = uncloaked.replace(placeholder, entity_map[placeholder])
+    if isinstance(response, str):  # Direct string replacement
+        for placeholder, original in entity_map.items():
+            response = response.replace(placeholder, original)
+        return response
 
-    return uncloaked
+    if isinstance(response, list):  # Apply uncloaking to each element in the list
+        return [_uncloak_response(item, entity_map) for item in response]
+
+    if isinstance(response, dict):  # Apply uncloaking to each key and value in the dict
+        return {key: _uncloak_response(value, entity_map) for key, value in response.items()}
+
+    # Return the response if not in [str, list, dict] (e.g. int value of dict key)
+    return response

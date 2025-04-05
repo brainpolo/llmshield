@@ -1,5 +1,8 @@
-import unittest
-import re
+"""
+Tests for regex pattern matching functionality.
+"""
+
+from unittest import TestCase
 
 from llmshield.matchers.regex import (
     EMAIL_ADDRESS_PATTERN,
@@ -10,8 +13,11 @@ from llmshield.matchers.regex import (
 )
 
 
-class TestRegexMatchers(unittest.TestCase):
+class TestRegexMatchers(TestCase):
+    """Test suite for regex pattern matching."""
+
     def test_email_pattern_valid(self):
+        """Test email pattern matching."""
         valid_emails = [
             "john.doe@example.com",
             "user+tag@domain.co.uk",
@@ -24,6 +30,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertEqual(match.group(), email)
 
     def test_email_pattern_invalid(self):
+        """Test email pattern matching."""
         invalid_emails = [
             "plainaddress",
             "john.doe@.com",
@@ -36,6 +43,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertIsNone(match, f"Email should not match: {email}")
 
     def test_credit_card_pattern_valid(self):
+        """Test credit card pattern matching."""
         valid_cards = [
             "4532015112345678",      # Visa
             "5425233456788790",      # Mastercard
@@ -53,6 +61,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertEqual(match.group(), card)
 
     def test_credit_card_pattern_invalid(self):
+        """Test credit card pattern matching."""
         invalid_cards = [
             "123456789012",   # Too short
             "abcdefg",        # Non-digits
@@ -64,6 +73,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertIsNone(match, f"Credit card should not match: {card}")
 
     def test_ip_address_pattern_valid(self):
+        """Test IP address pattern matching."""
         valid_ips = [
             "192.168.1.1",
             "10.0.0.0",
@@ -76,6 +86,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertEqual(match.group(), ip)
 
     def test_ip_address_pattern_invalid(self):
+        """Test IP address pattern matching."""
         invalid_ips = [
             "256.1.2.3",      # 256 is invalid
             "192.168.1",      # Not enough octets
@@ -87,6 +98,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertIsNone(match, f"IP address should not match: {ip}")
 
     def test_url_pattern_valid(self):
+        """Test URL pattern matching."""
         valid_urls = [
             "https://example.com",
             "http://subdomain.example.com/path",
@@ -100,6 +112,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertEqual(match.group(), url)
 
     def test_url_pattern_invalid(self):
+        """Test URL pattern matching."""
         invalid_urls = [
             "ftp://example.com",    # Wrong protocol
             "justtext",
@@ -111,6 +124,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertIsNone(match, f"URL should not match: {url}")
 
     def test_phone_number_pattern_valid(self):
+        """Test phone number pattern matching."""
         valid_numbers = [
             "123-456-7890",
             "(123) 456-7890",
@@ -128,6 +142,7 @@ class TestRegexMatchers(unittest.TestCase):
                 self.assertEqual(match.group().strip(), number.strip())
 
     def test_phone_number_pattern_invalid(self):
+        """Test phone number pattern matching."""
         invalid_numbers = [
             "1234567",          # Too short
             "phone: 1234567890", # Contains alphabetical characters
@@ -140,4 +155,4 @@ class TestRegexMatchers(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    TestCase.main(verbosity=2)

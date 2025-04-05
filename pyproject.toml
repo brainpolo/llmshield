@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.2"
+version = "0.0.4"
 description = "Shields your confidential data from third party LLM providers"
 readme = "README.md"
 authors = [{ name = "Aditya Dedhia", email = "adityadedhia@hey.com" }]
@@ -15,8 +15,8 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 license = { file = "LICENSE.txt" }
-keywords = ["llm", "security", "privacy"]
-requires-python = ">=3.7"
+keywords = ["llm", "ai", "security", "privacy"]
+requires-python = ">=3.10"
 
 [project.urls]
 Homepage = "https://github.com/brainpolo/llmshield"
@@ -32,4 +32,13 @@ packages = [
 "llmshield.matchers" = ["dicts/*.txt"]
 
 [tool.setuptools.exclude-package-data]
-"*" = ["*.pyc", "*.pyo", "*.pyd", "__pycache__"]
+"*" = [
+    "*.pyc", "*.pyo", "*.pyd", "__pycache__",
+    "tests/*",
+    ".github/*",
+    ".coverage",
+    "htmlcov/*",
+    ".pytest_cache/*",
+    ".mypy_cache/*",
+    "build/*", "dist/*", "*.egg-info"
+]

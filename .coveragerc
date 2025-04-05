@@ -1,0 +1,26 @@
+[run]
+source = llmshield
+omit =
+    tests/*
+    venv/*
+    setup.py
+    */__init__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    @abstract
+    @property
+
+show_missing = True
+skip_covered = True
+precision = 2
+fail_under = 90.0
+
+# Add column settings for better terminal output
+format = text
+width = 120

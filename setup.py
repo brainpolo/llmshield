@@ -1,3 +1,7 @@
+"""
+Setup configuration for llmshield package.
+"""
+
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -11,6 +15,8 @@ setup(
         "dev": [
             "black>=22.0.0",
             "isort>=5.0.0",
+            "pylint>=3.3.6",
+            "coverage>=7.8.0",
             "build>=1.2.2",
             "packaging>=24.2",
             "pyproject_hooks>=1.2.0",
@@ -34,9 +40,6 @@ setup(
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -45,5 +48,5 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     # Requirements
-    python_requires=">=3.7",
+    python_requires='>=3.10',
 )

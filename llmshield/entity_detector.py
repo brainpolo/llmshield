@@ -1,20 +1,21 @@
 """
 Module for detecting and classifying different types of entities in text.
 
-@see matchers.py for the list of matchers used to detect entities.
+Uses a combination of rule-based and pattern-based approaches with:
+- Regex patterns for structured data (emails, URLs, etc.)
+- Dictionary lookups for known entities (cities, countries, organizations)
+- Heuristic rules for proper nouns and other entities
 """
 
 
+import re
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from importlib import resources
 
 
 ENT_REPLACEMENT = "\n" # Use to void overlap with another entity
-
-CITY_RELATIVE_PATH = "llmshield/matchers/dicts/cities.txt"
-COUNTRY_RELATIVE_PATH = "llmshield/matchers/dicts/countries.txt"
-ORGANISATION_RELATIVE_PATH = "llmshield/matchers/dicts/organisations.txt"
 
 SPACE = " "
 
@@ -137,26 +138,24 @@ class EntityDetector:
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt"""
-        with open(CITY_RELATIVE_PATH, "r") as f:
+        with resources.files('llmshield.matchers.dicts').joinpath('cities.txt').open('r') as f:
             return [city.strip() for city in f.read().splitlines() if city.strip()]
 
     @staticmethod
     def _load_countries() -> list[str]:
         """Load countries from lists/countries.txt"""
-        with open(COUNTRY_RELATIVE_PATH, "r") as f:
+        with resources.files('llmshield.matchers.dicts').joinpath('countries.txt').open('r') as f:
             return [country.strip() for country in f.read().splitlines() if country.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
         """Load organisations from lists/organisations.txt"""
-        with open(ORGANISATION_RELATIVE_PATH, "r") as f:
-            # Filter out empty lines and strip whitespace
+        with resources.files('llmshield.matchers.dicts').joinpath('organisations.txt').open('r') as f:
             return [org.strip() for org in f.read().splitlines() if org.strip()]
 
 
     def detect_entities(self, text: str) -> set[Entity]:
         """Main entry point for entity detection using waterfall methodology."""
-
         detection_methods = [
             (self._detect_locators, EntityGroup.LOCATOR),
             (self._detect_numbers, EntityGroup.NUMBER),
@@ -166,11 +165,8 @@ class EntityDetector:
         entities: set[Entity] = set()
         working_text: str = text
 
-        for method, group in detection_methods:
+        for method, _ in detection_methods:  # Use _ for unused group variable
             new_entities, working_text = method(working_text)
-
-            # Remove this filtering - all PNOUN types (PERSON, ORGANISATION, PLACE)
-            # belong to EntityGroup.PNOUN
             entities.update(new_entities)
 
         return entities
@@ -205,37 +201,57 @@ class EntityDetector:
     def _collect_proper_nouns(self, text: str) -> list[str]:
         """
         Collect sequential proper nouns from text.
-
-        Modified to allow honorifics (e.g. "Dr." or "Mr.") to be part of the proper noun,
-        even if they contain punctuation. The idea is that "Dr. John Doe" is collected as one phrase.
         """
         sequential_pnouns = []
         normalised_text = self.normalise_spaces(text)
         fragments = self.split_fragments(normalised_text)
 
         for fragment in fragments:
+            # Split on common contractions first
+            for split_word in ["I'm", "I've", "I'll"]:
+                if split_word in fragment:
+                    fragment = fragment.replace(split_word, f"{split_word} ")
+
             fragment_words = fragment.split(SPACE)
             pending_p_noun = ""
-            for word in fragment_words:
-                if not word:
-                    continue  # Skip empty words
+            skip_next = False
 
-                # Normalize the word (remove common punctuation) for honorific comparison.
+            for i, word in enumerate(fragment_words):
+                if skip_next:
+                    skip_next = False
+                    continue
+
+                if not word:
+                    continue
+
+                # Skip personal pronouns and their contractions
+                if word in {"I'm", "I've", "I'll", "I"}:
+                    if pending_p_noun:
+                        sequential_pnouns.append(pending_p_noun.strip())
+                        pending_p_noun = ""
+                    continue
+
+                # Look ahead for potential name after "I'm", etc.
+                if i < len(fragment_words) - 1 and word in {"I'm", "I've", "I'll"}:
+                    next_word = fragment_words[i + 1]
+                    if next_word[0].isupper():
+                        pending_p_noun = next_word
+                        skip_next = True
+                    continue
+
                 normalized_word = word.strip(".,!?;:")
                 is_honorific = normalized_word in self.en_person_initials
                 is_capitalised = word and word[0].isupper()
-                is_digit = word.isdigit()
-                # For punctuation, allow a dot if it's part of an honorific.
-                # Otherwise, treat the word as punctuation if it contains any disallowed symbol.
-                if is_honorific or (not any(c in word for c in self.en_punctuation if c != ".") and (is_digit or is_capitalised)):
+
+                if is_honorific or (not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised):
                     pending_p_noun = (pending_p_noun + SPACE + word if pending_p_noun else word)
                 elif pending_p_noun:
                     sequential_pnouns.append(pending_p_noun.strip())
                     pending_p_noun = ""
+
             if pending_p_noun:
                 sequential_pnouns.append(pending_p_noun.strip())
 
-        # Sort by length (longest first) so that longer sequences get priority during replacement.
         return sorted([p for p in sequential_pnouns if p], key=len, reverse=True)
 
     def _clean_person_name(self, p_noun: str) -> str:
@@ -251,7 +267,7 @@ class EntityDetector:
             return " ".join(words[1:]).strip()
         return p_noun
 
-    def _classify_proper_noun(self, p_noun: str) -> Optional[tuple[str, EntityType]]:
+    def _classify_proper_noun(self, p_noun: str) -> tuple[str, EntityType] | None:
         """
         Classify a proper noun into its entity type, and clean it if necessary.
 
@@ -299,6 +315,19 @@ class EntityDetector:
         """Check if proper noun is an organization."""
         # Case-insensitive check for organization names
         p_noun_lower = p_noun.lower()
+
+        # Add checks for organizations with numbers
+        if any(char.isdigit() for char in p_noun):
+            # Check if it matches known patterns like "3M", "7-Eleven"
+            if re.match(r'^\d+[A-Z].*|.*-.*\d+.*', p_noun):
+                return True
+
+        # Check for multi-word organizations like "New York Times"
+        if len(p_noun.split()) > 2:
+            last_word = p_noun.split()[-1]
+            if last_word in {"Times", "News", "Corporation", "Inc", "Corp", "Co"}:
+                return True
+
         return (
             any(org.lower() == p_noun_lower for org in self.organisations) or
             any(comp in p_noun for comp in self.en_org_components)
@@ -312,34 +341,49 @@ class EntityDetector:
                 any(comp in p_noun.split() for comp in self.en_place_components))
 
     def _is_person(self, p_noun: str) -> bool:
-        """
-        Check if the given proper noun qualifies as a person.
-        The function first checks against common words, then cleans the name
-        (removing a leading honorific) and applies simple heuristics
-        (e.g. no digits, limited disallowed punctuation).
-        """
-        # First check: reject common words (case-insensitive)
-        if any(word.lower() in (w.lower() for w in self.en_common_words)
-               for word in p_noun.split()):
+        """Check if proper noun is a person."""
+        words = p_noun.split()
+
+        # Handle possessives
+        words = [w.rstrip("'s") for w in words]
+
+        # Must have at least one word after cleaning
+        if not words:
             return False
 
-        # Reject if any digit is present
-        if any(char.isdigit() for char in p_noun):
+        # Skip honorifics at start
+        if words[0].strip(".,!?;:") in self.en_person_initials:
+            words = words[1:]
+
+        # Must have remaining words after removing honorifics
+        if not words:
             return False
 
-        # Allow a dot (.) as it may be part of an honorific. All other punctuation is forbidden.
-        forbidden_punct = set(self.en_punctuation) - {'.'}
-        if any(c in p_noun for c in forbidden_punct):
-            return False
+        # Check each word
+        for word in words:
+            clean_word = word.strip(".,!?;:")
 
-        # Use the cleaned version (without honorific) for further checks
-        cleaned = self._clean_person_name(p_noun)
-        words = cleaned.split()
+            # Skip empty words
+            if not clean_word:
+                continue
 
-        # Basic policy: if at least one word remains, consider it valid
-        if words:
-            return True
-        return False
+            # Allow hyphenated names
+            if '-' in clean_word:
+                parts = clean_word.split('-')
+                if not all(part and part[0].isupper() for part in parts):
+                    return False
+                continue
+
+            # Each word must:
+            # 1. Start with capital letter
+            # 2. Not be in common words
+            # 3. Not contain digits
+            if (not clean_word[0].isupper() or
+                clean_word.lower() in (w.lower() for w in self.en_common_words) or
+                any(c.isdigit() for c in clean_word)):
+                return False
+
+        return True
 
     def _detect_numbers(self, text: str) -> tuple[set[Entity], str]:
         """Detect numbers in the text"""

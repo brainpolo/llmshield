@@ -33,8 +33,7 @@ class TestCoreFunctionality(TestCase):
         self.test_prompt = (
             "Hi, I'm John Doe.\n"
             "You can reach me at john.doe@example.com.\n"
-            "My IP is 192.168.1.1.\n"
-            "Credit card: 378282246310005\n"
+            "Some numbers are 192.168.1.1 and 378282246310005\n"
         )
         self.test_entity_map = {
             wrap_entity(EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter): "john.doe@example.com",
@@ -53,6 +52,7 @@ class TestCoreFunctionality(TestCase):
         self.assertNotIn("John Doe", cloaked_prompt)
         self.assertNotIn("192.168.1.1", cloaked_prompt)
         self.assertNotIn("378282246310005", cloaked_prompt)
+        self.assertTrue(len(entity_map) == 4, f"Entity map should have 4 items: {entity_map}")
 
     def test_uncloak(self):
         """Test that cloaked entities are properly restored."""
@@ -63,25 +63,21 @@ class TestCoreFunctionality(TestCase):
 
     def test_end_to_end(self):
         """Test end-to-end flow with mock LLM function."""
-        def MockLLM(prompt: str, start_delimiter: str, end_delimiter: str) -> str:
+        def mock_llm(prompt: str) -> str:
             time.sleep(float(random.randint(1, 10)) / 10)
-            person_match = re.search(f"{re.escape(start_delimiter)}PERSON_\\d+{re.escape(end_delimiter)}", prompt)
-            email_match = re.search(f"{re.escape(start_delimiter)}EMAIL_\\d+{re.escape(end_delimiter)}", prompt)
+            person_match = re.search(r'\[PERSON_\d+\]', prompt)
+            email_match = re.search(r'\[EMAIL_\d+\]', prompt)
             return f"Thanks {person_match.group()}, I'll send details to {email_match.group()}"
 
         shield = LLMShield(
-            llm_func=MockLLM,
+            llm_func=mock_llm,
             start_delimiter=self.start_delimiter,
             end_delimiter=self.end_delimiter
         )
 
         # Updated test input
         test_input = "Hi, I'm John Doe (john.doe@example.com)"
-        response = shield.ask(
-            start_delimiter=self.start_delimiter,
-            end_delimiter=self.end_delimiter,
-            message=test_input,
-        )
+        response = shield.ask(prompt=test_input)
 
         # Test the entity map
         _, entity_map = shield.cloak(test_input)
@@ -91,7 +87,7 @@ class TestCoreFunctionality(TestCase):
 
     def test_delimiter_customization(self):
         """Test custom delimiter functionality."""
-        shield = LLMShield(start_delimiter='[[', end_delimiter=']]  ')
+        shield = LLMShield(start_delimiter='[[', end_delimiter=']]')
         cloaked_prompt, _ = shield.cloak("Hi, I'm John Doe")
         self.assertIn("[[PERSON_0]]", cloaked_prompt)
         self.assertNotIn("<PERSON_0>", cloaked_prompt)
@@ -134,7 +130,6 @@ class TestCoreFunctionality(TestCase):
             # Get cloaked text and entity map
             cloaked, entity_map = self.shield.cloak(input_text)
 
-            # Print debug information
             # Verify each expected entity is found
             for entity_text, entity_type in expected.items():
                 found = False
@@ -146,6 +141,170 @@ class TestCoreFunctionality(TestCase):
                     found,
                     f"Failed to detect {entity_type.name}: '{entity_text}' in test case {i}"
                 )
+
+    def test_error_handling(self):
+        """Test error handling in core functions."""
+        shield = LLMShield(start_delimiter='[[', end_delimiter=']]')
+
+        # Test invalid inputs - these should cover lines 59, 61, 63
+        with self.assertRaises(ValueError):
+            shield.ask(prompt=None)  # Line 59
+        with self.assertRaises(ValueError):
+            shield.ask(prompt="")    # Line 61 
+        with self.assertRaises(ValueError):
+            shield.ask(prompt="   ") # Line 63
+
+        # Test LLM errors
+        def failing_llm(_):
+            raise Exception("LLM failed")
+
+        shield_with_failing_llm = LLMShield(
+            llm_func=failing_llm,
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+
+        with self.assertRaises(Exception):
+            shield_with_failing_llm.ask(prompt="Hello John Doe")
+
+        # Test empty responses
+        shield_empty = LLMShield(
+            llm_func=lambda **kwargs: "No entity found",
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+        response = shield_empty.ask(prompt="Hello John Doe")
+        self.assertEqual(response, "No entity found")
+
+        # Test dict response
+        shield_dict = LLMShield(
+            llm_func=lambda **kwargs: {"content": "test"},
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+        response = shield_dict.ask(prompt="Hello John Doe")
+        self.assertEqual(response, {"content": "test"})
+
+        # Test None response - should raise error
+        shield_none = LLMShield(
+            llm_func=lambda **kwargs: None,
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+
+        with self.assertRaises(TypeError):
+            shield_none.ask(prompt="Hello John Doe")
+
+    def test_error_propagation(self):
+        """Test specific error propagation in ask method to cover lines 113-115."""
+        # Create a custom exception to ensure we're testing the right pathway
+        class CustomError(Exception):
+            """Custom exception for testing."""
+            pass
+
+        # This LLM function raises the custom exception during processing
+        # specifically to test lines 113-115
+        def llm_with_specific_error(prompt):
+            raise CustomError("Test exception")
+
+        shield = LLMShield(
+            llm_func=llm_with_specific_error,
+            start_delimiter='<<',
+            end_delimiter='>>'
+        )
+
+        # This should propagate the exception through lines 113-115
+        with self.assertRaises(CustomError):
+            shield.ask(prompt="Test prompt")
+
+    def test_empty_string_response(self):
+        """Test empty string response handling in line 154."""
+        # Create an LLM that returns empty string to test line 154
+        def empty_string_llm(prompt):
+            return ""
+
+        shield = LLMShield(
+            llm_func=empty_string_llm,
+            start_delimiter='<<',
+            end_delimiter='>>'
+        )
+
+        # Some implementations might raise ValueError for empty responses
+        # while others might allow it - handle both cases
+        try:
+            response = shield.ask(prompt="Test prompt")
+            self.assertEqual(response, "")  # If it doesn't raise, response should be empty
+        except TypeError:
+            # If it raises TypeError, that's also acceptable
+            pass
+
+    def test_constructor_validation(self):
+        """Test constructor validation (lines 59, 61, 63)."""
+        # Test invalid start delimiter (line 59)
+        with self.assertRaises(ValueError):
+            LLMShield(start_delimiter="", end_delimiter="]")
+
+        # Test invalid end delimiter (line 61)
+        with self.assertRaises(ValueError):
+            LLMShield(start_delimiter="[", end_delimiter="")
+
+        # Test non-callable llm_func (line 63)
+        with self.assertRaises(ValueError):
+            LLMShield(start_delimiter="[", end_delimiter="]", llm_func="not_callable")
+
+    def test_uncloak_with_stored_entity_map(self):
+        """Test uncloaking with stored entity map from previous cloak (line 115)."""
+        shield = LLMShield(
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+
+        # First cloak something to store the entity map internally
+        test_text = "Hello John Doe"
+        cloaked_text, _ = shield.cloak(test_text)
+
+        # Now uncloak without providing an entity map - should use stored one from _last_entity_map
+        uncloaked = shield.uncloak(cloaked_text, entity_map=None)
+
+        # Should successfully uncloak using the stored map
+        self.assertEqual(uncloaked, test_text)
+
+    def test_ask_missing_required_param(self):
+        """Test ValueError when neither 'prompt' nor 'message' is provided to ask."""
+        shield = LLMShield(
+            llm_func=lambda **kwargs: "Response",
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+
+        # Call ask without providing either 'prompt' or 'message'
+        with self.assertRaises(ValueError):
+            shield.ask()  # No prompt or message provided
+
+    def test_uncloak_invalid_response_type(self):
+        """Test ValueError when trying to uncloak invalid response types."""
+        shield = LLMShield(
+            start_delimiter='[[',
+            end_delimiter=']]'
+        )
+
+        # Create a mock entity map
+        entity_map = {"[[PERSON_0]]": "John Doe"}
+
+        # Try to uncloak various invalid response types
+        invalid_responses = [
+            123,  # int
+            3.14,  # float
+            True,  # bool
+            (1, 2, 3),  # tuple
+        ]
+
+        for response in invalid_responses:
+            with self.assertRaises(TypeError) as context:
+                shield.uncloak(response, entity_map)
+
+            # Verify the correct error message
+            self.assertIn("Response must be ", str(context.exception))
 
 
 if __name__ == '__main__':

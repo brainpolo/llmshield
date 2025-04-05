@@ -91,7 +91,6 @@ shield = LLMShield(llm_func=your_llm_function)
 - Officially supports English and Spanish texts only.
 - May work with other languages with lower accuracy and potential PII leakage.
 
-
 ## Support
 
 - GitHub Issues: [Report bugs or request features](https://github.com/yourusername/llmshield/issues)
@@ -105,7 +104,22 @@ Contributions are welcome! Please follow these guidelines:
    - Isort
    - Markdownlint
 
-1. **Code Quality and Formatting Guidelines**:
+1. **Getting Started**:
+
+   - Ensure you have a virtual environment with Python 3.7+
+   - Install all development dependencies:
+
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+   - Install other dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Code Quality and Formatting Guidelines**:
    - Follow black and isort rules
    - Add tests for new features
    - Do not break existing tests (unless justifying the change)
@@ -125,16 +139,16 @@ Contributions are welcome! Please follow these guidelines:
 
 4. **Build for development**
 
-```bash
-pip install -e ".[dev]"
-```
+   ```bash
+   pip install -e ".[dev]"
+   ```
 
 5. **Build and publish**
 
-```bash
-python -m build
-python -m twine upload dist/*
-```
+   ```bash
+   python -m build
+   python -m twine upload dist/*
+   ```
 
 Note: You will need to have a PyPI account and be authenticated.
 
