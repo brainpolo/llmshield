@@ -36,12 +36,20 @@ class TestCoreFunctionality(TestCase):
             "Some numbers are 192.168.1.1 and 378282246310005\n"
         )
         self.test_entity_map = {
-            wrap_entity(EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter): "john.doe@example.com",
-            wrap_entity(EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter): "John Doe",
-            wrap_entity(EntityType.IP_ADDRESS, 0, self.start_delimiter, self.end_delimiter): "192.168.1.1",
-            wrap_entity(EntityType.CREDIT_CARD, 0, self.start_delimiter, self.end_delimiter): "378282246310005"
+            wrap_entity(EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter):
+                "john.doe@example.com",
+            wrap_entity(EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter):
+                "John Doe",
+            wrap_entity(EntityType.IP_ADDRESS, 0, self.start_delimiter, self.end_delimiter):
+                "192.168.1.1",
+            wrap_entity(EntityType.CREDIT_CARD, 0, self.start_delimiter, self.end_delimiter):
+                "378282246310005"
         }
-        self.test_llm_response = "Thanks " + self.test_entity_map[wrap_entity(EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter)] + ", I'll send details to " + self.test_entity_map[wrap_entity(EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter)]
+        self.test_llm_response = "Thanks " + self.test_entity_map[
+            wrap_entity(EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter)
+        ] + ", I'll send details to " + self.test_entity_map[
+            wrap_entity(EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter)
+        ]
 
     def test_cloak_sensitive_info(self):
         """Test that sensitive information is properly cloaked."""
@@ -79,8 +87,8 @@ class TestCoreFunctionality(TestCase):
         test_input = "Hi, I'm John Doe (john.doe@example.com)"
         response = shield.ask(prompt=test_input)
 
-        # Test the entity map
-        _, entity_map = shield.cloak(test_input)
+        # Test the entity map - use _ for intentionally unused variable
+        _, _ = self.shield.cloak(test_input)
 
         self.assertIn("John Doe", response)
         self.assertIn("john.doe@example.com", response)
@@ -127,7 +135,7 @@ class TestCoreFunctionality(TestCase):
             input_text = test_case["input"]
             expected = test_case["expected_entities"]
 
-            # Get cloaked text and entity map
+            # Get cloaked text and entity map - use the result to verify entities
             cloaked, entity_map = self.shield.cloak(input_text)
 
             # Verify each expected entity is found
@@ -150,13 +158,13 @@ class TestCoreFunctionality(TestCase):
         with self.assertRaises(ValueError):
             shield.ask(prompt=None)  # Line 59
         with self.assertRaises(ValueError):
-            shield.ask(prompt="")    # Line 61 
+            shield.ask(prompt="")    # Line 61
         with self.assertRaises(ValueError):
             shield.ask(prompt="   ") # Line 63
 
         # Test LLM errors
-        def failing_llm(_):
-            raise Exception("LLM failed")
+        def failing_llm(**kwargs):
+            raise ValueError("LLM failed")  # Use specific exception type
 
         shield_with_failing_llm = LLMShield(
             llm_func=failing_llm,
@@ -164,7 +172,7 @@ class TestCoreFunctionality(TestCase):
             end_delimiter=']]'
         )
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             shield_with_failing_llm.ask(prompt="Hello John Doe")
 
         # Test empty responses
@@ -204,7 +212,7 @@ class TestCoreFunctionality(TestCase):
 
         # This LLM function raises the custom exception during processing
         # specifically to test lines 113-115
-        def llm_with_specific_error(prompt):
+        def llm_with_specific_error(**kwargs):  # Accept keyword arguments
             raise CustomError("Test exception")
 
         shield = LLMShield(
@@ -220,7 +228,7 @@ class TestCoreFunctionality(TestCase):
     def test_empty_string_response(self):
         """Test empty string response handling in line 154."""
         # Create an LLM that returns empty string to test line 154
-        def empty_string_llm(prompt):
+        def empty_string_llm(_):  # Use _ for unused parameter
             return ""
 
         shield = LLMShield(
@@ -236,7 +244,8 @@ class TestCoreFunctionality(TestCase):
             self.assertEqual(response, "")  # If it doesn't raise, response should be empty
         except TypeError:
             # If it raises TypeError, that's also acceptable
-            pass
+            # No need for pass statement, the comment explains what's happening
+            self.assertTrue(True)
 
     def test_constructor_validation(self):
         """Test constructor validation (lines 59, 61, 63)."""

@@ -60,10 +60,10 @@ IP_ADDRESS_PATTERN = re.compile(
 # - https://my-site.org/path?query=value
 # - http://domain.anything/path#fragment
 URL_PATTERN = re.compile(
-    r'(?:https?://)'                           # Protocol (required)
-    r'(?:[\w-]+\.)*[\w-]+\.'                  # Domain name
-    r'[\w-]+'                                 # TLD
-    r'(?:/[^\s]*)?'                           # Path (optional)
+    r'(?:https?://)'  # Protocol (required)
+    r'(?:[\w-]+\.)*[\w-]+\.'  # Domain name
+    r'[\w-]+'  # TLD
+    r'(?:/[^\s]*)?'  # Path (optional)
 )
 
 # * PHONE NUMBER
@@ -72,12 +72,12 @@ URL_PATTERN = re.compile(
 # - US styles like "123-456-7890", "(123) 456-7890"
 # - International numbers like "+44 (123) 456-7890", "+44 84491234567"
 PHONE_NUMBER_PATTERN = re.compile(
-    r'(?<!\d)'                  # Negative lookbehind: ensure no digit immediately precedes.
-    r'('                        # Capture the entire phone number.
-    r'(?:(?:\+?\d{1,3}[-.\s]*)?' # Optional country code (with optional '+' and separator).
-    r'(?:\(?\d{3}\)?[-.\s]*\d{3}[-.\s]*\d{4}))'   # US/strict format: 3-3-4 (area code may be parenthesized).
-    r'|'                        # OR
-    r'(?:\+\d{1,3}[-.\s]*(?:\d[-.\s]*){7,14}\d)'   # International format: requires a leading '+' and 8 to 15 digits.
+    r'(?<!\d)'  # Negative lookbehind: ensure no digit immediately precedes.
+    r'('  # Capture the entire phone number.
+    r'(?:(?:\+?\d{1,3}[-.\s]*)?'  # Optional country code (with optional '+' and separator).
+    r'(?:\(?\d{3}\)?[-.\s]*\d{3}[-.\s]*\d{4}))'  # US/strict format: 3-3-4 (area code may be parenthesized).
+    r'|'  # OR
+    r'(?:\+\d{1,3}[-.\s]*(?:\d[-.\s]*){7,14}\d)'  # International format: requires a leading '+' and 8 to 15 digits.
     r')'
-    r'(?!\d)'                   # Negative lookahead: ensure no digit immediately follows.
+    r'(?!\d)'  # Negative lookahead: ensure no digit immediately follows.
 )

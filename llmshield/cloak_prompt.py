@@ -12,6 +12,7 @@ from .entity_detector import Entity, EntityDetector
 from .utils import wrap_entity
 
 
+# pylint: disable=too-many-locals
 def _cloak_prompt(prompt: str, start_delimiter: str, end_delimiter: str) -> tuple[str, dict]:
     """
     Rewritten cloaking function:

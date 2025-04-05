@@ -1,6 +1,4 @@
-"""
-Tests for regex pattern matching functionality.
-"""
+"""Tests for regex pattern matching functionality."""
 
 from unittest import TestCase
 
@@ -155,4 +153,5 @@ class TestRegexMatchers(TestCase):
 
 
 if __name__ == '__main__':
-    TestCase.main(verbosity=2)
+    import unittest
+    unittest.main(verbosity=2)

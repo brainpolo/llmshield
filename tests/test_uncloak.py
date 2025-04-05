@@ -1,5 +1,6 @@
 """Tests for response uncloaking."""
 
+
 from unittest import TestCase
 from llmshield import LLMShield
 
@@ -130,7 +131,7 @@ class TestUncloak(TestCase):
         }
 
         # Apply uncloaking
-        uncloaked = self.shield.uncloak(structured_response, entity_map)
+        uncloaked = shield.uncloak(structured_response, entity_map)
 
         # Verify all levels are uncloaked
         self.assertEqual(uncloaked["answer"], "My name is John Doe and I work at Acme Inc")
@@ -138,6 +139,7 @@ class TestUncloak(TestCase):
         self.assertEqual(uncloaked["metadata"]["entities"]["org"], "Acme Inc")
         self.assertEqual(uncloaked["metadata"]["entities"]["location"]["address"], "123 Main St, New York")
         self.assertEqual(uncloaked["metadata"]["entities"]["location"]["coordinates"], "192.168.1.1")
+
 
 if __name__ == '__main__':
     import unittest

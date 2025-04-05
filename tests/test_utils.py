@@ -8,7 +8,6 @@ Tests for utility functions in llmshield.utils
 import unittest
 
 from llmshield.utils import is_valid_delimiter, wrap_entity
-from llmshield.entity_detector import EntityType
 
 
 class TestUtils(unittest.TestCase):
@@ -35,6 +34,8 @@ class TestUtils(unittest.TestCase):
 
     def test_wrap_entity(self):
         """Test entity wrapping function."""
+        from llmshield.entity_detector import EntityType
+
         # Test with different entity types
         self.assertEqual(
             wrap_entity(EntityType.PERSON, 0, '[', ']'),
@@ -50,7 +51,6 @@ class TestUtils(unittest.TestCase):
             wrap_entity(EntityType.PHONE_NUMBER, 2, '[[', ']]'),
             '[[PHONE_NUMBER_2]]'
         )
-
 
 
 if __name__ == '__main__':

@@ -1,11 +1,13 @@
 """Tests for entity detection and classification."""
 
+
 import unittest
-from llmshield.entity_detector import EntityDetector, EntityType, EntityGroup, Entity
+from llmshield.entity_detector import EntityDetector, EntityType, EntityGroup
 
 
 class TestEntityDetector(unittest.TestCase):
     """Test suite for EntityDetector class."""
+    # pylint: disable=protected-access  # Testing internal methods requires access to protected members
 
     def setUp(self):
         """Initialize detector for each test."""
@@ -38,7 +40,7 @@ class TestEntityDetector(unittest.TestCase):
         # Test when word is a contraction
         text = "I'll be there. I'm John. I've got Smith."
         proper_nouns = self.detector._collect_proper_nouns(text)
-        
+
         # Verify contractions are handled and proper nouns are collected
         self.assertIn("John", proper_nouns)
         # Handle potential punctuation
@@ -54,7 +56,7 @@ class TestEntityDetector(unittest.TestCase):
         # Test honorific-specific handling
         text = "Dr. Jane and Mr. Smith"
         proper_nouns = self.detector._collect_proper_nouns(text)
-        
+
         # Test what's actually being collected - honorifics and names as separate tokens
         self.assertIn("Jane", proper_nouns)
         self.assertIn("Smith", proper_nouns)
@@ -65,16 +67,16 @@ class TestEntityDetector(unittest.TestCase):
         """Test honorific handling in person detection."""
         # Test with individual names to verify proper classification
         test_names = [
-            "Dr. Jane", 
-            "Prof. Robert", 
+            "Dr. Jane",
+            "Prof. Robert",
             "Mr. William"
         ]
-        
+
         for name in test_names:
             result = self.detector._classify_proper_noun(name)
             self.assertIsNotNone(result, f"Failed to classify {name}")
             cleaned_value, entity_type = result
-            
+
             # Check that honorific is removed and entity type is PERSON
             self.assertEqual(entity_type, EntityType.PERSON)
             self.assertNotIn("Dr.", cleaned_value)
@@ -86,7 +88,7 @@ class TestEntityDetector(unittest.TestCase):
         # Test empty string
         result = self.detector._classify_proper_noun("")
         self.assertIsNone(result)
-        
+
         # Test None input
         result = self.detector._classify_proper_noun(None)
         self.assertIsNone(result)
@@ -96,7 +98,7 @@ class TestEntityDetector(unittest.TestCase):
         # Test numeric organizations
         self.assertTrue(self.detector._is_organization("3M"))
         self.assertTrue(self.detector._is_organization("7-Eleven"))
-        
+
         # Test multi-word organizations
         self.assertTrue(self.detector._is_organization("New York Times"))
         self.assertTrue(self.detector._is_organization("International Business Machines Corporation"))
@@ -111,7 +113,7 @@ class TestEntityDetector(unittest.TestCase):
         # Line 301 - place component in word
         custom_place = "Washington Street"
         self.assertTrue(self.detector._is_place(custom_place))
-        
+
         # Ensure non-places aren't detected
         self.assertFalse(self.detector._is_place("Not A Place"))
 
@@ -119,16 +121,16 @@ class TestEntityDetector(unittest.TestCase):
         """Test person detection edge cases."""
         # Empty input
         self.assertFalse(self.detector._is_person(""))
-        
+
         # Just honorific - adjust to match implementation
         honorific_only = "Mr."
         cleaned = self.detector._clean_person_name(honorific_only)
         self.assertEqual(cleaned, honorific_only)  # Honorific remains if alone
-        
+
         # Hyphenated names
         self.assertTrue(self.detector._is_person("John-Paul"))
         self.assertFalse(self.detector._is_person("not-Capitalized"))
-        
+
         # Names with possessives
         self.assertTrue(self.detector._is_person("John's"))
 
@@ -152,10 +154,11 @@ class TestEntityDetector(unittest.TestCase):
         text = "Call me at +1 (555) 123-4567"
         entities, _ = self.detector._detect_numbers(text)
         self.assertEqual(len([e for e in entities if e.type == EntityType.PHONE_NUMBER]), 1)
-        self.assertEqual(
-            next(e.value for e in entities if e.type == EntityType.PHONE_NUMBER),
-            "+1 (555) 123-4567"
-        )
+        try:
+            phone_number = next(e.value for e in entities if e.type == EntityType.PHONE_NUMBER)
+            self.assertEqual(phone_number, "+1 (555) 123-4567")
+        except StopIteration:
+            self.fail("No phone number entity found")
 
     def test_detect_locators_empty(self):
         """Test locator detection with empty input."""
@@ -166,4 +169,5 @@ class TestEntityDetector(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main() 
+    unittest.main()
+
