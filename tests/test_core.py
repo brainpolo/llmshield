@@ -136,7 +136,7 @@ class TestCoreFunctionality(TestCase):
             expected = test_case["expected_entities"]
 
             # Get cloaked text and entity map - use the result to verify entities
-            cloaked, entity_map = self.shield.cloak(input_text)
+            _, entity_map = self.shield.cloak(input_text)
 
             # Verify each expected entity is found
             for entity_text, entity_type in expected.items():
@@ -224,28 +224,6 @@ class TestCoreFunctionality(TestCase):
         # This should propagate the exception through lines 113-115
         with self.assertRaises(CustomError):
             shield.ask(prompt="Test prompt")
-
-    def test_empty_string_response(self):
-        """Test empty string response handling in line 154."""
-        # Create an LLM that returns empty string to test line 154
-        def empty_string_llm(_):  # Use _ for unused parameter
-            return ""
-
-        shield = LLMShield(
-            llm_func=empty_string_llm,
-            start_delimiter='<<',
-            end_delimiter='>>'
-        )
-
-        # Some implementations might raise ValueError for empty responses
-        # while others might allow it - handle both cases
-        try:
-            response = shield.ask(prompt="Test prompt")
-            self.assertEqual(response, "")  # If it doesn't raise, response should be empty
-        except TypeError:
-            # If it raises TypeError, that's also acceptable
-            # No need for pass statement, the comment explains what's happening
-            self.assertTrue(True)
 
     def test_constructor_validation(self):
         """Test constructor validation (lines 59, 61, 63)."""

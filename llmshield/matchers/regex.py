@@ -1,6 +1,5 @@
-"""
-List of regex-based matchers used to detect entities.
-"""
+"""List of regex-based matchers used to detect entities."""
+
 
 import re
 
