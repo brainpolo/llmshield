@@ -23,4 +23,3 @@ fail_under = 90.0
 
 # Add column settings for better terminal output
 format = text
-width = 120

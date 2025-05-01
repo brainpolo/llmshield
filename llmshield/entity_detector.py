@@ -205,7 +205,6 @@ class EntityDetector:
         """
         Collect sequential proper nouns from text.
         """
-
         sequential_pnouns = []
         normalised_text = self.normalise_spaces(text)
         fragments = self.split_fragments(normalised_text)

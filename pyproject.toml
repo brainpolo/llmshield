@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.5"
+version = "0.0.6"
 description = "Shields your confidential data from third party LLM providers"
 readme = "README.md"
 authors = [{ name = "Aditya Dedhia", email = "adityadedhia@hey.com" }]
@@ -41,4 +41,16 @@ packages = [
     ".pytest_cache/*",
     ".mypy_cache/*",
     "build/*", "dist/*", "*.egg-info"
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "pylint>=3.3.6",
+    "coverage>=7.8.0",
+    "build>=1.2.2",
+    "packaging>=24.2",
+    "pyproject_hooks>=1.2.0",
+    "setuptools>=75.8.0",
 ]

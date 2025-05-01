@@ -86,7 +86,7 @@ shield = LLMShield(llm_func=your_llm_function)
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.10+
 - No additional dependencies
 - Officially supports English and Spanish texts only.
 - May work with other languages with lower accuracy and potential PII leakage.
@@ -100,48 +100,54 @@ shield = LLMShield(llm_func=your_llm_function)
 Contributions are welcome! Please follow these guidelines:
 
 0. **Recommended IDE Development Packages**:
+
    - Black
    - Isort
    - Markdownlint
 
 1. **Getting Started**:
 
-   - Ensure you have a virtual environment with Python 3.7+
-   - Install all development dependencies:
+   a. Ensure you have Python 3.10+ installed on your system
+
+   b. Create a virtual environment with Python 3.10+
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+   c. Install the package in development mode with all development dependencies:
 
    ```bash
    pip install -e ".[dev]"
    ```
 
-   - Install other dependencies:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
 2. **Code Quality and Formatting Guidelines**:
+
    - Follow black and isort rules
    - Add tests for new features
    - Do not break existing tests (unless justifying the change)
    - Maintain zero (non-development) dependencies (non-negotiable)
    - Use British English in all naming and documentation
 
-2. **Testing**:
+3. **Testing**:
 
    ```bash
    python -m unittest discover -v
    ```
 
-3. **Documentation**:
+   - Run coverage:
+
+   ```bash
+   coverage run -m unittest discover -v
+   coverage report --fail-under=90
+   ```
+
+4. **Documentation**:
+
    - Update docstrings
    - Keep README.md current
    - Add examples for new features
-
-4. **Build for development**
-
-   ```bash
-   pip install -e ".[dev]"
-   ```
 
 5. **Build and publish**
 

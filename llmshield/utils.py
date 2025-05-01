@@ -20,15 +20,30 @@ class PydanticLike(Protocol):
     either a string, list, dict, or a Pydantic model for LLM responses which
     return structured outputs.
 
+    NOTE: This is not essential for the library, but it is used to provide
+    type-safety for the uncloak function.
+
     Pydantic models have the following methods:
     - model_dump() -> dict
     - model_validate(data: dict) -> Any
     """
 
     def model_dump(self) -> dict: ...
+    """
+    Dump the Pydantic model into a dictionary.
+
+    @return: The dictionary representation of the Pydantic model.
+    """
+
     @classmethod
     def model_validate(cls, data: dict) -> Any: ...
+    """
+    Validate a dictionary against the Pydantic model.
 
+    @param data: The dictionary to validate.
+
+    @return: The validated data.
+    """
 
 def split_fragments(text: str) -> list[str]:
     """Split the text into fragments based on the following rules:
