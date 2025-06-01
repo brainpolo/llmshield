@@ -18,18 +18,17 @@ Example:
     >>> response = shield.uncloak(llm_response, entities)
 """
 
-
 # Python imports
 from typing import Callable, Any
+from collections.abc import Iterator
 
 # Local imports
 from .utils import is_valid_delimiter, PydanticLike
 from .cloak_prompt import _cloak_prompt
 from .uncloak_response import _uncloak_response
 
-
-DEFAULT_START_DELIMITER = '<'
-DEFAULT_END_DELIMITER = '>'
+DEFAULT_START_DELIMITER = "<"
+DEFAULT_END_DELIMITER = ">"
 
 
 class LLMShield:
@@ -46,10 +45,12 @@ class LLMShield:
         >>> original = shield.uncloak(llm_response, entity_map)
     """
 
-    def __init__(self,
-                 start_delimiter: str = DEFAULT_START_DELIMITER,
-                 end_delimiter: str = DEFAULT_END_DELIMITER,
-                 llm_func: Callable[[str], str] | None = None):
+    def __init__(
+        self,
+        start_delimiter: str = DEFAULT_START_DELIMITER,
+        end_delimiter: str = DEFAULT_END_DELIMITER,
+        llm_func: Callable[[str], str] | None = None,
+    ):
         """
         Initialise LLMShield.
 
@@ -80,18 +81,17 @@ class LLMShield:
         Returns:
             Tuple of (cloaked_prompt, entity_mapping)
         """
+
         cloaked, entity_map = _cloak_prompt(
-            prompt,
-            self.start_delimiter,
-            self.end_delimiter
+            prompt, self.start_delimiter, self.end_delimiter
         )
         self._last_entity_map = entity_map
         return cloaked, entity_map
 
     def uncloak(
-            self,
-            response: str | list[Any] | dict[str, Any] | PydanticLike,
-            entity_map: dict[str, str] | None = None
+        self,
+        response: str | list[Any] | dict[str, Any] | PydanticLike,
+        entity_map: dict[str, str] | None = None,
     ) -> str | list[Any] | dict[str, Any] | PydanticLike:
         """
         Restore original entities in the LLM response. It supports strings and
@@ -120,11 +120,15 @@ class LLMShield:
             raise ValueError("Response cannot be empty")
 
         if not isinstance(response, (str, list, dict, PydanticLike)):
-            raise TypeError(f"Response must be in [str, list, dict] or a Pydantic model, but got: {type(response)}!")
+            raise TypeError(
+                f"Response must be in [str, list, dict] or a Pydantic model, but got: {type(response)}!"
+            )
 
         if entity_map is None:
             if self._last_entity_map is None:
-                raise ValueError("No entity mapping provided or stored from previous cloak!")
+                raise ValueError(
+                    "No entity mapping provided or stored from previous cloak!"
+                )
             entity_map = self._last_entity_map
 
         if isinstance(response, PydanticLike):
@@ -134,7 +138,25 @@ class LLMShield:
 
         return _uncloak_response(response, entity_map)
 
-    def ask(self, **kwargs) -> str:
+    def _stream_uncloak(
+        self, response_stream: Iterator[str], entity_map: dict[str, str]
+    ) -> Iterator[str]:
+        """
+        Uncloak a streaming response from the LLM.
+        This method is not implemented yet, but should handle
+        streaming responses correctly.
+        
+        Args:
+            response_stream: An iterator yielding chunks of the LLM response.
+            entity_map: Mapping of placeholders to original values.
+        Returns:
+            Iterator[str]: An iterator yielding uncloaked response chunks.
+        Raises:
+            NotImplementedError: This method is not implemented yet.
+        """
+        raise NotImplementedError("Streaming uncloak is not implemented yet.")
+
+    def ask(self, stream: bool, **kwargs) -> str | Iterator[str]:
         """
         Complete end-to-end LLM interaction with automatic protection.
 
@@ -160,7 +182,11 @@ class LLMShield:
         ! The arguments do not have to be in any specific order!
 
         Returns:
-            str: Uncloaked LLM response
+            str: Uncloaked LLM response with original entities restored.
+            Iterator[str]: If stream is True, returns an iterator that yields
+            incremental responses, following the OpenAI Realtime Streaming API.
+
+        ! Regardless of the specific implementation of the LLM Function, whenever the stream parameter is true, the function will return an iterator. !
 
         Raises:
             ValueError: If no LLM function was provided during initialization,
@@ -168,26 +194,31 @@ class LLMShield:
         """
         # * 1. Validate inputs
         if self._llm_func is None:
-            raise ValueError("No LLM function provided. Either provide llm_func in constructor "
-                           "or use cloak/uncloak separately.")
+            raise ValueError(
+                "No LLM function provided. Either provide llm_func in constructor "
+                "or use cloak/uncloak separately."
+            )
 
-        if 'prompt' not in kwargs and 'message' not in kwargs:
+        if "prompt" not in kwargs and "message" not in kwargs:
             raise ValueError("Either 'prompt' or 'message' must be provided!")
 
-
-        if 'prompt' in kwargs and 'message' in kwargs:
-            raise ValueError("Do not provide both 'prompt' and 'message'. Use only 'prompt' "
-                           "parameter - it will be passed to your LLM function.")
+        if "prompt" in kwargs and "message" in kwargs:
+            raise ValueError(
+                "Do not provide both 'prompt' and 'message'. Use only 'prompt' "
+                "parameter - it will be passed to your LLM function."
+            )
 
         # * 2. Get the input text and determine parameter name
-        input_param = 'message' if 'message' in kwargs else 'prompt'
+        input_param = "message" if "message" in kwargs else "prompt"
         input_text = kwargs[input_param]
 
         # * 3. Cloak the input text
         cloaked_text, entity_map = self.cloak(input_text)
 
         # * 4. Pass the cloaked text under the correct parameter name for the LLM function
-        func_preferred_param = 'message' if 'message' in self._llm_func.__code__.co_varnames else 'prompt'
+        func_preferred_param = (
+            "message" if "message" in self._llm_func.__code__.co_varnames else "prompt"
+        )
 
         # Remove the original parameter and add under the LLM's preferred name
         del kwargs[input_param]
@@ -197,4 +228,16 @@ class LLMShield:
         llm_response = self._llm_func(**kwargs)
 
         # * 6. Uncloak and return
+        if stream:
+            # Check if LLM response is actually a generator/iterator and if so,
+            # deal with the streaming case appropriately
+            if hasattr(llm_response, "__iter__") and not isinstance(
+                llm_response, (str, bytes)
+            ):
+                return self._stream_uncloak(llm_response, entity_map)
+
+            # LLM didn't return a generator, we turn the entire response into an iterator
+            return iter([self.uncloak(llm_response, entity_map)])
+
+        # Non-streaming: uncloak complete response
         return self.uncloak(llm_response, entity_map)
