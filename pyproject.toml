@@ -14,7 +14,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
 ]
-license = { file = "LICENSE.txt" }
+license-files = ["LICENSE.txt"]
 keywords = ["llm", "ai", "security", "privacy"]
 requires-python = ">=3.10"
 
@@ -26,6 +26,7 @@ Issues = "https://github.com/brainpolo/llmshield/issues"
 packages = [
     "llmshield",
     "llmshield.matchers",
+    "llmshield.matchers.dicts",
 ]
 
 [tool.setuptools.package-data]
@@ -54,5 +55,7 @@ dev = [
     "packaging>=24.2",
     "pyproject_hooks>=1.2.0",
     "setuptools>=75.8.0",
-    "pdoc>=15.0.3"
+    "sphinx",
+    "myst-parser",
+    "sphinx_rtd_theme"
 ]
