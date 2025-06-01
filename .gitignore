@@ -46,4 +46,4 @@ build/
 *.egg-info/
 
 # Documentation
-docs/_build/
+documentation

@@ -40,7 +40,8 @@ packages = [
     "htmlcov/*",
     ".pytest_cache/*",
     ".mypy_cache/*",
-    "build/*", "dist/*", "*.egg-info"
+    "build/*", "dist/*", "*.egg-info",
+    "Makefile"
 ]
 
 [project.optional-dependencies]
@@ -53,4 +54,5 @@ dev = [
     "packaging>=24.2",
     "pyproject_hooks>=1.2.0",
     "setuptools>=75.8.0",
+    "pdoc>=15.0.3"
 ]
