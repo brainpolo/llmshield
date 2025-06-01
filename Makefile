@@ -34,4 +34,7 @@ coverage:
 build:
 	python -m build 
 
+dev-dependencies:
+	pip install -e ".[dev]"
+
 .PHONY: docs-help generate-docs tests coverage Makefile
