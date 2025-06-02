@@ -20,7 +20,7 @@ from .core import LLMShield
 
 __all__ = ['LLMShield']
 
-def create_shield(**kwargs):
+def create_shield(**kwargs): # type: ignore
     """
     Create a new LLMShield instance with the given configuration.
 
@@ -33,4 +33,4 @@ def create_shield(**kwargs):
     Returns:
         LLMShield instance
     """
-    return LLMShield(**kwargs)
+    return LLMShield(**kwargs) # type: ignore
