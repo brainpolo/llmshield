@@ -19,8 +19,9 @@ Example:
 """
 
 # Python imports
+from ast import Call
 from typing import Callable, Any
-from collections.abc import Iterator
+from collections.abc import Generator
 
 # Local imports
 from .utils import is_valid_delimiter, PydanticLike
@@ -49,7 +50,7 @@ class LLMShield:
         self,
         start_delimiter: str = DEFAULT_START_DELIMITER,
         end_delimiter: str = DEFAULT_END_DELIMITER,
-        llm_func: Callable[[str], str] | None = None,
+        llm_func: Callable[[str], str] | Callable[[str], Generator[str, None, None]] | None = None,
     ):
         """
         Initialise LLMShield.
@@ -137,9 +138,9 @@ class LLMShield:
 
         return _uncloak_response(response, entity_map)
 
-    def _stream_uncloak(
-        self, response_stream: Iterator[str], entity_map: dict[str, str] | None = None
-    ) -> Iterator[str]:
+    def stream_uncloak(
+        self, response_stream: Generator[str, None, None], entity_map: dict[str, str] | None = None
+    ) -> Generator[str, None, None]:
         """
         Restore original entities in the LLM response if the response comes in the form of a stream.
         The function processes the response stream in the form of chunks, attempting to yield either 
@@ -164,9 +165,9 @@ class LLMShield:
         if not response_stream:
             raise ValueError("Response stream cannot be empty")
 
-        if not isinstance(response_stream, Iterator):  # type: ignore
+        if not isinstance(response_stream, Generator):  # type: ignore
             raise TypeError(
-                f"Response stream must be an iterator, but got: {type(response_stream)}!"
+                f"Response stream must be a generator, but got: {type(response_stream)}!"
             )
 
         if entity_map is None:
@@ -214,7 +215,7 @@ class LLMShield:
         if buffer:
             yield buffer
 
-    def ask(self, stream_response: bool = False, **kwargs) -> str | Iterator[str]:
+    def ask(self, stream_response: bool = False, **kwargs) -> str | Generator[str, None, None]:
         """
         Complete end-to-end LLM interaction with automatic protection.
 
@@ -224,7 +225,6 @@ class LLMShield:
         cloaked and will be returned as is.
 
         Limitations:
-            - Does not support streaming.
             - Does not support multiple messages (multi-shot requests).
 
         Args:
@@ -232,7 +232,7 @@ class LLMShield:
                    and passed to your LLM function. Do not pass both, and do not use any other
                    parameter names as they are unrecognised by the shield.
             stream: Whether the LLM Function is a stream or not. If True, returns
-            an iterator that yields incremental responses
+                    a generator that yields incremental responses
                    following the OpenAI Realtime Streaming API. If False, returns
                    the complete response as a string.
                    By default, this is False.
@@ -246,11 +246,12 @@ class LLMShield:
 
         Returns:
             str: Uncloaked LLM response with original entities restored.
-            Iterator[str]: If stream is True, returns an iterator that yields
+            
+            Generator[str, None, None]: If stream is True, returns a generator that yields
             incremental responses, following the OpenAI Realtime Streaming API.
 
         ! Regardless of the specific implementation of the LLM Function,
-        whenever the stream parameter is true, the function will return an iterator. !
+        whenever the stream parameter is true, the function will return an generator. !
 
         Raises:
             ValueError: If no LLM function was provided during initialization,
@@ -295,10 +296,8 @@ class LLMShield:
         if stream_response:
             # Check if LLM response is actually a generator/iterator and if so,
             # deal with the streaming case appropriately
-            if hasattr(llm_response, "__iter__") and not isinstance(
-                llm_response, (str, bytes)
-            ):
-                return self._stream_uncloak(llm_response, entity_map)
+            if isinstance(llm_response, Generator):
+                return self.stream_uncloak(llm_response, entity_map)
 
             # LLM didn't return a generator, we turn the entire response into an iterator
             return iter([self.uncloak(llm_response, entity_map)])

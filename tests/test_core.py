@@ -7,10 +7,11 @@ Tests for the core functionality of LLMShield.
 import re
 import time
 import random
-from unittest import TestCase, main
+from unittest import TestCase, main, SkipTest
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
 from llmshield.utils import wrap_entity
+
 
 class TestCoreFunctionality(TestCase):
     """Test core functionality of LLMShield."""
@@ -290,6 +291,234 @@ class TestCoreFunctionality(TestCase):
 
             # Verify the correct error message
             self.assertIn("Response must be ", str(context.exception))
+
+    def test_stream_uncloak_basic(self):
+        """Test basic stream uncloaking functionality."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        # Create entity map
+        entity_map = {"[[PERSON_0]]": "John Doe", "[[EMAIL_0]]": "john.doe@example.com"}
+
+        # Create a mock stream with cloaked content
+        def mock_stream():
+            chunks = [
+                "Hello ",
+                "[[PERSON_0]]",
+                ", please contact ",
+                "[[EMAIL_0]]",
+                " for details.",
+            ]
+            yield from chunks
+
+        # Process stream
+        result_chunks = shield.stream_uncloak(mock_stream(), entity_map)
+        result = "".join(result_chunks)
+
+        expected = "Hello John Doe, please contact john.doe@example.com for details."
+        self.assertEqual(result, expected)
+
+    def test_stream_uncloak_partial_placeholders(self):
+        """Test stream uncloaking with placeholders split across chunks."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        entity_map = {"[[PERSON_0]]": "Alice Smith"}
+
+        # Split placeholder across multiple chunks
+        def mock_stream():
+            chunks = ["Hello ", "[[PER", "SON_0", "]]", " how are you?"]
+            for chunk in chunks:
+                yield chunk
+
+        result_chunks = list(shield.stream_uncloak(mock_stream(), entity_map))
+        result = "".join(result_chunks)
+
+        expected = "Hello Alice Smith how are you?"
+        self.assertEqual(result, expected)
+
+    def test_stream_uncloak_no_placeholders(self):
+        """Test stream uncloaking with no placeholders."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        entity_map = {"[[PERSON_0]]": "John Doe"}
+
+        def mock_stream():
+            chunks = ["Hello ", "world! ", "No placeholders here."]
+            for chunk in chunks:
+                yield chunk
+
+        result_chunks = list(shield.stream_uncloak(mock_stream(), entity_map))
+        result = "".join(result_chunks)
+
+        expected = "Hello world! No placeholders here."
+        self.assertEqual(result, expected)
+
+    def test_stream_uncloak_multiple_placeholders(self):
+        """Test stream uncloaking with multiple placeholders in single chunk."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        entity_map = {
+            "[[PERSON_0]]": "John Doe",
+            "[[PERSON_1]]": "Jane Smith",
+            "[[EMAIL_0]]": "contact@example.com",
+        }
+
+        def mock_stream():
+            chunks = [
+                "Meeting between ",
+                "[[PERSON_0]] and [[PERSON_1]]",
+                " at [[EMAIL_0]]",
+            ]
+            for chunk in chunks:
+                yield chunk
+
+        result_chunks = list(shield.stream_uncloak(mock_stream(), entity_map))
+        result = "".join(result_chunks)
+
+        expected = "Meeting between John Doe and Jane Smith at contact@example.com"
+        self.assertEqual(result, expected)
+
+    def test_stream_uncloak_with_stored_entity_map(self):
+        """Test stream uncloaking using stored entity map from previous cloak."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        # First cloak to store entity map
+        test_text = "Hello John Doe"
+        cloaked_text, _ = shield.cloak(test_text)
+        def generator():
+            """Mock generator that yields cloaked text."""
+            yield from cloaked_text.split()
+
+        # Use stored entity map
+        result_chunks = list(shield.stream_uncloak(generator(), entity_map=None))
+        result = " ".join(result_chunks)
+
+        expected = "Hello John Doe"
+        self.assertEqual(result, expected)
+
+    def test_stream_uncloak_error_handling(self):
+        """Test error handling in stream_uncloak."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        # Test empty stream
+        with self.assertRaises(ValueError):
+            list(shield.stream_uncloak(None, {}))
+
+        # Test non-iterator input
+        with self.assertRaises(TypeError):
+            list(shield.stream_uncloak("not an iterator", {}))
+
+        # Test no entity map and no stored map
+        shield_fresh = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        def mock_stream():
+            yield "test"
+
+        with self.assertRaises(ValueError):
+            list(shield_fresh.stream_uncloak(mock_stream(), entity_map=None))
+
+    def test_ask_with_stream_response_true(self):
+        """Test ask function with stream_response=True."""
+
+        def mock_streaming_llm(**kwargs):
+            """Mock LLM that returns an iterator."""
+            response_chunks = ["Hello ", "[[PERSON_0]]", ", how can I help you?"]
+            for chunk in response_chunks:
+                yield chunk
+
+        shield = LLMShield(
+            llm_func=mock_streaming_llm, start_delimiter="[[", end_delimiter="]]"
+        )
+
+        # Test streaming response
+        response_stream = shield.ask(prompt="Hi, I'm John Doe", stream_response=True)
+
+        # Verify it returns an iterator
+        self.assertTrue(hasattr(response_stream, "__iter__"))
+
+        # Collect all chunks
+        result_chunks = list(response_stream)
+        result = "".join(result_chunks)
+
+        # Should contain uncloaked response
+        self.assertIn("John Doe", result)
+
+    def test_ask_with_stream_response_non_streaming_llm(self):
+        """Test ask with stream_response=True but LLM returns single response."""
+
+        def mock_non_streaming_llm(**kwargs):
+            """Mock LLM that returns a single string instead of iterator."""
+            return "Hello [[PERSON_0]], how can I help you?"
+
+        shield = LLMShield(
+            llm_func=mock_non_streaming_llm, start_delimiter="[[", end_delimiter="]]"
+        )
+
+        # Even though we request streaming, LLM returns single response
+        response_stream = shield.ask(prompt="Hi, I'm John Doe", stream_response=True)
+
+        # Should still return an iterator
+        self.assertTrue(hasattr(response_stream, "__iter__"))
+
+        # Collect result
+        result_chunks = list(response_stream)
+        result = "".join(result_chunks)
+
+        # Should contain uncloaked response
+        self.assertIn("John Doe", result)
+
+    def test_ask_with_message_parameter(self):
+        """Test ask function using 'message' parameter instead of 'prompt'."""
+
+        def mock_llm(**kwargs):
+            # Check that the parameter is correctly passed
+            if "message" in kwargs:
+                return f"Received message: {kwargs['message']}"
+            elif "prompt" in kwargs:
+                return f"Received prompt: {kwargs['prompt']}"
+            else:
+                return "No message or prompt received"
+
+        shield = LLMShield(llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]")
+
+        response = shield.ask(message="Hi, I'm John Doe")
+
+        # Should contain the uncloaked name
+        self.assertIn("John Doe", response)
+
+    def test_ask_streaming_with_complex_entities(self):
+        """Test streaming ask with multiple entity types."""
+        def mock_complex_streaming_llm(**kwargs):
+            chunks = [
+                "Dear ",
+                "[[PERSON_0]]",
+                ",\n",
+                "We'll send details to ",
+                "[[EMAIL_0]]",
+                "\n",
+                "From IP: ",
+                "[[IP_ADDRESS_0]]",
+            ]
+            yield from chunks
+
+        shield = LLMShield(
+            llm_func=mock_complex_streaming_llm,
+            start_delimiter="[[",
+            end_delimiter="]]",
+        )
+
+        complex_prompt = (
+            "Hi, I'm John Doe. "
+            "Contact me at john@example.com. "
+            "My server IP is 192.168.1.1"
+        )
+
+        response_stream = shield.ask(prompt=complex_prompt, stream_response=True)
+
+        # Verify all entities are properly uncloaked
+        self.assertIn("John Doe", response_stream)
+        self.assertIn("john@example.com", response_stream)
+        self.assertIn("192.168.1.1", response_stream)
+
 
 if __name__ == "__main__":
     main(verbosity=2)
