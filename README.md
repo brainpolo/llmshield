@@ -119,7 +119,7 @@ Contributions are welcome! Please follow these guidelines:
    c. Install the package in development mode with all development dependencies:
 
    ```bash
-   pip install -e ".[dev]"
+   make dev-dependencies
    ```
 
 2. **Code Quality and Formatting Guidelines**:
@@ -133,14 +133,13 @@ Contributions are welcome! Please follow these guidelines:
 3. **Testing**:
 
    ```bash
-   python -m unittest discover -v
+   make tests
    ```
 
    - Run coverage:
 
    ```bash
-   coverage run -m unittest discover -v
-   coverage report --fail-under=90
+   make coverage
    ```
 
 4. **Documentation**:
@@ -152,7 +151,7 @@ Contributions are welcome! Please follow these guidelines:
 5. **Build and publish**
 
    ```bash
-   python -m build
+   make build # Building the package
    python -m twine upload dist/*
    ```
 
