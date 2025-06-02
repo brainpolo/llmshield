@@ -99,7 +99,6 @@ class LLMShield:
         dictionaries.
 
         Limitations:
-            - Does not support streaming.
             - Does not support tool calls.
 
         Args:
@@ -139,24 +138,83 @@ class LLMShield:
         return _uncloak_response(response, entity_map)
 
     def _stream_uncloak(
-        self, response_stream: Iterator[str], entity_map: dict[str, str]
+        self, response_stream: Iterator[str], entity_map: dict[str, str] | None = None
     ) -> Iterator[str]:
         """
-        Uncloak a streaming response from the LLM.
-        This method is not implemented yet, but should handle
-        streaming responses correctly.
-        
-        Args:
-            response_stream: An iterator yielding chunks of the LLM response.
-            entity_map: Mapping of placeholders to original values.
-        Returns:
-            Iterator[str]: An iterator yielding uncloaked response chunks.
-        Raises:
-            NotImplementedError: This method is not implemented yet.
-        """
-        raise NotImplementedError("Streaming uncloak is not implemented yet.")
+        Restore original entities in the LLM response if the response comes in the form of a stream.
+        The function processes the response stream in the form of chunks, attempting to yield either 
+        uncloaked chunks or the remaining buffer content in which there was no uncloaking done yet.
 
-    def ask(self, stream: bool, **kwargs) -> str | Iterator[str]:
+        Limitations:
+            - Only supports a response from a single LLM function call.
+            - This method can only process response streams, producing an iterator which 
+            yields uncloaked chunks
+
+        Args:
+            response_stream: Iterator yielding cloaked LLM response chunks
+            entity_map: Mapping of placeholders to original values.
+                        By default, it is None, which means it will use the 
+                        last cloak call's entity map.
+
+        Yields:
+            str: Uncloaked response chunks
+        """
+
+        # Validate the inputs
+        if not response_stream:
+            raise ValueError("Response stream cannot be empty")
+
+        if not isinstance(response_stream, Iterator):  # type: ignore
+            raise TypeError(
+                f"Response stream must be an iterator, but got: {type(response_stream)}!"
+            )
+
+        if entity_map is None:
+            if self._last_entity_map is None:
+                raise ValueError(
+                    "No entity mapping provided or stored from previous cloak!"
+                )
+            entity_map = self._last_entity_map
+
+        buffer = ""
+        for chunk in response_stream:
+            buffer += chunk
+
+            # Inner function to check if buffer has content
+            def is_buffer_used(buffer: str) -> bool:
+                return bool(buffer and buffer.strip())
+
+            while is_buffer_used(buffer):
+                # Find the next potential placeholder start
+                start_pos = buffer.find(self.start_delimiter)
+
+                if start_pos == -1:
+                    # No more placeholders in buffer, yield everything and break
+                    if is_buffer_used(buffer):
+                        yield buffer
+                    buffer = ""
+                    break
+                if start_pos > 0:
+                    # Yield text before placeholder and update buffer
+                    yield buffer[:start_pos]
+                    buffer = buffer[start_pos:]
+
+                # Look for placeholder end
+                end_pos = buffer.find(self.end_delimiter)
+                if end_pos == -1:
+                    # Incomplete placeholder, wait for more chunks
+                    break
+
+                # Extract and uncloak complete placeholder
+                placeholder = buffer[: end_pos + len(self.end_delimiter)]
+                yield entity_map.get(placeholder, placeholder)
+                buffer = buffer[end_pos + len(self.end_delimiter) :]
+
+        # Yield any remaining buffer content
+        if buffer:
+            yield buffer
+
+    def ask(self, stream_response: bool = False, **kwargs) -> str | Iterator[str]:
         """
         Complete end-to-end LLM interaction with automatic protection.
 
@@ -173,6 +231,11 @@ class LLMShield:
             prompt/message: Original prompt with sensitive information. This will be cloaked
                    and passed to your LLM function. Do not pass both, and do not use any other
                    parameter names as they are unrecognised by the shield.
+            stream: Whether the LLM Function is a stream or not. If True, returns
+            an iterator that yields incremental responses
+                   following the OpenAI Realtime Streaming API. If False, returns
+                   the complete response as a string.
+                   By default, this is False.
             **kwargs: Additional arguments to pass to your LLM function, such as:
                     - model: The model to use (e.g., "gpt-4")
                     - system_prompt: System instructions
@@ -186,7 +249,8 @@ class LLMShield:
             Iterator[str]: If stream is True, returns an iterator that yields
             incremental responses, following the OpenAI Realtime Streaming API.
 
-        ! Regardless of the specific implementation of the LLM Function, whenever the stream parameter is true, the function will return an iterator. !
+        ! Regardless of the specific implementation of the LLM Function,
+        whenever the stream parameter is true, the function will return an iterator. !
 
         Raises:
             ValueError: If no LLM function was provided during initialization,
@@ -228,7 +292,7 @@ class LLMShield:
         llm_response = self._llm_func(**kwargs)
 
         # * 6. Uncloak and return
-        if stream:
+        if stream_response:
             # Check if LLM response is actually a generator/iterator and if so,
             # deal with the streaming case appropriately
             if hasattr(llm_response, "__iter__") and not isinstance(
