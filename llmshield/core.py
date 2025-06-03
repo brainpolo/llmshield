@@ -23,13 +23,14 @@ from typing import Callable, Any
 from collections.abc import Generator
 
 # Local imports
-from .utils import is_valid_delimiter, PydanticLike
+from .utils import is_valid_delimiter, PydanticLike, is_valid_stream_response
 from .cloak_prompt import _cloak_prompt
 from .uncloak_response import _uncloak_response
 from .uncloak_stream_response import uncloak_stream_response
 
 DEFAULT_START_DELIMITER = "<"
 DEFAULT_END_DELIMITER = ">"
+
 
 
 class LLMShield:
@@ -98,7 +99,7 @@ class LLMShield:
         Restore original entities in the LLM response. It supports strings and
         structured outputs consisting of any combination of strings, lists, and
         dictionaries.
-        
+
         For uncloaking stream responses, use the `stream_uncloak` method instead.
 
         Limitations:
@@ -147,7 +148,7 @@ class LLMShield:
         Restore original entities in the LLM response if the response comes in the form of a stream.
         The function processes the response stream in the form of chunks, attempting to yield either 
         uncloaked chunks or the remaining buffer content in which there was no uncloaking done yet.
-        
+
         For non-stream responses, use the `uncloak` method instead.
 
         Limitations:
@@ -167,9 +168,9 @@ class LLMShield:
         if not response_stream:
             raise ValueError("Response stream cannot be empty")
 
-        if not isinstance(response_stream, Generator):  # type: ignore
+        if not is_valid_stream_response(response_stream):
             raise TypeError(
-                f"Response stream must be a generator, but got: {type(response_stream)}!"
+                f"Response stream must be an iterable (excluding str, bytes, dict), but got: {type(response_stream)}!"
             )
 
         if entity_map is None:
@@ -186,7 +187,7 @@ class LLMShield:
             end_delimiter=self.end_delimiter,
         )
 
-    def ask(self, stream_response: bool = False, **kwargs) -> str | Generator[str, None, None]:
+    def ask(self, stream: bool = False, **kwargs) -> str | Generator[str, None, None]:
         """
         Complete end-to-end LLM interaction with automatic protection.
 
@@ -217,7 +218,7 @@ class LLMShield:
 
         Returns:
             str: Uncloaked LLM response with original entities restored.
-            
+
             Generator[str, None, None]: If stream is True, returns a generator that yields
             incremental responses, following the OpenAI Realtime Streaming API.
 
@@ -260,18 +261,17 @@ class LLMShield:
         del kwargs[input_param]
         kwargs[func_preferred_param] = cloaked_text
 
+        kwargs["stream"] = stream  # Ensure stream is passed to the LLM function
+
         # * 5. Get response from LLM
         llm_response = self._llm_func(**kwargs)
 
         # * 6. Uncloak and return
-        if stream_response:
-            # Check if LLM response is actually a generator/iterator and if so,
-            # deal with the streaming case appropriately
-            if isinstance(llm_response, Generator):
-                return self.stream_uncloak(llm_response, entity_map)
-
-            # LLM didn't return a generator, we turn the entire response into an iterator
-            return iter([self.uncloak(llm_response, entity_map)])
+        if stream:
+            if not is_valid_stream_response(llm_response):
+                # LLM didn't return a valid stream, treat as non-streaming
+                return iter([self.uncloak(llm_response, entity_map)])
+            return self.stream_uncloak(llm_response, entity_map)
 
         # Non-streaming: uncloak complete response
         return self.uncloak(llm_response, entity_map)

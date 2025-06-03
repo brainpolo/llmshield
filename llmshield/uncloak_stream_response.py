@@ -26,7 +26,13 @@ def uncloak_stream_response(
     """
     buffer = ""
     for chunk in response_stream:
-        buffer += chunk
+        # Extract actual text content if possible (for OpenAI ChatCompletionChunk)
+        content = getattr(chunk, "choices", None)
+        if content and hasattr(chunk.choices[0].delta, "content"):
+            text = chunk.choices[0].delta.content or ""
+        else:
+            text = str(chunk)
+        buffer += text
 
         # Inner function to check if buffer has content
         def is_buffer_used(buffer: str) -> bool:
