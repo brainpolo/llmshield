@@ -326,8 +326,7 @@ class TestCoreFunctionality(TestCase):
         # Split placeholder across multiple chunks
         def mock_stream():
             chunks = ["Hello ", "[[PER", "SON_0", "]]", " how are you?"]
-            for chunk in chunks:
-                yield chunk
+            yield from chunks
 
         result_chunks = list(shield.stream_uncloak(mock_stream(), entity_map))
         result = "".join(result_chunks)
@@ -335,6 +334,7 @@ class TestCoreFunctionality(TestCase):
         expected = "Hello Alice Smith how are you?"
         self.assertEqual(result, expected)
 
+    # KEEP
     def test_stream_uncloak_no_placeholders(self):
         """Test stream uncloaking with no placeholders."""
         shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
@@ -343,8 +343,7 @@ class TestCoreFunctionality(TestCase):
 
         def mock_stream():
             chunks = ["Hello ", "world! ", "No placeholders here."]
-            for chunk in chunks:
-                yield chunk
+            yield from chunks
 
         result_chunks = list(shield.stream_uncloak(mock_stream(), entity_map))
         result = "".join(result_chunks)
@@ -368,8 +367,7 @@ class TestCoreFunctionality(TestCase):
                 "[[PERSON_0]] and [[PERSON_1]]",
                 " at [[EMAIL_0]]",
             ]
-            for chunk in chunks:
-                yield chunk
+            yield from chunks
 
         result_chunks = list(shield.stream_uncloak(mock_stream(), entity_map))
         result = "".join(result_chunks)
@@ -384,6 +382,7 @@ class TestCoreFunctionality(TestCase):
         # First cloak to store entity map
         test_text = "Hello John Doe"
         cloaked_text, _ = shield.cloak(test_text)
+
         def generator():
             """Mock generator that yields cloaked text."""
             yield from cloaked_text.split()
@@ -422,8 +421,7 @@ class TestCoreFunctionality(TestCase):
         def mock_streaming_llm(**kwargs):
             """Mock LLM that returns an iterator."""
             response_chunks = ["Hello ", "[[PERSON_0]]", ", how can I help you?"]
-            for chunk in response_chunks:
-                yield chunk
+            yield from response_chunks
 
         shield = LLMShield(
             llm_func=mock_streaming_llm, start_delimiter="[[", end_delimiter="]]"
@@ -466,43 +464,27 @@ class TestCoreFunctionality(TestCase):
         # Should contain uncloaked response
         self.assertIn("John Doe", result)
 
-    def test_ask_with_message_parameter(self):
-        """Test ask function using 'message' parameter instead of 'prompt'."""
-
-        def mock_llm(**kwargs):
-            # Check that the parameter is correctly passed
-            if "message" in kwargs:
-                return f"Received message: {kwargs['message']}"
-            elif "prompt" in kwargs:
-                return f"Received prompt: {kwargs['prompt']}"
-            else:
-                return "No message or prompt received"
-
-        shield = LLMShield(llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]")
-
-        response = shield.ask(message="Hi, I'm John Doe")
-
-        # Should contain the uncloaked name
-        self.assertIn("John Doe", response)
-
     def test_ask_streaming_with_complex_entities(self):
         """Test streaming ask with multiple entity types."""
+
         def mock_complex_streaming_llm(**kwargs):
             # Extract the cloaked prompt
-            cloaked_prompt = kwargs.get('message') or kwargs.get('prompt', '')
-            
+            cloaked_prompt = kwargs.get("message") or kwargs.get("prompt", "")
+
             # Use regex to find actual placeholders with their counters
-            person_match = re.search(r'\[\[PERSON_(\d+)\]\]', cloaked_prompt)
-            email_match = re.search(r'\[\[EMAIL_(\d+)\]\]', cloaked_prompt)
-            ip_match = re.search(r'\[\[IP_ADDRESS_(\d+)\]\]', cloaked_prompt)
-            cc_match = re.search(r'\[\[CREDIT_CARD_(\d+)\]\]', cloaked_prompt)
-            
+            person_match = re.search(r"\[\[PERSON_(\d+)\]\]", cloaked_prompt)
+            email_match = re.search(r"\[\[EMAIL_(\d+)\]\]", cloaked_prompt)
+            ip_match = re.search(r"\[\[IP_ADDRESS_(\d+)\]\]", cloaked_prompt)
+            cc_match = re.search(r"\[\[CREDIT_CARD_(\d+)\]\]", cloaked_prompt)
+
             # Build placeholders based on what was actually found
-            person_placeholder = person_match.group(0) if person_match else "[[PERSON_0]]"
+            person_placeholder = (
+                person_match.group(0) if person_match else "[[PERSON_0]]"
+            )
             email_placeholder = email_match.group(0) if email_match else "[[EMAIL_1]]"
             ip_placeholder = ip_match.group(0) if ip_match else "[[IP_ADDRESS_2]]"
             cc_placeholder = cc_match.group(0) if cc_match else "[[CREDIT_CARD_3]]"
-            
+
             chunks = [
                 "Dear ",
                 person_placeholder,

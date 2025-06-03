@@ -26,6 +26,7 @@ from collections.abc import Generator
 from .utils import is_valid_delimiter, PydanticLike
 from .cloak_prompt import _cloak_prompt
 from .uncloak_response import _uncloak_response
+from .uncloak_stream_response import uncloak_stream_response
 
 DEFAULT_START_DELIMITER = "<"
 DEFAULT_END_DELIMITER = ">"
@@ -97,6 +98,8 @@ class LLMShield:
         Restore original entities in the LLM response. It supports strings and
         structured outputs consisting of any combination of strings, lists, and
         dictionaries.
+        
+        For uncloaking stream responses, use the `stream_uncloak` method instead.
 
         Limitations:
             - Does not support tool calls.
@@ -144,11 +147,11 @@ class LLMShield:
         Restore original entities in the LLM response if the response comes in the form of a stream.
         The function processes the response stream in the form of chunks, attempting to yield either 
         uncloaked chunks or the remaining buffer content in which there was no uncloaking done yet.
+        
+        For non-stream responses, use the `uncloak` method instead.
 
         Limitations:
             - Only supports a response from a single LLM function call.
-            - This method can only process response streams, producing an iterator which 
-            yields uncloaked chunks
 
         Args:
             response_stream: Iterator yielding cloaked LLM response chunks
@@ -176,43 +179,12 @@ class LLMShield:
                 )
             entity_map = self._last_entity_map
 
-        buffer = ""
-        for chunk in response_stream:
-            buffer += chunk
-
-            # Inner function to check if buffer has content
-            def is_buffer_used(buffer: str) -> bool:
-                return bool(buffer and buffer.strip())
-
-            while is_buffer_used(buffer):
-                # Find the next potential placeholder start
-                start_pos = buffer.find(self.start_delimiter)
-
-                if start_pos == -1:
-                    # No more placeholders in buffer, yield everything and break
-                    if is_buffer_used(buffer):
-                        yield buffer
-                    buffer = ""
-                    break
-                if start_pos > 0:
-                    # Yield text before placeholder and update buffer
-                    yield buffer[:start_pos]
-                    buffer = buffer[start_pos:]
-
-                # Look for placeholder end
-                end_pos = buffer.find(self.end_delimiter)
-                if end_pos == -1:
-                    # Incomplete placeholder, wait for more chunks
-                    break
-
-                # Extract and uncloak complete placeholder
-                placeholder = buffer[: end_pos + len(self.end_delimiter)]
-                yield entity_map.get(placeholder, placeholder)
-                buffer = buffer[end_pos + len(self.end_delimiter) :]
-
-        # Yield any remaining buffer content
-        if buffer:
-            yield buffer
+        return uncloak_stream_response(
+            response_stream,
+            entity_map=entity_map,
+            start_delimiter=self.start_delimiter,
+            end_delimiter=self.end_delimiter,
+        )
 
     def ask(self, stream_response: bool = False, **kwargs) -> str | Generator[str, None, None]:
         """
