@@ -5,6 +5,7 @@ Module for utility functions for the llmshield library.
 
 # Python imports
 import re
+import collections.abc
 from typing import Any, Protocol, runtime_checkable
 
 # Local imports
@@ -91,3 +92,12 @@ def wrap_entity(
 def normalise_spaces(text: str) -> str:
     """Normalise spaces in the text by replacing multiple spaces with a single space."""
     return re.sub(r'\s+', ' ', text).strip()
+
+
+def is_valid_stream_response(obj: object) -> bool:
+    """
+    Return True if obj is an iterable suitable for streaming (not str, bytes, bytearray, or any mapping).
+    """
+    # Exclude string-like and mapping types
+    excluded_types = (str, bytes, bytearray, collections.abc.Mapping)
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, excluded_types)
