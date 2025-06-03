@@ -90,7 +90,7 @@ class TestCoreFunctionality(TestCase):
     def test_end_to_end(self):
         """Test end-to-end flow with mock LLM function."""
 
-        def mock_llm(prompt: str) -> str:
+        def mock_llm(prompt, stream=False, **kwargs):
             time.sleep(float(random.randint(1, 10)) / 10)
             person_match = re.search(r"\[PERSON_\d+\]", prompt)
             email_match = re.search(r"\[EMAIL_\d+\]", prompt)
@@ -415,8 +415,8 @@ class TestCoreFunctionality(TestCase):
         with self.assertRaises(ValueError):
             list(shield_fresh.stream_uncloak(mock_stream(), entity_map=None))
 
-    def test_ask_with_stream_response_true(self):
-        """Test ask function with stream_response=True."""
+    def test_ask_with_stream_true(self):
+        """Test ask function with stream=True."""
 
         def mock_streaming_llm(**kwargs):
             """Mock LLM that returns an iterator."""
@@ -428,7 +428,7 @@ class TestCoreFunctionality(TestCase):
         )
 
         # Test streaming response
-        response_stream = shield.ask(prompt="Hi, I'm John Doe", stream_response=True)
+        response_stream = shield.ask(prompt="Hi, I'm John Doe", stream=True)
 
         # Verify it returns an iterator
         self.assertTrue(hasattr(response_stream, "__iter__"))
@@ -440,8 +440,8 @@ class TestCoreFunctionality(TestCase):
         # Should contain uncloaked response
         self.assertIn("John Doe", result)
 
-    def test_ask_with_stream_response_non_streaming_llm(self):
-        """Test ask with stream_response=True but LLM returns single response."""
+    def test_ask_with_stream_non_streaming_llm(self):
+        """Test ask with stream=True but LLM returns single response."""
 
         def mock_non_streaming_llm(**kwargs):
             """Mock LLM that returns a single string instead of iterator."""
@@ -452,7 +452,7 @@ class TestCoreFunctionality(TestCase):
         )
 
         # Even though we request streaming, LLM returns single response
-        response_stream = shield.ask(prompt="Hi, I'm John Doe", stream_response=True)
+        response_stream = shield.ask(prompt="Hi, I'm John Doe", stream=True)
 
         # Should still return an iterator
         self.assertTrue(hasattr(response_stream, "__iter__"))
@@ -513,7 +513,7 @@ class TestCoreFunctionality(TestCase):
             "My credit card number is 378282246310005\n"
         )
 
-        response_stream = shield.ask(stream_response=True, message=complex_prompt)
+        response_stream = shield.ask(stream=True, message=complex_prompt)
         result = "".join(list(response_stream))
         # Verify all entities are properly uncloaked
         self.assertIn("John Doe", result)

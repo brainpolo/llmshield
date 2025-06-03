@@ -9,7 +9,7 @@ uncloak the response through a buffered chunk approach.
 from typing import Generator
 
 def uncloak_stream_response(
-    response_stream: Generator[str, None, None],
+    stream: Generator[str, None, None],
     entity_map: dict[str, str] | None = None,
     start_delimiter: str = "<",
     end_delimiter: str = ">",
@@ -25,7 +25,7 @@ def uncloak_stream_response(
         str: The uncloaked response chunks.
     """
     buffer = ""
-    for chunk in response_stream:
+    for chunk in stream:
         # Extract actual text content if possible (for OpenAI ChatCompletionChunk)
         content = getattr(chunk, "choices", None)
         if content and hasattr(chunk.choices[0].delta, "content"):
