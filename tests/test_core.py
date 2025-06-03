@@ -7,7 +7,7 @@ Tests for the core functionality of LLMShield.
 import re
 import time
 import random
-from unittest import TestCase, main, SkipTest
+from unittest import TestCase, main
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
 from llmshield.utils import wrap_entity
@@ -488,15 +488,33 @@ class TestCoreFunctionality(TestCase):
     def test_ask_streaming_with_complex_entities(self):
         """Test streaming ask with multiple entity types."""
         def mock_complex_streaming_llm(**kwargs):
+            # Extract the cloaked prompt
+            cloaked_prompt = kwargs.get('message') or kwargs.get('prompt', '')
+            
+            # Use regex to find actual placeholders with their counters
+            person_match = re.search(r'\[\[PERSON_(\d+)\]\]', cloaked_prompt)
+            email_match = re.search(r'\[\[EMAIL_(\d+)\]\]', cloaked_prompt)
+            ip_match = re.search(r'\[\[IP_ADDRESS_(\d+)\]\]', cloaked_prompt)
+            cc_match = re.search(r'\[\[CREDIT_CARD_(\d+)\]\]', cloaked_prompt)
+            
+            # Build placeholders based on what was actually found
+            person_placeholder = person_match.group(0) if person_match else "[[PERSON_0]]"
+            email_placeholder = email_match.group(0) if email_match else "[[EMAIL_1]]"
+            ip_placeholder = ip_match.group(0) if ip_match else "[[IP_ADDRESS_2]]"
+            cc_placeholder = cc_match.group(0) if cc_match else "[[CREDIT_CARD_3]]"
+            
             chunks = [
                 "Dear ",
-                "[[PERSON_0]]",
+                person_placeholder,
                 ",\n",
                 "We'll send details to ",
-                "[[EMAIL_0]]",
+                email_placeholder,
                 "\n",
                 "From IP: ",
-                "[[IP_ADDRESS_0]]",
+                ip_placeholder,
+                "\n",
+                "Your credit card: ",
+                cc_placeholder,
             ]
             yield from chunks
 
@@ -507,17 +525,18 @@ class TestCoreFunctionality(TestCase):
         )
 
         complex_prompt = (
-            "Hi, I'm John Doe. "
-            "Contact me at john@example.com. "
-            "My server IP is 192.168.1.1"
+            "Hi, I'm John Doe.\n"
+            "Contact me at john@example.com.\n"
+            "My server IP is 192.168.1.1\n"
+            "My credit card number is 378282246310005\n"
         )
 
-        response_stream = shield.ask(prompt=complex_prompt, stream_response=True)
-
+        response_stream = shield.ask(stream_response=True, message=complex_prompt)
+        result = "".join(list(response_stream))
         # Verify all entities are properly uncloaked
-        self.assertIn("John Doe", response_stream)
-        self.assertIn("john@example.com", response_stream)
-        self.assertIn("192.168.1.1", response_stream)
+        self.assertIn("John Doe", result)
+        self.assertIn("john@example.com", result)
+        self.assertIn("192.168.1.1", result)
 
 
 if __name__ == "__main__":

@@ -19,7 +19,6 @@ Example:
 """
 
 # Python imports
-from ast import Call
 from typing import Callable, Any
 from collections.abc import Generator
 
