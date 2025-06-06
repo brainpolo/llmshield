@@ -4,10 +4,11 @@ Tests for the core functionality of LLMShield.
 ! Module is intended for internal use only.
 """
 
+import random
 import re
 import time
-import random
 from unittest import TestCase, main
+
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
 from llmshield.utils import wrap_entity
@@ -20,9 +21,7 @@ class TestCoreFunctionality(TestCase):
         """Set up test cases."""
         self.start_delimiter = "["
         self.end_delimiter = "]"
-        self.llm_func = (
-            lambda prompt: "Thanks [PERSON_0], I'll send details to [EMAIL_0]"
-        )
+        self.llm_func = lambda prompt: "Thanks [PERSON_0], I'll send details to [EMAIL_0]"
         self.shield = LLMShield(
             llm_func=self.llm_func,
             start_delimiter=self.start_delimiter,
@@ -39,9 +38,7 @@ class TestCoreFunctionality(TestCase):
             wrap_entity(
                 EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter
             ): "john.doe@example.com",
-            wrap_entity(
-                EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter
-            ): "John Doe",
+            wrap_entity(EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter): "John Doe",
             wrap_entity(
                 EntityType.IP_ADDRESS, 0, self.start_delimiter, self.end_delimiter
             ): "192.168.1.1",
@@ -52,30 +49,26 @@ class TestCoreFunctionality(TestCase):
         self.test_llm_response = (
             "Thanks "
             + self.test_entity_map[
-                wrap_entity(
-                    EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter
-                )
+                wrap_entity(EntityType.PERSON, 0, self.start_delimiter, self.end_delimiter)
             ]
             + ", I'll send details to "
             + self.test_entity_map[
-                wrap_entity(
-                    EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter
-                )
+                wrap_entity(EntityType.EMAIL, 0, self.start_delimiter, self.end_delimiter)
             ]
         )
 
     def test_cloak_sensitive_info(self):
         """Test that sensitive information is properly cloaked."""
         cloaked_prompt, entity_map = self.shield.cloak(self.test_prompt)
+        ENTITY_MAP_LENGTH_SHOULD_BE = 4  # We expect 4 entities to be cloaked
 
         # Check that sensitive information is removed
         self.assertNotIn("john.doe@example.com", cloaked_prompt)
         self.assertNotIn("John Doe", cloaked_prompt)
         self.assertNotIn("192.168.1.1", cloaked_prompt)
         self.assertNotIn("378282246310005", cloaked_prompt)
-        self.assertTrue(
-            len(entity_map) == 4, f"Entity map should have 4 items: {entity_map}"
-        )
+        error_message = f"Entity map should have 4 items: {entity_map}"
+        self.assertTrue(len(entity_map) == ENTITY_MAP_LENGTH_SHOULD_BE, error_message)
 
     def test_uncloak(self):
         """Test that cloaked entities are properly restored."""
@@ -423,9 +416,7 @@ class TestCoreFunctionality(TestCase):
             response_chunks = ["Hello ", "[[PERSON_0]]", ", how can I help you?"]
             yield from response_chunks
 
-        shield = LLMShield(
-            llm_func=mock_streaming_llm, start_delimiter="[[", end_delimiter="]]"
-        )
+        shield = LLMShield(llm_func=mock_streaming_llm, start_delimiter="[[", end_delimiter="]]")
 
         # Test streaming response
         response_stream = shield.ask(prompt="Hi, I'm John Doe", stream=True)
@@ -478,9 +469,7 @@ class TestCoreFunctionality(TestCase):
             cc_match = re.search(r"\[\[CREDIT_CARD_(\d+)\]\]", cloaked_prompt)
 
             # Build placeholders based on what was actually found
-            person_placeholder = (
-                person_match.group(0) if person_match else "[[PERSON_0]]"
-            )
+            person_placeholder = person_match.group(0) if person_match else "[[PERSON_0]]"
             email_placeholder = email_match.group(0) if email_match else "[[EMAIL_1]]"
             ip_placeholder = ip_match.group(0) if ip_match else "[[IP_ADDRESS_2]]"
             cc_placeholder = cc_match.group(0) if cc_match else "[[CREDIT_CARD_3]]"
@@ -519,6 +508,7 @@ class TestCoreFunctionality(TestCase):
         self.assertIn("John Doe", result)
         self.assertIn("john@example.com", result)
         self.assertIn("192.168.1.1", result)
+        self.assertIn("378282246310005", result)
 
 
 if __name__ == "__main__":

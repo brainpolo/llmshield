@@ -1,9 +1,7 @@
-"""
-Module for securely uncloaking LLM responses by replacing placeholders with original values.
+"""Module for securely uncloaking LLM responses by replacing placeholders with original values.
 
 ! Module is intended for internal use only.
 """
-
 
 # Python imports
 from typing import Any
@@ -13,11 +11,10 @@ from llmshield.utils import PydanticLike
 
 
 def _uncloak_response(
-        response: Any,
-        entity_map: dict[str, str]
+    response: Any,
+    entity_map: dict[str, str],
 ) -> str | list[Any] | dict[str, Any] | PydanticLike:
-    """
-    Securely uncloaks the LLM response by replacing validated placeholders with
+    """Securely uncloaks the LLM response by replacing validated placeholders with
     their original values.
     Includes strict validation and safety checks for placeholder format and content.
 
@@ -33,6 +30,7 @@ def _uncloak_response(
 
     Returns:
         Uncloaked response with original values restored
+
     """
     if not entity_map:
         return response

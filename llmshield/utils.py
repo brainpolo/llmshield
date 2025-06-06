@@ -1,12 +1,11 @@
-"""
-Module for utility functions for the llmshield library.
-"""
-
+"""Module for utility functions for the llmshield library."""
 
 # Python imports
-import re
 import collections.abc
-from typing import Any, Protocol, runtime_checkable
+import re
+from collections.abc import Generator
+from pathlib import Path
+from typing import Any, BinaryIO, Protocol, runtime_checkable
 
 # Local imports
 from llmshield.entity_detector import EntityType
@@ -14,8 +13,7 @@ from llmshield.entity_detector import EntityType
 
 @runtime_checkable
 class PydanticLike(Protocol):
-    """
-    A protocol for types that behave like Pydantic models.
+    """A protocol for types that behave like Pydantic models.
 
     This is to provide type-safety for the uncloak function, which can accept
     either a string, list, dict, or a Pydantic model for LLM responses which
@@ -30,6 +28,7 @@ class PydanticLike(Protocol):
     """
 
     def model_dump(self) -> dict: ...
+
     """
     Dump the Pydantic model into a dictionary.
 
@@ -38,6 +37,7 @@ class PydanticLike(Protocol):
 
     @classmethod
     def model_validate(cls, data: dict) -> Any: ...
+
     """
     Validate a dictionary against the Pydantic model.
 
@@ -46,18 +46,18 @@ class PydanticLike(Protocol):
     @return: The validated data.
     """
 
+
 def split_fragments(text: str) -> list[str]:
     """Split the text into fragments based on the following rules:
     - Split on sentence boundaries (punctuation / new line)
-    - Remove any empty fragments
+    - Remove any empty fragments.
     """
-    fragments = re.split(r'[.!?]+\s+|\n+', text)
+    fragments = re.split(r"[.!?]+\s+|\n+", text)
     return [f.strip() for f in fragments if f.strip()]
 
 
 def is_valid_delimiter(delimiter: str) -> bool:
-    """
-    Validate a delimiter based on the following rules:
+    """Validate a delimiter based on the following rules:
     - Must be a string.
     - Must be at least 1 character long.
 
@@ -69,12 +69,12 @@ def is_valid_delimiter(delimiter: str) -> bool:
 
 
 def wrap_entity(
-        entity_type: EntityType,
-        suffix: int,
-        start_delimiter: str,
-        end_delimiter: str) -> str:
-    """
-    Wrap an entity in a start and end delimiter.
+    entity_type: EntityType,
+    suffix: int,
+    start_delimiter: str,
+    end_delimiter: str,
+) -> str:
+    """Wrap an entity in a start and end delimiter.
 
     The wrapper works as follows:
     - The value will be wrapped with START_DELIMETER and END_DELIMETER.
@@ -91,13 +91,74 @@ def wrap_entity(
 
 def normalise_spaces(text: str) -> str:
     """Normalise spaces in the text by replacing multiple spaces with a single space."""
-    return re.sub(r'\s+', ' ', text).strip()
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def is_valid_stream_response(obj: object) -> bool:
-    """
-    Return True if obj is an iterable suitable for streaming (not str, bytes, bytearray, or any mapping).
-    """
+    """Return True if obj is an iterable suitable for streaming (not str, bytes, bytearray,
+    or any mapping)."""
     # Exclude string-like and mapping types
     excluded_types = (str, bytes, bytearray, collections.abc.Mapping)
     return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, excluded_types)
+
+
+# Type alias that follows the OpenAI API input format for the creation of model responses.
+# This includes strings, lists of strings, dictionaries, Pydantic-like objects,
+# file paths, file-like objects, raw binary data, and tuples of filename and content.
+type Input = (
+    str  # Single string
+    | list[str]  # List of strings
+    | "PydanticLike"
+    | Path  # File paths
+    | BinaryIO  # File-like objects (open files)
+    | bytes  # Raw binary data
+    | tuple[str, bytes]  # (filename, content) pairs
+)
+
+
+def _should_cloak_input(input_data: Input) -> bool:
+    """Determine if the input should be cloaked.
+
+    Only string and list[str] inputs are cloaked.
+
+    Args:
+        input_data: The input to check
+
+    Returns:
+        bool: True if input should be cloaked, False otherwise
+
+    """
+    return isinstance(input_data, str | list)
+
+
+def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, None]:
+    """Helper function to handle the ask method of LLMShield.
+
+    This function checks if the input should be cloaked and handles both streaming and non-streaming
+    cases.
+    """
+    # * 1. Get the input text and determine parameter name
+    input_param = "message" if "message" in kwargs else "prompt"
+    input_text = kwargs[input_param]
+    if _should_cloak_input(input_data=input_text):
+        # * 2. Cloak the input text
+        cloaked_text, entity_map = shield.cloak(input_text)
+        # * 3. Pass the cloaked text under the correct parameter name for the LLM function
+        func_preferred_param = (
+            "message" if "message" in shield._llm_func.__code__.co_varnames else "prompt"
+        )
+        # Remove the original parameter and add under the LLM's preferred name
+        del kwargs[input_param]
+        kwargs[func_preferred_param] = cloaked_text
+        kwargs["stream"] = stream  # Ensure stream is passed to the LLM function
+        # * 4. Get response from LLM
+        llm_response = shield._llm_func(**kwargs)
+        # * 5. Uncloak and return
+        if stream:
+            if not is_valid_stream_response(llm_response):
+                # LLM didn't return a valid stream, treat as non-streaming
+                return iter([shield.uncloak(llm_response, entity_map)])
+            return shield.stream_uncloak(llm_response, entity_map)
+        # Non-streaming: uncloak complete response
+        return shield.uncloak(llm_response, entity_map)
+    return shield._llm_func(**kwargs)  # No cloaking needed, call LLM directly

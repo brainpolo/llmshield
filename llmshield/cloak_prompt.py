@@ -1,5 +1,4 @@
-"""
-Module objectives:
+"""Module objectives:
 - Cloak the prompt before sending it to the LLM.
 - Return the cloaked prompt and a mapping of placeholders to original values.
 
@@ -11,10 +10,10 @@ import re
 from .entity_detector import Entity, EntityDetector
 from .utils import wrap_entity
 
+
 # pylint: disable=too-many-locals
 def _cloak_prompt(prompt: str, start_delimiter: str, end_delimiter: str) -> tuple[str, dict]:
-    """
-    Rewritten cloaking function:
+    """Rewritten cloaking function:
     - Collects all match positions from the original prompt.
     - Sorts matches in descending order by their start index.
     - Replaces the matches in one pass.

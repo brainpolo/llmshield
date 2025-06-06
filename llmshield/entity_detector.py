@@ -1,5 +1,4 @@
-"""
-Module for detecting and classifying different types of entities in text.
+"""Module for detecting and classifying different types of entities in text.
 
 Uses a combination of rule-based and pattern-based approaches with:
 - Regex patterns for structured data (emails, URLs, etc.)
@@ -7,13 +6,10 @@ Uses a combination of rule-based and pattern-based approaches with:
 - Heuristic rules for proper nouns and other entities
 """
 
-
 import re
-
 from dataclasses import dataclass
 from enum import Enum
 from importlib import resources
-
 
 ENT_REPLACEMENT = "\n"  # Use to void overlap with another entity
 
@@ -21,7 +17,7 @@ SPACE = " "
 
 
 class EntityType(str, Enum):
-    """Primary classification of entity types"""
+    """Primary classification of entity types."""
 
     # Proper Nouns
     PERSON = "PERSON"
@@ -40,53 +36,46 @@ class EntityType(str, Enum):
 
 
 class EntityGroup(str, Enum):
-    """Groups of related entity types"""
+    """Groups of related entity types."""
 
     PNOUN = "PNOUN"
     NUMBER = "NUMBER"
     LOCATOR = "LOCATOR"
 
     def get_types(self) -> set[EntityType]:
-        """Get all entity types belonging to this group"""
+        """Get all entity types belonging to this group."""
         group_map = {
             self.PNOUN: {
                 EntityType.PERSON,
                 EntityType.ORGANISATION,
                 EntityType.PLACE,
-                EntityType.CONCEPT
+                EntityType.CONCEPT,
             },
-            self.NUMBER: {
-                EntityType.PHONE_NUMBER,
-                EntityType.CREDIT_CARD
-            },
-            self.LOCATOR: {
-                EntityType.EMAIL,
-                EntityType.URL,
-                EntityType.IP_ADDRESS
-            }
+            self.NUMBER: {EntityType.PHONE_NUMBER, EntityType.CREDIT_CARD},
+            self.LOCATOR: {EntityType.EMAIL, EntityType.URL, EntityType.IP_ADDRESS},
         }
         return group_map[self]
 
 
 @dataclass(frozen=True)
 class Entity:
-    """Represents a detected entity in text"""
+    """Represents a detected entity in text."""
 
     type: EntityType
     value: str
 
     @property
     def group(self) -> EntityGroup:
-        """Get the group this entity belongs to"""
+        """Get the group this entity belongs to."""
         for group in EntityGroup:
             if self.type in group.get_types():
                 return group
-        raise ValueError(f"Unknown entity type: {self.type}")
+        msg = f"Unknown entity type: {self.type}"
+        raise ValueError(msg)
 
 
 class EntityDetector:
-    """
-    Main entity detection system that combines rule-based and pattern-based
+    """Main entity detection system that combines rule-based and pattern-based
     approaches to identify sensitive information in text.
 
     Uses a waterfall approach to detection, where each detection method is
@@ -95,29 +84,24 @@ class EntityDetector:
     improves the accuracy of the detection of entity type.
     """
 
-    def __init__(self):
-        """
-        Initialise large lists of entities.
-        """
-        from llmshield.utils import split_fragments, normalise_spaces
-
-        from llmshield.matchers.lists import (
-            EN_PERSON_INITIALS,
-            EN_ORG_COMPONENTS,
-            EN_PLACE_COMPONENTS,
-            EN_COMMON_WORDS,
-            EN_PUNCTUATION
-        )
-
-        from llmshield.matchers.regex import (
-            EMAIL_ADDRESS_PATTERN,
-            CREDIT_CARD_PATTERN,
-            IP_ADDRESS_PATTERN,
-            URL_PATTERN,
-            PHONE_NUMBER_PATTERN
-        )
-
+    def __init__(self) -> None:
+        """Initialise large lists of entities."""
         from llmshield.matchers.functions import _luhn_check
+        from llmshield.matchers.lists import (
+            EN_COMMON_WORDS,
+            EN_ORG_COMPONENTS,
+            EN_PERSON_INITIALS,
+            EN_PLACE_COMPONENTS,
+            EN_PUNCTUATION,
+        )
+        from llmshield.matchers.regex import (
+            CREDIT_CARD_PATTERN,
+            EMAIL_ADDRESS_PATTERN,
+            IP_ADDRESS_PATTERN,
+            PHONE_NUMBER_PATTERN,
+            URL_PATTERN,
+        )
+        from llmshield.utils import normalise_spaces, split_fragments
 
         self.split_fragments = split_fragments
         self.normalise_spaces = normalise_spaces
@@ -141,20 +125,22 @@ class EntityDetector:
 
     @staticmethod
     def _load_cities() -> list[str]:
-        """Load cities from lists/cities.txt"""
-        with resources.files('llmshield.matchers.dicts').joinpath('cities.txt').open('r') as f:
+        """Load cities from lists/cities.txt."""
+        with resources.files("llmshield.matchers.dicts").joinpath("cities.txt").open("r") as f:
             return [city.strip() for city in f.read().splitlines() if city.strip()]
 
     @staticmethod
     def _load_countries() -> list[str]:
-        """Load countries from lists/countries.txt"""
-        with resources.files('llmshield.matchers.dicts').joinpath('countries.txt').open('r') as f:
+        """Load countries from lists/countries.txt."""
+        with resources.files("llmshield.matchers.dicts").joinpath("countries.txt").open("r") as f:
             return [country.strip() for country in f.read().splitlines() if country.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
-        """Load organisations from lists/organisations.txt"""
-        with resources.files('llmshield.matchers.dicts').joinpath('organisations.txt').open('r') as f:
+        """Load organisations from lists/organisations.txt."""
+        with (
+            resources.files("llmshield.matchers.dicts").joinpath("organisations.txt").open("r") as f
+        ):
             return [org.strip() for org in f.read().splitlines() if org.strip()]
 
     def detect_entities(self, text: str) -> set[Entity]:
@@ -162,7 +148,7 @@ class EntityDetector:
         detection_methods = [
             (self._detect_locators, EntityGroup.LOCATOR),
             (self._detect_numbers, EntityGroup.NUMBER),
-            (self._detect_proper_nouns, EntityGroup.PNOUN)
+            (self._detect_proper_nouns, EntityGroup.PNOUN),
         ]
 
         entities: set[Entity] = set()
@@ -175,8 +161,7 @@ class EntityDetector:
         return entities
 
     def _detect_proper_nouns(self, text: str) -> tuple[set[Entity], str]:
-        """
-        Umbrella method for proper noun detection.
+        """Umbrella method for proper noun detection.
         It collects candidate proper nouns from the text, then classifies each.
         If an entity is classified (and potentially cleaned), it is added as an Entity.
         """
@@ -201,10 +186,8 @@ class EntityDetector:
 
         return entities, reduced_text
 
-    def _collect_proper_nouns(self, text: str) -> list[str]:
-        """
-        Collect sequential proper nouns from text.
-        """
+    def _collect_proper_nouns(self, text: str) -> list[str]:  # noqa: PLR0912
+        """Collect sequential proper nouns from text."""
         sequential_pnouns = []
         normalised_text = self.normalise_spaces(text)
         fragments = self.split_fragments(normalised_text)
@@ -213,7 +196,7 @@ class EntityDetector:
             # Split on common contractions first
             for split_word in ["I'm", "I've", "I'll"]:
                 if split_word in fragment:
-                    fragment = fragment.replace(split_word, f"{split_word} ")
+                    fragment = fragment.replace(split_word, f"{split_word} ")  # noqa: PLW2901
 
             fragment_words = fragment.split(SPACE)
             pending_p_noun = ""
@@ -246,8 +229,10 @@ class EntityDetector:
                 is_honorific = normalized_word in self.en_person_initials
                 is_capitalised = word and word[0].isupper()
 
-                if is_honorific or (not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised):
-                    pending_p_noun = (pending_p_noun + SPACE + word if pending_p_noun else word)
+                if is_honorific or (
+                    not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised
+                ):
+                    pending_p_noun = pending_p_noun + SPACE + word if pending_p_noun else word
                 elif pending_p_noun:
                     sequential_pnouns.append(pending_p_noun.strip())
                     pending_p_noun = ""
@@ -258,8 +243,7 @@ class EntityDetector:
         return sorted([p for p in sequential_pnouns if p], key=len, reverse=True)
 
     def _clean_person_name(self, p_noun: str) -> str:
-        """
-        Remove a leading honorific (if any) from a person proper noun.
+        """Remove a leading honorific (if any) from a person proper noun.
         For example "Dr. John Doe" becomes "John Doe".
         """
         words = p_noun.split()
@@ -271,8 +255,7 @@ class EntityDetector:
         return p_noun
 
     def _classify_proper_noun(self, p_noun: str) -> tuple[str, EntityType] | None:
-        """
-        Classify a proper noun into its entity type, and clean it if necessary.
+        """Classify a proper noun into its entity type, and clean it if necessary.
 
         Returns a tuple (modified_value, EntityType) or None if no classification is made.
         In the PERSON case, if a honorific is detected at the start, it is removed.
@@ -283,7 +266,7 @@ class EntityDetector:
 
         def clean_value(value: str) -> str:
             """Remove all punctuation from the value."""
-            return ''.join(c for c in value if c not in self.en_punctuation).strip()
+            return "".join(c for c in value if c not in self.en_punctuation).strip()
 
         # 1. Check for organizations first.
         if self._is_organization(p_noun):
@@ -309,9 +292,9 @@ class EntityDetector:
     def _is_concept(self, p_noun: str) -> bool:
         """Check if proper noun is a concept."""
         return (
-            all(word.isupper() for word in p_noun.split()) and
-            len(p_noun.split()) == 1 and
-            not any(c in p_noun for c in self.en_punctuation)
+            all(word.isupper() for word in p_noun.split())
+            and len(p_noun.split()) == 1
+            and not any(c in p_noun for c in self.en_punctuation)
         )
 
     def _is_organization(self, p_noun: str) -> bool:
@@ -320,28 +303,26 @@ class EntityDetector:
         p_noun_lower = p_noun.lower()
 
         # Add checks for organizations with numbers
-        if any(char.isdigit() for char in p_noun):
-            # Check if it matches known patterns like "3M", "7-Eleven"
-            if re.match(r'^\d+[A-Z].*|.*-.*\d+.*', p_noun):
-                return True
+        if any(char.isdigit() for char in p_noun) and re.match(r"^\d+[A-Z].*|.*-.*\d+.*", p_noun):
+            return True
 
         # Check for multi-word organizations like "New York Times"
-        if len(p_noun.split()) > 2:
+        if len(p_noun.split()) > 2:  # noqa: PLR2004
             last_word = p_noun.split()[-1]
             if last_word in {"Times", "News", "Corporation", "Inc", "Corp", "Co"}:
                 return True
 
-        return (
-            any(org.lower() == p_noun_lower for org in self.organisations) or
-            any(comp in p_noun for comp in self.en_org_components)
+        return any(org.lower() == p_noun_lower for org in self.organisations) or any(
+            comp in p_noun for comp in self.en_org_components
         )
 
     def _is_place(self, p_noun: str) -> bool:
         """Check if proper noun is a place."""
         return (
-                any(city.lower() == p_noun.lower() for city in self.cities) or
-                any(country.lower() == p_noun.lower() for country in self.countries) or
-                any(comp in p_noun.split() for comp in self.en_place_components))
+            any(city.lower() == p_noun.lower() for city in self.cities)
+            or any(country.lower() == p_noun.lower() for country in self.countries)
+            or any(comp in p_noun.split() for comp in self.en_place_components)
+        )
 
     def _is_person(self, p_noun: str) -> bool:
         """Check if proper noun is a person."""
@@ -371,8 +352,8 @@ class EntityDetector:
                 continue
 
             # Allow hyphenated names
-            if '-' in clean_word:
-                parts = clean_word.split('-')
+            if "-" in clean_word:
+                parts = clean_word.split("-")
                 if not all(part and part[0].isupper() for part in parts):
                     return False
                 continue
@@ -381,44 +362,52 @@ class EntityDetector:
             # 1. Start with capital letter
             # 2. Not be in common words
             # 3. Not contain digits
-            if (not clean_word[0].isupper() or
-                clean_word.lower() in (w.lower() for w in self.en_common_words) or
-                any(c.isdigit() for c in clean_word)):
+            if (
+                not clean_word[0].isupper()
+                or clean_word.lower() in (w.lower() for w in self.en_common_words)
+                or any(c.isdigit() for c in clean_word)
+            ):
                 return False
 
         return True
 
     def _detect_numbers(self, text: str) -> tuple[set[Entity], str]:
-        """Detect numbers in the text"""
+        """Detect numbers in the text."""
         entities = set()
         reduced_text = text
 
         # * 1. Split on sentence boundaries (punctuation / new line)
         emails = self.email_pattern.finditer(text)
         for email in emails:
-            entities.add(Entity(
-                type=EntityType.EMAIL,
-                value=email.group(),
-            ))
+            entities.add(
+                Entity(
+                    type=EntityType.EMAIL,
+                    value=email.group(),
+                ),
+            )
             reduced_text = reduced_text.replace(email.group(), ENT_REPLACEMENT)
 
         # * 2. Detect credit cards
         credit_cards = self.credit_card_pattern.finditer(text)
         for credit_card in credit_cards:
             if self.luhn_check(credit_card.group()):
-                entities.add(Entity(
-                    type=EntityType.CREDIT_CARD,
-                    value=credit_card.group(),
-                ))
+                entities.add(
+                    Entity(
+                        type=EntityType.CREDIT_CARD,
+                        value=credit_card.group(),
+                    ),
+                )
                 reduced_text = reduced_text.replace(credit_card.group(), ENT_REPLACEMENT)
 
         # * 3. Detect phone numbers
         phone_numbers = self.phone_number_pattern.finditer(text)
         for phone_number in phone_numbers:
-            entities.add(Entity(
-                type=EntityType.PHONE_NUMBER,
-                value=phone_number.group(),
-            ))
+            entities.add(
+                Entity(
+                    type=EntityType.PHONE_NUMBER,
+                    value=phone_number.group(),
+                ),
+            )
             reduced_text = reduced_text.replace(phone_number.group(), ENT_REPLACEMENT)
 
         # * 4. Return the reduced text and entities found
@@ -432,28 +421,34 @@ class EntityDetector:
         # * 1. Detect URLs
         urls = self.url_pattern.finditer(text)
         for url in urls:
-            entities.add(Entity(
-                type=EntityType.URL,
-                value=url.group(),
-            ))
+            entities.add(
+                Entity(
+                    type=EntityType.URL,
+                    value=url.group(),
+                ),
+            )
             reduced_text = reduced_text.replace(url.group(), ENT_REPLACEMENT)
 
         # * 2. Detect emails
         emails = self.email_pattern.finditer(text)
         for email in emails:
-            entities.add(Entity(
-                type=EntityType.EMAIL,
-                value=email.group(),
-            ))
+            entities.add(
+                Entity(
+                    type=EntityType.EMAIL,
+                    value=email.group(),
+                ),
+            )
             reduced_text = reduced_text.replace(email.group(), ENT_REPLACEMENT)
 
         # * 3. Detect IP addresses
         ip_addresses = self.ip_address_pattern.finditer(text)
         for ip_address in ip_addresses:
-            entities.add(Entity(
-                type=EntityType.IP_ADDRESS,
-                value=ip_address.group(),
-            ))
+            entities.add(
+                Entity(
+                    type=EntityType.IP_ADDRESS,
+                    value=ip_address.group(),
+                ),
+            )
             reduced_text = reduced_text.replace(ip_address.group(), ENT_REPLACEMENT)
 
         # * 4. Return the reduced text and entities found

@@ -1,12 +1,13 @@
 """Tests for entity detection and classification."""
 
-
 import unittest
-from llmshield.entity_detector import EntityDetector, EntityType, EntityGroup
+
+from llmshield.entity_detector import EntityDetector, EntityGroup, EntityType
 
 
 class TestEntityDetector(unittest.TestCase):
     """Test suite for EntityDetector class."""
+
     # pylint: disable=protected-access  # Testing internal methods requires access to protected members
 
     def setUp(self):
@@ -18,15 +19,14 @@ class TestEntityDetector(unittest.TestCase):
         # Test all group mappings
         self.assertEqual(
             EntityGroup.PNOUN.get_types(),
-            {EntityType.PERSON, EntityType.ORGANISATION, EntityType.PLACE, EntityType.CONCEPT}
+            {EntityType.PERSON, EntityType.ORGANISATION, EntityType.PLACE, EntityType.CONCEPT},
         )
         self.assertEqual(
-            EntityGroup.NUMBER.get_types(),
-            {EntityType.PHONE_NUMBER, EntityType.CREDIT_CARD}
+            EntityGroup.NUMBER.get_types(), {EntityType.PHONE_NUMBER, EntityType.CREDIT_CARD}
         )
         self.assertEqual(
             EntityGroup.LOCATOR.get_types(),
-            {EntityType.EMAIL, EntityType.URL, EntityType.IP_ADDRESS}
+            {EntityType.EMAIL, EntityType.URL, EntityType.IP_ADDRESS},
         )
 
     def test_detect_proper_nouns_empty(self):
@@ -66,11 +66,7 @@ class TestEntityDetector(unittest.TestCase):
     def test_honorific_handling(self):
         """Test honorific handling in person detection."""
         # Test with individual names to verify proper classification
-        test_names = [
-            "Dr. Jane",
-            "Prof. Robert",
-            "Mr. William"
-        ]
+        test_names = ["Dr. Jane", "Prof. Robert", "Mr. William"]
 
         for name in test_names:
             result = self.detector._classify_proper_noun(name)
@@ -101,7 +97,9 @@ class TestEntityDetector(unittest.TestCase):
 
         # Test multi-word organizations
         self.assertTrue(self.detector._is_organization("New York Times"))
-        self.assertTrue(self.detector._is_organization("International Business Machines Corporation"))
+        self.assertTrue(
+            self.detector._is_organization("International Business Machines Corporation")
+        )
 
     def test_place_detection(self):
         """Test place detection."""
@@ -168,6 +166,5 @@ class TestEntityDetector(unittest.TestCase):
         self.assertEqual(text, "")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-

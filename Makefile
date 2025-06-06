@@ -1,8 +1,8 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 
-# Options for the Sphinx build executable 
-SPHINXOPTS    ?= 
+# Options for the Sphinx build executable
+SPHINXOPTS    ?=
 
 # Sphinx build executable
 SPHINXBUILD   ?= sphinx-build
@@ -19,10 +19,10 @@ docs-help:
 
 # Rule to generate documentation in HTML format
 generate-docs:
-	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)	
+	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Rule to run all of the package tests
-tests: 
+tests:
 	python -m unittest discover -v
 
 # Rule to check the coverage of the package tests
@@ -32,9 +32,13 @@ coverage:
 
 # Rule to build the package the same way as it would be built for distribution
 build:
-	python -m build 
+	python -m build
 
 dev-dependencies:
 	pip install -e ".[dev]"
+
+hooks:
+	pre-commit install
+	pre-commit run --all-files
 
 .PHONY: docs-help generate-docs tests coverage Makefile

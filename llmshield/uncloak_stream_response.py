@@ -1,12 +1,12 @@
-"""
-Module Objectives:
+"""Module Objectives:
 - After receiving a cloaked stream response from the LLM,
 uncloak the response through a buffered chunk approach.
 - It should return the a response with the placeholders restored to their original values.
 # - The module is intended for internal use only.
 """
 
-from typing import Generator
+from collections.abc import Generator
+
 
 def uncloak_stream_response(
     stream: Generator[str, None, None],
@@ -14,8 +14,7 @@ def uncloak_stream_response(
     start_delimiter: str = "<",
     end_delimiter: str = ">",
 ) -> Generator[str, None, None]:
-    """
-    Uncloaks a stream response from the LLM by replacing placeholders with their original values.
+    """Uncloaks a stream response from the LLM by replacing placeholders with their original values.
 
     Args:
         response_stream (Generator[str, None, None]): The stream of cloaked responses.
@@ -23,6 +22,7 @@ def uncloak_stream_response(
 
     Yields:
         str: The uncloaked response chunks.
+
     """
     buffer = ""
     for chunk in stream:
@@ -58,7 +58,7 @@ def uncloak_stream_response(
                 break
             # Extract and uncloak complete placeholder
             placeholder = buffer[: end_pos + len(end_delimiter)]
-            yield entity_map.get(placeholder, placeholder) # type: ignore
+            yield entity_map.get(placeholder, placeholder)  # type: ignore
             buffer = buffer[end_pos + len(end_delimiter) :]
     # Yield any remaining buffer content
     if buffer:

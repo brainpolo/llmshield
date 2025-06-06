@@ -1,7 +1,7 @@
 """Tests for response uncloaking."""
 
-
 from unittest import TestCase
+
 from llmshield import LLMShield
 
 
@@ -19,20 +19,16 @@ class TestUncloak(TestCase):
 
         # Test partial replacements
         self.assertEqual(
-            self.shield.uncloak(
-                "Hello [PERSON_0] and [PERSON_1]",
-                {"[PERSON_0]": "John"}
-            ),
-            "Hello John and [PERSON_1]"
+            self.shield.uncloak("Hello [PERSON_0] and [PERSON_1]", {"[PERSON_0]": "John"}),
+            "Hello John and [PERSON_1]",
         )
 
         # Test multiple replacements
         self.assertEqual(
             self.shield.uncloak(
-                "[PERSON_0] [PERSON_0] [PERSON_1]",
-                {"[PERSON_0]": "John", "[PERSON_1]": "Smith"}
+                "[PERSON_0] [PERSON_0] [PERSON_1]", {"[PERSON_0]": "John", "[PERSON_1]": "Smith"}
             ),
-            "John John Smith"
+            "John John Smith",
         )
 
     def test_recursive_dict_uncloaking(self):
@@ -45,19 +41,17 @@ class TestUncloak(TestCase):
                 "sender": {
                     "name": "[PERSON_0]",
                     "email": "[EMAIL_0]",
-                    "company": "[ORGANISATION_0]"
+                    "company": "[ORGANISATION_0]",
                 },
                 "recipients": [
                     {"name": "[PERSON_1]", "contact": "[PHONE_0]"},
-                    {"name": "[PERSON_2]", "contact": "[EMAIL_1]"}
+                    {"name": "[PERSON_2]", "contact": "[EMAIL_1]"},
                 ],
                 "confidential": True,
                 "nested": {
-                    "deeply": {
-                        "secret": "This is [PERSON_0]'s secret address: [IP_ADDRESS_0]"
-                    }
-                }
-            }
+                    "deeply": {"secret": "This is [PERSON_0]'s secret address: [IP_ADDRESS_0]"}
+                },
+            },
         }
 
         # Entity map with all placeholders
@@ -69,7 +63,7 @@ class TestUncloak(TestCase):
             "[EMAIL_0]": "john.doe@example.com",
             "[EMAIL_1]": "bob@example.com",
             "[PHONE_0]": "+1-555-123-4567",
-            "[IP_ADDRESS_0]": "192.168.1.1"
+            "[IP_ADDRESS_0]": "192.168.1.1",
         }
 
         # Apply uncloaking
@@ -93,7 +87,7 @@ class TestUncloak(TestCase):
         # Verify deeply nested structures are uncloaked
         self.assertEqual(
             uncloaked["metadata"]["nested"]["deeply"]["secret"],
-            "This is John Doe's secret address: 192.168.1.1"
+            "This is John Doe's secret address: 192.168.1.1",
         )
 
         # Verify non-string values are preserved
@@ -101,10 +95,7 @@ class TestUncloak(TestCase):
 
     def test_uncloak_with_llmshield(self):
         """Test recursive uncloaking with the LLMShield class."""
-        shield = LLMShield(
-            start_delimiter='[',
-            end_delimiter=']'
-        )
+        shield = LLMShield(start_delimiter="[", end_delimiter="]")
 
         # Create structured response with nested placeholders
         structured_response = {
@@ -115,10 +106,10 @@ class TestUncloak(TestCase):
                     "org": "[ORGANISATION_0]",
                     "location": {
                         "address": "123 Main St, [PLACE_0]",
-                        "coordinates": "[IP_ADDRESS_0]"
-                    }
+                        "coordinates": "[IP_ADDRESS_0]",
+                    },
                 }
-            }
+            },
         }
 
         # Create entity map
@@ -126,7 +117,7 @@ class TestUncloak(TestCase):
             "[PERSON_0]": "John Doe",
             "[ORGANISATION_0]": "Acme Inc",
             "[PLACE_0]": "New York",
-            "[IP_ADDRESS_0]": "192.168.1.1"
+            "[IP_ADDRESS_0]": "192.168.1.1",
         }
 
         # Apply uncloaking
@@ -136,10 +127,15 @@ class TestUncloak(TestCase):
         self.assertEqual(uncloaked["answer"], "My name is John Doe and I work at Acme Inc")
         self.assertEqual(uncloaked["metadata"]["entities"]["person"], "John Doe")
         self.assertEqual(uncloaked["metadata"]["entities"]["org"], "Acme Inc")
-        self.assertEqual(uncloaked["metadata"]["entities"]["location"]["address"], "123 Main St, New York")
-        self.assertEqual(uncloaked["metadata"]["entities"]["location"]["coordinates"], "192.168.1.1")
+        self.assertEqual(
+            uncloaked["metadata"]["entities"]["location"]["address"], "123 Main St, New York"
+        )
+        self.assertEqual(
+            uncloaked["metadata"]["entities"]["location"]["coordinates"], "192.168.1.1"
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()
