@@ -1,0 +1,29 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_stages: [pre-commit, pre-push]
+exclude: ^(venv/|.vscode/|\.git/|dist/|\.idea/|docs/)
+repos:
+  - repo: local
+    hooks:
+      - id: package-tests
+        name: Tests of the LLMShield Package
+        entry: make tests
+        language: python
+        types: [python]
+      - id: ruff-linting
+        name: Linting with Ruff
+        entry: ruff check . --fix --unsafe-fixes
+        language: python
+        types: [python]
+      - id: ruff-formatting
+        name: Formatting with Ruff
+        entry: ruff format .
+        language: python
+        types: [python]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files

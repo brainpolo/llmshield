@@ -15,11 +15,11 @@ release = "2/02/2025"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    "sphinx.ext.napoleon",
-    "sphinx.ext.autodoc",
-    "myst_parser",
-    "sphinx_rtd_theme",
-    "sphinx.ext.githubpages",
+	"sphinx.ext.napoleon",
+	"sphinx.ext.autodoc",
+	"myst_parser",
+	"sphinx_rtd_theme",
+	"sphinx.ext.githubpages",
 ]
 
 templates_path = ["_templates"]

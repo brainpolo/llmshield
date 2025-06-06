@@ -23,33 +23,70 @@ Homepage = "https://github.com/brainpolo/llmshield"
 Issues = "https://github.com/brainpolo/llmshield/issues"
 
 [tool.setuptools]
-packages = [
-    "llmshield",
-    "llmshield.matchers",
-    "llmshield.matchers.dicts",
-]
+packages = ["llmshield", "llmshield.matchers", "llmshield.matchers.dicts"]
 
 [tool.setuptools.package-data]
 "llmshield.matchers" = ["dicts/*.txt"]
 
 [tool.setuptools.exclude-package-data]
 "*" = [
-    "*.pyc", "*.pyo", "*.pyd", "__pycache__",
+    "*.pyc",
+    "*.pyo",
+    "*.pyd",
+    "__pycache__",
     "tests/*",
     ".github/*",
     ".coverage",
     "htmlcov/*",
     ".pytest_cache/*",
     ".mypy_cache/*",
-    "build/*", "dist/*", "*.egg-info",
-    "Makefile"
+    "build/*",
+    "dist/*",
+    "*.egg-info",
+    "Makefile",
 ]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    "PL",  # pylint rules
+]
+exclude = [
+    "docs/*",
+    "build/*",
+    "dist/*",
+    ".github/*",
+    ".vscode/*",
+    ".mypy_cache/*",
+    ".pytest_cache/*",
+    "llmshield/matchers/dicts/*.txt",  # Exclude dicts from ruff checks
+    "venv/*",
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = 20
+quote-style = "double"
+indent-style = "tab"
+line-ending= "auto"
 
 [project.optional-dependencies]
 dev = [
-    "black>=22.0.0",
-    "isort>=5.0.0",
-    "pylint>=3.3.6",
     "coverage>=7.8.0",
     "build>=1.2.2",
     "packaging>=24.2",
@@ -57,5 +94,7 @@ dev = [
     "setuptools>=75.8.0",
     "sphinx",
     "myst-parser",
-    "sphinx_rtd_theme"
+    "sphinx_rtd_theme",
+    "pre-commit",
+    "ruff",
 ]
