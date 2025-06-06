@@ -102,7 +102,9 @@ class LLMShield:
 
         self.start_delimiter = start_delimiter
         self.end_delimiter = end_delimiter
-        self._llm_func = llm_func
+
+        self.llm_func = llm_func
+
         self._last_entity_map = None
 
     def cloak(self, prompt: str) -> tuple[str, dict[str, str]]:
@@ -115,7 +117,11 @@ class LLMShield:
             Tuple of (cloaked_prompt, entity_mapping)
 
         """
-        cloaked, entity_map = _cloak_prompt(prompt, self.start_delimiter, self.end_delimiter)
+        cloaked, entity_map = _cloak_prompt(
+            prompt,
+            self.start_delimiter,
+            self.end_delimiter
+        )
         self._last_entity_map = entity_map
         return cloaked, entity_map
 
@@ -179,10 +185,13 @@ class LLMShield:
         response_stream: Generator[str, None, None],
         entity_map: dict[str, str] | None = None,
     ) -> Generator[str, None, None]:
-        """Restore original entities in the LLM response if the response comes in the form of a
-        stream.
-        The function processes the response stream in the form of chunks, attempting to yield either
-        uncloaked chunks or the remaining buffer content in which there was no uncloaking done yet.
+        """
+        Restore original entities in the LLM response if the response comes in
+        the form of a stream.
+
+        The function processes the response stream in the form of chunks,
+        attempting to yield either uncloaked chunks or the remaining buffer
+        content in which there was no uncloaking done yet.
 
         For non-stream responses, use the `uncloak` method instead.
 
@@ -197,7 +206,6 @@ class LLMShield:
 
         Yields:
             str: Uncloaked response chunks
-
         """
         # Validate the inputs
         if not response_stream:
@@ -238,14 +246,15 @@ class LLMShield:
             - Does not support multiple messages (multi-shot requests).
 
         Args:
-            prompt/message: Original prompt with sensitive information. This will be cloaked
-                   and passed to your LLM function. Do not pass both, and do not use any other
-                   parameter names as they are unrecognised by the shield.
+            prompt/message: Original prompt with sensitive information. This
+                    will be cloaked and passed to your LLM function. Do not pass
+                    both, and do not use any other parameter names as they are
+                    unrecognised by the shield.
             stream: Whether the LLM Function is a stream or not. If True, returns
                     a generator that yields incremental responses
-                   following the OpenAI Realtime Streaming API. If False, returns
-                   the complete response as a string.
-                   By default, this is False.
+                    following the OpenAI Realtime Streaming API. If False, returns
+                    the complete response as a string.
+                    By default, this is False.
             **kwargs: Additional arguments to pass to your LLM function, such as:
                     - model: The model to use (e.g., "gpt-4")
                     - system_prompt: System instructions
@@ -257,8 +266,9 @@ class LLMShield:
         Returns:
             str: Uncloaked LLM response with original entities restored.
 
-            Generator[str, None, None]: If stream is True, returns a generator that yields
-            incremental responses, following the OpenAI Realtime Streaming API.
+            Generator[str, None, None]: If stream is True, returns a generator
+            that yields incremental responses, following the OpenAI Realtime
+            Streaming API.
 
         ! Regardless of the specific implementation of the LLM Function,
         whenever the stream parameter is true, the function will return an generator. !
@@ -269,7 +279,7 @@ class LLMShield:
 
         """
         # * 1. Validate inputs
-        if self._llm_func is None:
+        if self.llm_func is None:
             msg = (
                 "No LLM function provided. Either provide llm_func in constructor "
                 "or use cloak/uncloak separately."

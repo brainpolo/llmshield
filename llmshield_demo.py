@@ -32,16 +32,22 @@ def main() -> None:
         "Dear John,"
         "I am writing to you to inform you that I will be out of the office "
         "from Monday to Wednesday next week. "
-        "I will be available for urgent matters during this time, but please contact me if you need"
-        " anything else using "
+        "I will be available for urgent matters during this time, but please"
+        " contact me if you need anything else using "
         "my email address: janesmith@mail.com. "
         "Thank you for your understanding."
         "Best regards,"
         "Jane Smith"
     )
 
-    response = shield.ask(model="gpt-4o-mini", message=message, temperature=0, stream=True)
+    response = shield.ask(
+        model="gpt-4o-mini",
+        message=message,
+        temperature=0,
+        stream=True,
+    )
 
+    # skipcq: PTC-W0047
     for _chunk in response:
         pass
 

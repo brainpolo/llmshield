@@ -57,7 +57,8 @@ def split_fragments(text: str) -> list[str]:
 
 
 def is_valid_delimiter(delimiter: str) -> bool:
-    """Validate a delimiter based on the following rules:
+    """
+    Validate a delimiter based on the following rules:
     - Must be a string.
     - Must be at least 1 character long.
 
@@ -95,8 +96,10 @@ def normalise_spaces(text: str) -> str:
 
 
 def is_valid_stream_response(obj: object) -> bool:
-    """Return True if obj is an iterable suitable for streaming (not str, bytes, bytearray,
-    or any mapping)."""
+    """
+    Return True if obj is an iterable suitable for streaming
+    (not str, bytes, bytearray, or any mapping).
+    """
     # Exclude string-like and mapping types
     excluded_types = (str, bytes, bytearray, collections.abc.Mapping)
     return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, excluded_types)
@@ -134,8 +137,16 @@ def _should_cloak_input(input_data: Input) -> bool:
 def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, None]:
     """Helper function to handle the ask method of LLMShield.
 
-    This function checks if the input should be cloaked and handles both streaming and non-streaming
-    cases.
+    This function checks if the input should be cloaked and handles both
+    streaming and non-streaming cases.
+
+    Args:
+        shield: The LLMShield instance.
+        stream: Whether to stream the response.
+        **kwargs: Additional keyword arguments to pass to the LLM function.
+
+    Returns:
+        str | Generator[str, None, None]: The response from the LLM.
     """
     # * 1. Get the input text and determine parameter name
     input_param = "message" if "message" in kwargs else "prompt"
@@ -143,16 +154,16 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
     if _should_cloak_input(input_data=input_text):
         # * 2. Cloak the input text
         cloaked_text, entity_map = shield.cloak(input_text)
-        # * 3. Pass the cloaked text under the correct parameter name for the LLM function
+        # * 3. Pass cloaked text under the correct parameter name for LLM function
         func_preferred_param = (
-            "message" if "message" in shield._llm_func.__code__.co_varnames else "prompt"
+            "message" if "message" in shield.llm_func.__code__.co_varnames else "prompt"
         )
         # Remove the original parameter and add under the LLM's preferred name
         del kwargs[input_param]
         kwargs[func_preferred_param] = cloaked_text
         kwargs["stream"] = stream  # Ensure stream is passed to the LLM function
         # * 4. Get response from LLM
-        llm_response = shield._llm_func(**kwargs)
+        llm_response = shield.llm_func(**kwargs)
         # * 5. Uncloak and return
         if stream:
             if not is_valid_stream_response(llm_response):
@@ -161,4 +172,4 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
             return shield.stream_uncloak(llm_response, entity_map)
         # Non-streaming: uncloak complete response
         return shield.uncloak(llm_response, entity_map)
-    return shield._llm_func(**kwargs)  # No cloaking needed, call LLM directly
+    return shield.llm_func(**kwargs)  # No cloaking needed, call LLM directly
