@@ -20,6 +20,16 @@ repos:
         entry: ruff format .
         language: python
         types: [python]
+      - id: build
+        name: Build the LLMShield Package
+        entry: make build
+        language: python
+        types: [python]
+      - id: check-coverage
+        name: Check Test Coverage
+        entry: make coverage
+        language: python
+        types: [python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:
