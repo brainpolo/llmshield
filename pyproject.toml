@@ -82,8 +82,19 @@ exclude = [
 docstring-code-format = true
 docstring-code-line-length = 20
 quote-style = "double"
-indent-style = "tab"
 line-ending= "auto"
+exclude = [
+    "docs/*",
+    "build/*",
+    "dist/*",
+    ".github/*",
+    ".vscode/*",
+    ".mypy_cache/*",
+    ".pytest_cache/*",
+    "llmshield/matchers/dicts/*.txt",  # Exclude dicts from ruff formatting
+    "venv/*",
+    "tests/*"
+]
 
 [project.optional-dependencies]
 dev = [
@@ -92,9 +103,9 @@ dev = [
     "packaging>=24.2",
     "pyproject_hooks>=1.2.0",
     "setuptools>=75.8.0",
-    "sphinx",
-    "myst-parser",
+    "sphinx>=8.2.3",
+    "myst-parser>=4.0.1",
     "sphinx_rtd_theme",
-    "pre-commit",
-    "ruff",
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.13",
 ]

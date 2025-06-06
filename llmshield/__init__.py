@@ -1,5 +1,4 @@
-"""
-LLMShield: Protect sensitive information in LLM interactions.
+"""LLMShield: Protect sensitive information in LLM interactions.
 
 Basic usage:
     >>> from llmshield import (
@@ -37,17 +36,17 @@ from .core import LLMShield
 __all__ = ["LLMShield"]
 
 
-def create_shield(**kwargs):  # type: ignore
-	"""
-	Create a new LLMShield instance with the given configuration.
+def create_shield(**kwargs) -> LLMShield:  # noqa: ANN003
+    """Create a new LLMShield instance with the given configuration.
 
-	Args:
-	    **kwargs: Arguments to pass to LLMShield constructor
-	        - start_delimiter: Character(s) to wrap entities (default: '<')
-	        - end_delimiter: Character(s) to wrap entities (default: '>')
-	        - llm_func: Optional function to call LLM
+    Args:
+        **kwargs: Arguments to pass to LLMShield constructor
+            - start_delimiter: Character(s) to wrap entities (default: '<')
+            - end_delimiter: Character(s) to wrap entities (default: '>')
+            - llm_func: Optional function to call LLM
 
-	Returns:
-	    LLMShield instance
-	"""
-	return LLMShield(**kwargs)  # type: ignore
+    Returns:
+        LLMShield instance
+
+    """
+    return LLMShield(**kwargs)
