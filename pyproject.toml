@@ -64,7 +64,7 @@ select = [
     "SIM",
     # isort
     "I",
-    "PL",  # pylint rules
+    "PL", # pylint rules
 ]
 exclude = [
     "docs/*",
@@ -74,7 +74,7 @@ exclude = [
     ".vscode/*",
     ".mypy_cache/*",
     ".pytest_cache/*",
-    "llmshield/matchers/dicts/*.txt",  # Exclude dicts from ruff checks
+    "llmshield/matchers/dicts/*.txt", # Exclude dicts from ruff checks
     "venv/*",
 ]
 
@@ -82,7 +82,7 @@ exclude = [
 docstring-code-format = true
 docstring-code-line-length = 20
 quote-style = "double"
-line-ending= "auto"
+line-ending = "auto"
 exclude = [
     "docs/*",
     "build/*",
@@ -91,9 +91,9 @@ exclude = [
     ".vscode/*",
     ".mypy_cache/*",
     ".pytest_cache/*",
-    "llmshield/matchers/dicts/*.txt",  # Exclude dicts from ruff formatting
+    "llmshield/matchers/dicts/*.txt", # Exclude dicts from ruff formatting
     "venv/*",
-    "tests/*"
+    "tests/*",
 ]
 
 [project.optional-dependencies]
@@ -102,7 +102,7 @@ dev = [
     "build>=1.2.2",
     "packaging>=24.2",
     "pyproject_hooks>=1.2.0",
-    "setuptools>=75.8.0",
+    "setuptools>=78.1.1",
     "sphinx>=8.2.3",
     "myst-parser>=4.0.1",
     "sphinx_rtd_theme",
