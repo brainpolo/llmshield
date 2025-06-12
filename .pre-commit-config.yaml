@@ -20,11 +20,6 @@ repos:
         entry: ruff format .
         language: python
         types: [python]
-      - id: build
-        name: Build the LLMShield Package
-        entry: make build
-        language: python
-        types: [python]
       - id: check-coverage
         name: Check Test Coverage
         entry: make coverage

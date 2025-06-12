@@ -173,3 +173,22 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
         # Non-streaming: uncloak complete response
         return shield.uncloak(llm_response, entity_map)
     return shield.llm_func(**kwargs)  # No cloaking needed, call LLM directly
+
+
+# Typedef for a hashable type used for conversation keys.
+type Hash = int
+type Message = dict[str, str]
+
+
+def conversation_hash(obj: Message | list[Message]) -> Hash:
+    """
+    Generate a stable, hashable key for a message or a list of messages.
+    If a single message is provided, hash its role and content.
+    If a list of messages is provided, hash the set of (role, content) pairs.
+    """
+    if isinstance(obj, dict):
+        # Single message
+        return hash((obj.get("role", ""), obj.get("content", "")))
+
+    # List of messages
+    return hash(frozenset((msg.get("role", ""), msg.get("content", "")) for msg in obj))
