@@ -37,6 +37,7 @@ from .uncloak_stream_response import uncloak_stream_response
 
 # Local imports
 from .utils import (
+    Message,
     PydanticLike,
     ask_helper,  # type: ignore
     conversation_hash,
@@ -244,7 +245,7 @@ class LLMShield:
         )
 
     def ask(
-        self, stream: bool = False, messages: list[dict[str, str]] | None = None, **kwargs
+        self, stream: bool = False, messages: list[Message] | None = None, **kwargs
     ) -> str | Generator[str, None, None]:
         """Complete end-to-end LLM interaction with automatic protection.
 
@@ -252,9 +253,6 @@ class LLMShield:
         do not contain PII and that any keys that may contain PII are either
         string, lists, or dicts. Other types like int, float, are unable to be
         cloaked and will be returned as is.
-
-        Limitations:
-            - Does not support multiple messages (multi-shot requests).
 
         Args:
             prompt/message: Original prompt with sensitive information. This
@@ -315,6 +313,16 @@ class LLMShield:
                 msg,
             )
 
+        if messages is not None and ("prompt" in kwargs or "message" in kwargs):
+            msg = (
+                "Do not provide both 'prompt', 'message' and 'messages'. Use only either prompt"
+                "/message"
+                " or messages parameter - it will be passed to your LLM function."
+            )
+            raise ValueError(
+                msg,
+            )
+
         if messages is None and ("message" in kwargs or "prompt" in kwargs):  # type: ignore
             return ask_helper(
                 shield=self,
@@ -360,12 +368,12 @@ class LLMShield:
             uncloaked_response = self.uncloak(llm_response, final_entity_map)
 
         # 8. Update the history with the latest message and the uncloaked response
-        next_history = history + (
+        next_history = history + [
             latest_message,
             {"role": "assistant", "content": uncloaked_response},
-        )
+        ]
 
-        new_key = self._get_conversation_key(next_history)
+        new_key = conversation_hash(next_history)
         self._cache.put(new_key, final_entity_map)
 
         return uncloaked_response

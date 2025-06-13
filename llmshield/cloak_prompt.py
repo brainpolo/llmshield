@@ -31,6 +31,8 @@ def _cloak_prompt(
 
     # Create a reverse map for quick lookups of existing values
     reversed_entity_map = {v: k for k, v in entity_map.items()}
+    if len(entity_map.keys()) > 0:
+        print("Cached Reverse entity map", reversed_entity_map)
 
     detector = EntityDetector()
     entities: set[Entity] = detector.detect_entities(prompt)

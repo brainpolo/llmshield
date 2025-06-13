@@ -11,7 +11,7 @@ from unittest import TestCase, main
 
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
-from llmshield.utils import wrap_entity
+from llmshield.utils import conversation_hash, wrap_entity
 
 
 class TestCoreFunctionality(TestCase):
@@ -509,6 +509,170 @@ class TestCoreFunctionality(TestCase):
         self.assertIn("john@example.com", result)
         self.assertIn("192.168.1.1", result)
         self.assertIn("378282246310005", result)
+
+    def test_cloak_reuses_placeholders_from_entity_map(self):
+        """Test that cloak reuses placeholders from a given entity_map."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        # 1. Initial cloak to establish an entity map
+        initial_prompt = "My name is John"
+        _, initial_entity_map = shield.cloak(initial_prompt)
+        self.assertEqual(initial_entity_map, {"[[PERSON_0]]": "John"})
+
+        # 2. Second cloak with a new prompt, passing the previous map
+        # This prompt reuses "John" and adds a new entity.
+        # TODO: Fix the noun detection and change this.
+        second_prompt = "John , my email is jane.doe@example.com."
+        cloaked_prompt, final_entity_map = shield.cloak(
+            second_prompt, entity_map_param=initial_entity_map.copy()
+        )
+
+        # 3. Assert that the existing placeholder is reused for "John Doe"
+        self.assertIn("[[PERSON_0]]", cloaked_prompt)
+        # And that a *new* placeholder is created for the email.
+        # The counter should continue from the size of the initial map.
+        self.assertIn("[[EMAIL_1]]", cloaked_prompt)
+
+        # 4. Assert the final map is correct
+        expected_map = {
+            "[[PERSON_0]]": "John",
+            "[[EMAIL_1]]": "jane.doe@example.com",
+        }
+        self.assertEqual(final_entity_map, expected_map)
+
+    def test_ask_multi_turn_conversation_reuses_entities(self):
+        """Test that multi-turn `ask` conversations correctly reuse entities across turns."""
+
+        def mock_llm(messages, **kwargs):
+            """A mock LLM that checks for placeholders and returns one."""
+            last_message = messages[-1]["content"]
+            if "what is my email" in last_message:
+                # Find email placeholder in the message history
+                for msg in messages:
+                    match = re.search(r"(\[\[EMAIL_\d+\]\])", msg["content"])
+                    if match:
+                        return f"Your email is {match.group(1)}"
+            return "Acknowledged."
+
+        shield = LLMShield(llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]")
+
+        # This conversation introduces an entity, then asks about it.
+        conversation = [
+            {"role": "user", "content": "Hello, my name is Alice. My email is alice@example.com."},
+            {"role": "assistant", "content": "Acknowledged."},
+            {"role": "user", "content": "Now, what is my email address?"},
+        ]
+
+        # The `ask` method should handle the history, find "alice@example.com",
+        # cloak it, pass it to the mock LLM, which returns the placeholder,
+        # and then uncloak it back.
+        response = shield.ask(messages=conversation)
+
+        self.assertEqual(response, "Your email is alice@example.com")
+
+    def test_ask_with_messages_and_prompt_raises_error(self):
+        """Test that `ask` raises a ValueError if both `messages` and `prompt` are provided."""
+
+        def mock_llm(messages, **kwargs):
+            return "This should not be called."
+
+        shield = LLMShield(llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]")
+
+        conversation = [{"role": "user", "content": "Hello"}]
+        prompt = "Hi there"
+
+        with self.assertRaises(ValueError):
+            shield.ask(stream=False, messages=conversation, prompt=prompt)
+
+    def test_ask_caches_conversation_history(self):
+        """Test that `ask` caches the entity map for a conversation history."""
+
+        def mock_llm(messages, **kwargs):
+            return "Acknowledged."
+
+        shield = LLMShield(llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]")
+
+        conversation = [
+            {"role": "user", "content": "Hello, my name is Alice. My email is alice@example.com."},
+        ]
+
+        # This call should cache the state *after* the conversation.
+        response = shield.ask(messages=conversation)
+
+        # The history that gets cached includes the assistant's response.
+        final_history = conversation + [{"role": "assistant", "content": response}]
+        history_key = conversation_hash(final_history)
+
+        # Check that the cache now contains the entity map for this history.
+        cached_map = shield._cache.get(history_key)
+        self.assertIsNotNone(cached_map, "Entity map was not cached for the conversation.")
+
+        # Check for presence of values, as key names can vary
+        cached_values = list(cached_map.values())
+        self.assertIn("Alice", cached_values)
+        self.assertIn("alice@example.com", cached_values)
+
+    def test_ask_uses_cached_entity_map_for_history(self):
+        """Test that `ask` uses a cached entity map and avoids re-cloaking history."""
+
+        class ShieldWithTrackedCloak(LLMShield):
+            """A wrapper to track cloak calls."""
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.cloak_call_count = 0
+
+            def cloak(self, prompt: str, entity_map_param: dict[str, str] | None = None):
+                self.cloak_call_count += 1
+                return super().cloak(prompt, entity_map_param=entity_map_param)
+
+        def mock_llm(messages, **kwargs):
+            return "Acknowledged."
+
+        shield = ShieldWithTrackedCloak(llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]")
+
+        # Turn 1: Establish history and cache
+        conversation_1 = [
+            {"role": "user", "content": "My name is Alice, email is alice@example.com."},
+        ]
+        shield.ask(messages=conversation_1)
+
+        # Turn 2: Follow-up question. This should trigger a cache hit for the history of turn 1.
+        conversation_2 = [
+            {"role": "user", "content": "My name is Alice, email is alice@example.com."},
+            {"role": "assistant", "content": "Acknowledged."},
+            {"role": "user", "content": "What is my name?"},
+        ]
+
+        # Reset counter and run the second turn
+        shield.cloak_call_count = 0
+        shield.ask(messages=conversation_2)
+
+        # With a cache hit, cloak is called for the latest message (1) + each message
+        # in history for the final payload (2).
+        history_len_for_payload = len(conversation_2) - 1
+        expected_calls_with_cache = history_len_for_payload + 1
+        self.assertEqual(
+            shield.cloak_call_count,
+            expected_calls_with_cache,
+            "Incorrect number of cloak calls with cache hit.",
+        )
+
+        # Now, verify that a cache miss results in more calls.
+        shield_no_cache = ShieldWithTrackedCloak(
+            llm_func=mock_llm, start_delimiter="[[", end_delimiter="]]"
+        )
+        shield_no_cache.ask(messages=conversation_2)
+
+        # With a cache miss, cloak is called for each history message to build map (2)
+        # + latest message (1) + each history message for payload (2).
+        history_len = len(conversation_2) - 1
+        expected_calls_without_cache = (2 * history_len) + 1
+        self.assertEqual(
+            shield_no_cache.cloak_call_count,
+            expected_calls_without_cache,
+            "Incorrect number of cloak calls with cache miss.",
+        )
 
 
 if __name__ == "__main__":
