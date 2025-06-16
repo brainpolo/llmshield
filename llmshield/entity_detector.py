@@ -15,6 +15,10 @@ ENT_REPLACEMENT = "\n"  # Use to void overlap with another entity
 
 SPACE = " "
 
+CHARACTERS_TO_CLEAN = ".,!?;:,'\"=+()[]{}/<>@#$%^&*~`|\\-_"
+
+MATCHER_DICTS = "llmshield.matchers.dicts"
+
 
 class EntityType(str, Enum):
     """Primary classification of entity types."""
@@ -126,21 +130,19 @@ class EntityDetector:
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt."""
-        with resources.files("llmshield.matchers.dicts").joinpath("cities.txt").open("r") as f:
+        with resources.files(MATCHER_DICTS).joinpath("cities.txt").open("r") as f:
             return [city.strip() for city in f.read().splitlines() if city.strip()]
 
     @staticmethod
     def _load_countries() -> list[str]:
         """Load countries from lists/countries.txt."""
-        with resources.files("llmshield.matchers.dicts").joinpath("countries.txt").open("r") as f:
+        with resources.files(MATCHER_DICTS).joinpath("countries.txt").open("r") as f:
             return [c.strip() for c in f.read().splitlines() if c.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
         """Load organisations from lists/organisations.txt."""
-        with (
-            resources.files("llmshield.matchers.dicts").joinpath("organisations.txt").open("r") as f
-        ):
+        with resources.files(MATCHER_DICTS).joinpath("organisations.txt").open("r") as f:
             return [org.strip() for org in f.read().splitlines() if org.strip()]
 
     def detect_entities(self, text: str) -> set[Entity]:
@@ -225,12 +227,13 @@ class EntityDetector:
                         skip_next = True
                     continue
 
-                normalized_word = word.strip(".,!?;:")
+                normalized_word = word.strip(CHARACTERS_TO_CLEAN)
                 is_honorific = normalized_word in self.en_person_initials
                 is_capitalised = word and word[0].isupper()
 
                 if is_honorific or (
-                    not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised
+                    not any(c in normalized_word for c in self.en_punctuation if c != ".")
+                    and is_capitalised
                 ):
                     pending_p_noun = pending_p_noun + SPACE + word if pending_p_noun else word
                 elif pending_p_noun:
@@ -249,9 +252,9 @@ class EntityDetector:
         words = p_noun.split()
         if not words:
             return p_noun
-        first_word_norm = words[0].strip(".,!?;:")
+        first_word_norm = words[0].strip(CHARACTERS_TO_CLEAN)
         if first_word_norm in self.en_person_initials and len(words) > 1:
-            return " ".join(words[1:]).strip()
+            return " ".join(words[1:]).strip("")
         return p_noun
 
     def _classify_proper_noun(self, p_noun: str) -> tuple[str, EntityType] | None:
@@ -336,7 +339,7 @@ class EntityDetector:
             return False
 
         # Skip honorifics at start
-        if words[0].strip(".,!?;:") in self.en_person_initials:
+        if words[0].strip(CHARACTERS_TO_CLEAN) in self.en_person_initials:
             words = words[1:]
 
         # Must have remaining words after removing honorifics
@@ -345,7 +348,7 @@ class EntityDetector:
 
         # Check each word
         for word in words:
-            clean_word = word.strip(".,!?;:")
+            clean_word = word.strip(CHARACTERS_TO_CLEAN)
 
             # Skip empty words
             if not clean_word:

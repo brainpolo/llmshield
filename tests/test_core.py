@@ -522,7 +522,7 @@ class TestCoreFunctionality(TestCase):
         # 2. Second cloak with a new prompt, passing the previous map
         # This prompt reuses "John" and adds a new entity.
         # TODO: Fix the noun detection and change this.
-        second_prompt = "John , my email is jane.doe@example.com."
+        second_prompt = "John, my email is jane.doe@example.com."
         cloaked_prompt, final_entity_map = shield.cloak(
             second_prompt, entity_map_param=initial_entity_map.copy()
         )
@@ -673,6 +673,83 @@ class TestCoreFunctionality(TestCase):
             expected_calls_without_cache,
             "Incorrect number of cloak calls with cache miss.",
         )
+
+    def test_proper_noun_punctuation_edge_cases(self):
+        """Test edge cases for proper noun detection with punctuation."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        # Test multiple punctuation marks and complex cases
+        test_cases = [
+            # Multiple punctuation
+            ("John!!! Great to meet you", "John"),
+            # Punctuation in middle vs end (should only detect end punctuation)
+            ("Dr. Smith, please come in.", "Smith"),  # Should detect Smith, not Dr.
+        ]
+
+        for case in test_cases:
+            input_text = case[0]
+            expected = case[1]
+            expected_names = expected if isinstance(expected, list) else [expected]
+
+            with self.subTest(input_text=input_text):
+                cloaked_text, entity_map = shield.cloak(input_text)
+
+                # Check each expected name was detected
+                for expected_name in expected_names:
+                    found_person = False
+                    for placeholder, value in entity_map.items():
+                        if "PERSON" in placeholder and value == expected_name:
+                            found_person = True
+                            break
+
+                    self.assertTrue(
+                        found_person,
+                        f"Failed to detect person '{expected_name}' in text: '{input_text}'",
+                    )
+
+    def test_proper_noun_no_false_positives_with_punctuation(self):
+        """Test that punctuation doesn't cause false positive detections."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        # These should NOT be detected as proper nouns
+        test_cases = [
+            "I love pizza, it's delicious!",  # 'I' with punctuation
+            "The meeting is at 3pm, don't be late.",  # Common words with punctuation
+            "Yes, no, maybe! All possibilities.",  # Common words
+        ]
+
+        for input_text in test_cases:
+            with self.subTest(input_text=input_text):
+                cloaked_text, entity_map = shield.cloak(input_text)
+
+                # Should not detect any PERSON entities
+                person_entities = [
+                    placeholder for placeholder in entity_map if "PERSON" in placeholder
+                ]
+
+                self.assertEqual(
+                    len(person_entities),
+                    0,
+                    f"False positive person detection in: '{input_text}' - "
+                    f"Detected: {[entity_map[p] for p in person_entities]}",
+                )
+
+    def test_proper_noun_punctuation_uncloak_integrity(self):
+        """Test that uncloaking works correctly after punctuation fix."""
+        shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
+
+        test_text = "John, my email is jane.doe@example.com. Thanks Alice!"
+
+        # Cloak the text
+        cloaked_text, entity_map = shield.cloak(test_text)
+
+        # Verify entities were detected
+        self.assertTrue(any("PERSON" in key for key in entity_map), "No person entities detected")
+        self.assertTrue(any("EMAIL" in key for key in entity_map), "No email entities detected")
+
+        # Uncloak should restore original text
+        uncloaked_text = shield.uncloak(cloaked_text, entity_map)
+        self.assertEqual(uncloaked_text, test_text)
 
 
 if __name__ == "__main__":
