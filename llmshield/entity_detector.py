@@ -126,26 +126,20 @@ class EntityDetector:
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt."""
-        with resources.files(
-            "llmshield.matchers.dicts"
-        ).joinpath("cities.txt").open("r") as f:
+        with resources.files("llmshield.matchers.dicts").joinpath("cities.txt").open("r") as f:
             return [city.strip() for city in f.read().splitlines() if city.strip()]
 
     @staticmethod
     def _load_countries() -> list[str]:
         """Load countries from lists/countries.txt."""
-        with resources.files(
-            "llmshield.matchers.dicts"
-        ).joinpath("countries.txt").open("r") as f:
+        with resources.files("llmshield.matchers.dicts").joinpath("countries.txt").open("r") as f:
             return [c.strip() for c in f.read().splitlines() if c.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
         """Load organisations from lists/organisations.txt."""
         with (
-            resources.files(
-                "llmshield.matchers.dicts"
-            ).joinpath("organisations.txt").open("r") as f
+            resources.files("llmshield.matchers.dicts").joinpath("organisations.txt").open("r") as f
         ):
             return [org.strip() for org in f.read().splitlines() if org.strip()]
 
@@ -236,12 +230,9 @@ class EntityDetector:
                 is_capitalised = word and word[0].isupper()
 
                 if is_honorific or (
-                    not any(c in word for c in self.en_punctuation if c != ".")
-                    and is_capitalised
+                    not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised
                 ):
-                    pending_p_noun = (
-                        pending_p_noun + SPACE + word if pending_p_noun else word
-                    )
+                    pending_p_noun = pending_p_noun + SPACE + word if pending_p_noun else word
                 elif pending_p_noun:
                     sequential_pnouns.append(pending_p_noun.strip())
                     pending_p_noun = ""
