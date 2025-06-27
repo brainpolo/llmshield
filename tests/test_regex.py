@@ -2,13 +2,10 @@
 
 from unittest import TestCase
 
-from llmshield.matchers.regex import (
-    CREDIT_CARD_PATTERN,
-    EMAIL_ADDRESS_PATTERN,
-    IP_ADDRESS_PATTERN,
-    PHONE_NUMBER_PATTERN,
-    URL_PATTERN,
-)
+from llmshield.matchers.regex import (CREDIT_CARD_PATTERN,
+                                      EMAIL_ADDRESS_PATTERN,
+                                      IP_ADDRESS_PATTERN, PHONE_NUMBER_PATTERN,
+                                      URL_PATTERN)
 
 
 class TestRegexMatchers(TestCase):

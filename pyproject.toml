@@ -4,10 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.6"
+version = "0.0.7"
 description = "Shields your confidential data from third party LLM providers"
 readme = "README.md"
-authors = [{ name = "Aditya Dedhia", email = "adityadedhia@hey.com" }]
+authors = [
+    {name = "Aditya Dedhia", email = "aditya@brainpolo.com"},
+    { name = "Sebastian Andres El Khoury Seoane", email = "sebasandres0694@gmail.com"},
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -23,7 +26,12 @@ Homepage = "https://github.com/brainpolo/llmshield"
 Issues = "https://github.com/brainpolo/llmshield/issues"
 
 [tool.setuptools]
-packages = ["llmshield", "llmshield.matchers", "llmshield.matchers.dicts"]
+packages = [
+    "llmshield",
+    "llmshield.matchers",
+    "llmshield.matchers.dicts",
+    "llmshield.providers",
+]
 
 [tool.setuptools.package-data]
 "llmshield.matchers" = ["dicts/*.txt"]
@@ -108,4 +116,5 @@ dev = [
     "sphinx_rtd_theme",
     "pre-commit>=4.2.0",
     "ruff>=0.11.13",
+    "parameterized>=0.9.0",
 ]

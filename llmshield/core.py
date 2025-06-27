@@ -26,24 +26,18 @@ Example:
 
 """
 
-# Python imports
+# Standard Library Imports
 from collections.abc import Callable, Generator
 from typing import Any
 
-from .cloak_prompt import _cloak_prompt  # type: ignore
-from .lru_cache import LRUCache
-from .uncloak_response import _uncloak_response  # type: ignore
-from .uncloak_stream_response import uncloak_stream_response
-
 # Local imports
-from .utils import (
-    Message,
-    PydanticLike,
-    ask_helper,  # type: ignore
-    conversation_hash,
-    is_valid_delimiter,
-    is_valid_stream_response,
-)
+from .cloak_prompt import cloak_prompt
+from .lru_cache import LRUCache
+from .providers import get_provider
+from .uncloak_response import _uncloak_response
+from .uncloak_stream_response import uncloak_stream_response
+from .utils import (Message, PydanticLike, ask_helper, conversation_hash,
+                    is_valid_delimiter, is_valid_stream_response)
 
 DEFAULT_START_DELIMITER = "<"
 DEFAULT_END_DELIMITER = ">"
@@ -84,7 +78,7 @@ class LLMShield:
         llm_func: (
             Callable[[str], str] | Callable[[str], Generator[str, None, None]] | None
         ) = None,
-        max_cache_size: int = 128,  # TODO: Is this value enough? Should it be reduced or increased?
+        max_cache_size: int = 1_000,
     ) -> None:
         """Initialise LLMShield.
 
@@ -92,7 +86,7 @@ class LLMShield:
             start_delimiter: Character(s) to wrap entity placeholders (default: '<')
             end_delimiter: Character(s) to wrap entity placeholders (default: '>')
             llm_func: Optional function that calls your LLM (enables direct usage)
-
+            max_cache_size: Maximum number of items to cache in the LRUCache (default: 1_000)
         """
         if not is_valid_delimiter(start_delimiter):
             msg = "Invalid start delimiter"
@@ -110,9 +104,7 @@ class LLMShield:
         self.llm_func = llm_func
 
         self._last_entity_map = None
-        self._cache: LRUCache[int, dict[str, str]] = LRUCache(
-            max_cache_size
-        )  # TODO: Determine the correct typing of the cache
+        self._cache: LRUCache[int, dict[str, str]] = LRUCache(max_cache_size)
 
     def cloak(
         self, prompt: str, entity_map_param: dict[str, str] | None = None
@@ -126,7 +118,7 @@ class LLMShield:
             Tuple of (cloaked_prompt, entity_mapping)
 
         """
-        cloaked, entity_map = _cloak_prompt(
+        cloaked, entity_map = cloak_prompt(
             prompt=prompt,
             start_delimiter=self.start_delimiter,
             end_delimiter=self.end_delimiter,
@@ -168,7 +160,12 @@ class LLMShield:
             msg = "Response cannot be empty"
             raise ValueError(msg)
 
-        if not isinstance(response, str | list | dict | PydanticLike):  # type: ignore
+        # Allow ChatCompletion-like objects (have both 'choices' and 'model' attributes)
+        is_chatcompletion_like = hasattr(response, "choices") and hasattr(
+            response, "model"
+        )
+
+        if not isinstance(response, str | list | dict | PydanticLike) and not is_chatcompletion_like:  # type: ignore
             msg = (
                 "Response must be in [str, list, dict] or a Pydantic model, "
                 f"but got: {type(response)}!"
@@ -300,8 +297,12 @@ class LLMShield:
                 msg,
             )
 
-        if not (("prompt" in kwargs) or ("message" in kwargs) or (messages is not None)):
-            msg = "Either 'prompt', 'message' or the messages parameter must be provided!"
+        if not (
+            ("prompt" in kwargs) or ("message" in kwargs) or (messages is not None)
+        ):
+            msg = (
+                "Either 'prompt', 'message' or the messages parameter must be provided!"
+            )
             raise ValueError(msg)
 
         if "prompt" in kwargs and "message" in kwargs:
@@ -354,23 +355,44 @@ class LLMShield:
         # 5. Reconstruct the full, cloaked message list to send to the LLM
         cloaked_messages = []
         for msg in history:
-            cloaked_content, _ = self.cloak(msg["content"], entity_map_param=final_entity_map)
+            cloaked_content, _ = self.cloak(
+                msg["content"], entity_map_param=final_entity_map
+            )
             cloaked_messages.append({"role": msg["role"], "content": cloaked_content})  # type: ignore
         cloaked_messages.append({"role": latest_message["role"], "content": cloaked_latest_content})  # type: ignore
 
-        # 6. Call the LLM with the protected payload
-        llm_response = self.llm_func(messages=cloaked_messages, stream=stream, **kwargs)
+        # 6. Call the LLM with the protected payload - with automatic provider detection
+        # Get the appropriate provider for this LLM function
+        provider = get_provider(self.llm_func)
+
+        # Let the provider prepare the parameters
+        prepared_params, actual_stream = provider.prepare_multi_message_params(
+            cloaked_messages, stream, **kwargs
+        )
+
+        # Call the LLM function
+        llm_response = self.llm_func(**prepared_params)
 
         # 7. Uncloak the response
-        if stream:
+        if actual_stream:
             uncloaked_response = self.stream_uncloak(llm_response, final_entity_map)
         else:
             uncloaked_response = self.uncloak(llm_response, final_entity_map)
 
         # 8. Update the history with the latest message and the uncloaked response
+        # Extract content string from ChatCompletion objects for conversation history
+        if hasattr(uncloaked_response, "choices") and hasattr(
+            uncloaked_response, "model"
+        ):
+            # This is a ChatCompletion object, extract the content
+            response_content = uncloaked_response.choices[0].message.content
+        else:
+            # This is already a string or other simple type
+            response_content = uncloaked_response
+
         next_history = history + [
             latest_message,
-            {"role": "assistant", "content": uncloaked_response},
+            {"role": "assistant", "content": response_content},
         ]
 
         new_key = conversation_hash(next_history)

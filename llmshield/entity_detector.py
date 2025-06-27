@@ -87,20 +87,16 @@ class EntityDetector:
     def __init__(self) -> None:
         """Initialise large lists of entities."""
         from llmshield.matchers.functions import _luhn_check
-        from llmshield.matchers.lists import (
-            EN_COMMON_WORDS,
-            EN_ORG_COMPONENTS,
-            EN_PERSON_INITIALS,
-            EN_PLACE_COMPONENTS,
-            EN_PUNCTUATION,
-        )
-        from llmshield.matchers.regex import (
-            CREDIT_CARD_PATTERN,
-            EMAIL_ADDRESS_PATTERN,
-            IP_ADDRESS_PATTERN,
-            PHONE_NUMBER_PATTERN,
-            URL_PATTERN,
-        )
+        from llmshield.matchers.lists import (EN_COMMON_WORDS,
+                                              EN_ORG_COMPONENTS,
+                                              EN_PERSON_INITIALS,
+                                              EN_PLACE_COMPONENTS,
+                                              EN_PUNCTUATION)
+        from llmshield.matchers.regex import (CREDIT_CARD_PATTERN,
+                                              EMAIL_ADDRESS_PATTERN,
+                                              IP_ADDRESS_PATTERN,
+                                              PHONE_NUMBER_PATTERN,
+                                              URL_PATTERN)
         from llmshield.utils import normalise_spaces, split_fragments
 
         self.split_fragments = split_fragments
@@ -126,20 +122,30 @@ class EntityDetector:
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt."""
-        with resources.files("llmshield.matchers.dicts").joinpath("cities.txt").open("r") as f:
+        with (
+            resources.files("llmshield.matchers.dicts")
+            .joinpath("cities.txt")
+            .open("r") as f
+        ):
             return [city.strip() for city in f.read().splitlines() if city.strip()]
 
     @staticmethod
     def _load_countries() -> list[str]:
         """Load countries from lists/countries.txt."""
-        with resources.files("llmshield.matchers.dicts").joinpath("countries.txt").open("r") as f:
+        with (
+            resources.files("llmshield.matchers.dicts")
+            .joinpath("countries.txt")
+            .open("r") as f
+        ):
             return [c.strip() for c in f.read().splitlines() if c.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
         """Load organisations from lists/organisations.txt."""
         with (
-            resources.files("llmshield.matchers.dicts").joinpath("organisations.txt").open("r") as f
+            resources.files("llmshield.matchers.dicts")
+            .joinpath("organisations.txt")
+            .open("r") as f
         ):
             return [org.strip() for org in f.read().splitlines() if org.strip()]
 
@@ -196,7 +202,9 @@ class EntityDetector:
             # Split on common contractions first
             for split_word in ["I'm", "I've", "I'll"]:
                 if split_word in fragment:
-                    fragment = fragment.replace(split_word, f"{split_word} ")  # noqa: PLW2901
+                    fragment = fragment.replace(
+                        split_word, f"{split_word} "
+                    )  # noqa: PLW2901
 
             fragment_words = fragment.split(SPACE)
             pending_p_noun = ""
@@ -230,9 +238,12 @@ class EntityDetector:
                 is_capitalised = word and word[0].isupper()
 
                 if is_honorific or (
-                    not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised
+                    not any(c in word for c in self.en_punctuation if c != ".")
+                    and is_capitalised
                 ):
-                    pending_p_noun = pending_p_noun + SPACE + word if pending_p_noun else word
+                    pending_p_noun = (
+                        pending_p_noun + SPACE + word if pending_p_noun else word
+                    )
                 elif pending_p_noun:
                     sequential_pnouns.append(pending_p_noun.strip())
                     pending_p_noun = ""
@@ -303,7 +314,9 @@ class EntityDetector:
         p_noun_lower = p_noun.lower()
 
         # Add checks for organizations with numbers
-        if any(char.isdigit() for char in p_noun) and re.match(r"^\d+[A-Z].*|.*-.*\d+.*", p_noun):
+        if any(char.isdigit() for char in p_noun) and re.match(
+            r"^\d+[A-Z].*|.*-.*\d+.*", p_noun
+        ):
             return True
 
         # Check for multi-word organizations like "New York Times"
@@ -397,7 +410,9 @@ class EntityDetector:
                         value=credit_card.group(),
                     ),
                 )
-                reduced_text = reduced_text.replace(credit_card.group(), ENT_REPLACEMENT)
+                reduced_text = reduced_text.replace(
+                    credit_card.group(), ENT_REPLACEMENT
+                )
 
         # * 3. Detect phone numbers
         phone_numbers = self.phone_number_pattern.finditer(text)

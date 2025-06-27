@@ -1,6 +1,10 @@
+"""A simple LRU (Least Recently Used) cache implementation using OrderedDict."""
+
+# Standard Library Imports
 from collections import OrderedDict
 from typing import Generic, TypeVar
 
+# Type Variables
 K = TypeVar("K")
 V = TypeVar("V")
 
@@ -15,7 +19,7 @@ class LRUCache(Generic[K, V]):
         """Initializes the LRUCache with a specific capacity.
 
         Args:
-            capacity (int): The maximum number of items the cache can hold before eviction.
+            capacity: The maximum number of items cache can hold before eviction.
         """
         self.cache: OrderedDict[K, V] = OrderedDict()
         self.capacity = capacity

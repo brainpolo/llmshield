@@ -9,6 +9,7 @@ from typing import Any, BinaryIO, Protocol, runtime_checkable
 
 # Local imports
 from llmshield.entity_detector import EntityType
+from llmshield.providers import get_provider
 
 
 @runtime_checkable
@@ -29,22 +30,8 @@ class PydanticLike(Protocol):
 
     def model_dump(self) -> dict: ...
 
-    """
-    Dump the Pydantic model into a dictionary.
-
-    @return: The dictionary representation of the Pydantic model.
-    """
-
     @classmethod
     def model_validate(cls, data: dict) -> Any: ...
-
-    """
-    Validate a dictionary against the Pydantic model.
-
-    @param data: The dictionary to validate.
-
-    @return: The validated data.
-    """
 
 
 def split_fragments(text: str) -> list[str]:
@@ -62,9 +49,11 @@ def is_valid_delimiter(delimiter: str) -> bool:
     - Must be a string.
     - Must be at least 1 character long.
 
-    @param delimiter: The delimiter to validate.
+    Args:
+        delimiter: The delimiter to validate.
 
-    @return: True if the delimiter is valid, False otherwise.
+    Returns:
+        True if the delimiter is valid, False otherwise.
     """
     return isinstance(delimiter, str) and len(delimiter) > 0
 
@@ -81,11 +70,14 @@ def wrap_entity(
     - The value will be wrapped with START_DELIMETER and END_DELIMETER.
     - The suffix will be appended to the entity.
 
-    @param entity: The entity to wrap.
-    @param start_delimiter: The start delimiter.
-    @param end_delimiter: The end delimiter.
+    Args:
+        entity_type: The entity to wrap.
+        suffix: The suffix to append to the entity.
+        start_delimiter: The start delimiter.
+        end_delimiter: The end delimiter.
 
-    @return: The wrapped entity.
+    Returns:
+        The wrapped entity.
     """
     return f"{start_delimiter}{entity_type.name}_{suffix}{end_delimiter}"
 
@@ -97,15 +89,22 @@ def normalise_spaces(text: str) -> str:
 
 def is_valid_stream_response(obj: object) -> bool:
     """
-    Return True if obj is an iterable suitable for streaming
-    (not str, bytes, bytearray, or any mapping).
+    Check if obj is an iterable suitable for streaming.
+
+    Args:
+        obj: The object to check.
+
+    Returns:
+        True if obj is an iterable suitable for streaming, False otherwise.
     """
     # Exclude string-like and mapping types
     excluded_types = (str, bytes, bytearray, collections.abc.Mapping)
-    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, excluded_types)
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(
+        obj, excluded_types
+    )
 
 
-# Type alias that follows the OpenAI API input format for the creation of model responses.
+# Type alias that follows the OpenAI API input format for model responses.
 # This includes strings, lists of strings, dictionaries, Pydantic-like objects,
 # file paths, file-like objects, raw binary data, and tuples of filename and content.
 type Input = (
@@ -138,7 +137,7 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
     """Helper function to handle the ask method of LLMShield.
 
     This function checks if the input should be cloaked and handles both
-    streaming and non-streaming cases.
+    streaming and non-streaming cases using the provider system.
 
     Args:
         shield: The LLMShield instance.
@@ -151,28 +150,33 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
     # * 1. Get the input text and determine parameter name
     input_param = "message" if "message" in kwargs else "prompt"
     input_text = kwargs[input_param]
+
     if _should_cloak_input(input_data=input_text):
         # * 2. Cloak the input text
         cloaked_text, entity_map = shield.cloak(input_text)
-        # * 3. Pass cloaked text under the correct parameter name for LLM function
-        func_preferred_param = (
-            "message" if "message" in shield.llm_func.__code__.co_varnames else "prompt"
+
+        # * 3. Get the appropriate provider for this LLM function
+        provider = get_provider(shield.llm_func)
+
+        # * 4. Let the provider prepare the parameters
+        prepared_params, actual_stream = provider.prepare_single_message_params(
+            cloaked_text, input_param, stream, **kwargs
         )
-        # Remove the original parameter and add under the LLM's preferred name
-        del kwargs[input_param]
-        kwargs[func_preferred_param] = cloaked_text
-        kwargs["stream"] = stream  # Ensure stream is passed to the LLM function
-        # * 4. Get response from LLM
-        llm_response = shield.llm_func(**kwargs)
-        # * 5. Uncloak and return
-        if stream:
+
+        # * 5. Get response from LLM
+        llm_response = shield.llm_func(**prepared_params)
+
+        # * 6. Uncloak and return
+        if actual_stream:
             if not is_valid_stream_response(llm_response):
                 # LLM didn't return a valid stream, treat as non-streaming
                 return iter([shield.uncloak(llm_response, entity_map)])
             return shield.stream_uncloak(llm_response, entity_map)
         # Non-streaming: uncloak complete response
         return shield.uncloak(llm_response, entity_map)
-    return shield.llm_func(**kwargs)  # No cloaking needed, call LLM directly
+
+    # No cloaking needed, call LLM directly
+    return shield.llm_func(**kwargs)
 
 
 # Typedef for a hashable type used for conversation keys.

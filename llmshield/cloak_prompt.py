@@ -5,15 +5,17 @@
 ! Module is intended for internal use only.
 """
 
+# Standard Library Imports
 import re
 from collections import OrderedDict
 
+# Local Imports
 from .entity_detector import Entity, EntityDetector
 from .utils import wrap_entity
 
 
 # pylint: disable=too-many-locals
-def _cloak_prompt(
+def cloak_prompt(
     prompt: str,
     start_delimiter: str,
     end_delimiter: str,
@@ -48,7 +50,12 @@ def _cloak_prompt(
             placeholder = reversed_entity_map[entity.value]
         else:
             # Otherwise, create a new placeholder
-            placeholder = wrap_entity(entity.type, counter, start_delimiter, end_delimiter)
+            placeholder = wrap_entity(
+                entity.type,
+                counter,
+                start_delimiter,
+                end_delimiter,
+            )
             # Add the new entity to the maps
             entity_map[placeholder] = entity.value
             reversed_entity_map[entity.value] = placeholder
