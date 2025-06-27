@@ -4,12 +4,14 @@ Tests for the core functionality of LLMShield.
 ! Module is intended for internal use only.
 """
 
-# Standard library imports
+# Standard library Imports
 import random
 import re
 import time
 
 from unittest import TestCase, main
+
+# Third party Imports
 from parameterized import parameterized
 
 # Local Imports

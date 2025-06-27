@@ -1,8 +1,9 @@
 """Tests for entity detection and classification."""
 
-# Standard library imports
+# Standard library Imports
 import unittest
 
+# Third party Imports
 from parameterized import parameterized
 
 # Local Imports

@@ -420,9 +420,9 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## Production Usage
 
-llmshield is trusted by:
+llmshield is used in:
 
-- [brainful.ai](https://brainful.ai) - AI-powered enterprise solutions
+- [brainful.ai](https://brainful.ai)
 
 ---
 

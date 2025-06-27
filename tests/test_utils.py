@@ -4,15 +4,17 @@ Tests for utility functions in llmshield.utils
 ! Module is intended for internal use only.
 """
 
-# Standard library imports
+# Standard library Imports
 import unittest
 from pathlib import Path
 
+# Third party Imports
 from parameterized import parameterized
 
+# Local Imports
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
-# Local Imports
+
 from llmshield.utils import (PydanticLike, _should_cloak_input, ask_helper,
                              conversation_hash, is_valid_delimiter,
                              wrap_entity)
