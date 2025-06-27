@@ -48,7 +48,7 @@ class DefaultProvider(BaseLLMProvider):
                 varnames = self.llm_func.__code__.co_varnames
                 if "message" in varnames:
                     return "message"
-                elif "prompt" in varnames:
+                if "prompt" in varnames:
                     return "prompt"
         except (AttributeError, TypeError):
             pass

@@ -41,10 +41,10 @@ class OpenAIProvider(BaseLLMProvider):
             # Beta APIs don't accept stream parameter at all
             prepared_kwargs.pop("stream", None)
             return prepared_kwargs, False
-        else:
-            # Standard APIs support streaming
-            prepared_kwargs["stream"] = stream
-            return prepared_kwargs, stream
+
+        # Standard APIs support streaming
+        prepared_kwargs["stream"] = stream
+        return prepared_kwargs, stream
 
     def prepare_multi_message_params(
         self, cloaked_messages: list[dict], stream: bool, **kwargs
@@ -62,10 +62,10 @@ class OpenAIProvider(BaseLLMProvider):
             # Beta APIs don't accept stream parameter at all
             prepared_kwargs.pop("stream", None)
             return prepared_kwargs, False
-        else:
-            # Standard APIs support streaming
-            prepared_kwargs["stream"] = stream
-            return prepared_kwargs, stream
+
+        # Standard APIs support streaming
+        prepared_kwargs["stream"] = stream
+        return prepared_kwargs, stream
 
     @classmethod
     def can_handle(cls, llm_func: Callable) -> bool:

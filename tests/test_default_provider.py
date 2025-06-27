@@ -108,6 +108,7 @@ class TestDefaultProvider(unittest.TestCase):
         # Check that 'prompt' is used as parameter name
         self.assertEqual(prepared_params["prompt"], cloaked_text)
         self.assertNotIn("text", prepared_params)
+        self.assertTrue(actual_stream)
 
     def test_prepare_single_message_params_no_code_attribute(self):
         """Test preparing single message parameters when function has no __code__ attribute."""
@@ -128,6 +129,7 @@ class TestDefaultProvider(unittest.TestCase):
 
         # Should fall back to 'prompt' as default
         self.assertEqual(prepared_params["prompt"], cloaked_text)
+        self.assertTrue(actual_stream)
 
     def test_prepare_single_message_params_code_access_error(self):
         """Test preparing single message parameters when code access raises an error."""
@@ -148,6 +150,7 @@ class TestDefaultProvider(unittest.TestCase):
         prepared_params, actual_stream = provider.prepare_single_message_params(
             cloaked_text, input_param, stream, **kwargs
         )
+        self.assertTrue(actual_stream)
 
         # Should fall back to 'prompt' as default when error occurs
         self.assertEqual(prepared_params["prompt"], cloaked_text)

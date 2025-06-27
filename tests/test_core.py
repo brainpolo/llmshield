@@ -8,13 +8,12 @@ Tests for the core functionality of LLMShield.
 import random
 import re
 import time
-from unittest import TestCase, main
 
+from unittest import TestCase, main
 from parameterized import parameterized
 
 # Local Imports
 from llmshield import LLMShield
-from llmshield.core import LLMShield as LLMShieldClass
 from llmshield.entity_detector import EntityType
 from llmshield.utils import conversation_hash, wrap_entity
 
