@@ -34,6 +34,10 @@ coverage:
 build:
 	python -m build
 
+# Rule to verify package builds correctly and all resources are accessible
+verify-package:
+	python3.12 -m unittest tests.test_package_installation -v
+
 dev-dependencies:
 	pip install -e ".[dev]"
 
@@ -58,4 +62,4 @@ ruff-check:
 	ruff check llmshield/ tests/
 	ruff format llmshield/ tests/ --check
 
-.PHONY: docs-help generate-docs tests coverage doc-coverage ruff ruff-check Makefile
+.PHONY: docs-help generate-docs tests coverage doc-coverage ruff ruff-check verify-package Makefile

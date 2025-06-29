@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.8"
-description = "Shields your confidential data from third party LLM providers"
+version = "0.0.9"
+description = "Shields your confidential data from third party LLM providers."
 readme = "README.md"
 authors = [
     {name = "Aditya Dedhia", email = "aditya@brainpolo.com"},
@@ -30,11 +30,12 @@ packages = [
     "llmshield",
     "llmshield.matchers",
     "llmshield.matchers.dicts",
+    "llmshield.matchers.dicts.corpus",
     "llmshield.providers",
 ]
 
 [tool.setuptools.package-data]
-"llmshield.matchers" = ["dicts/*.txt"]
+"llmshield.matchers" = ["dicts/*.txt", "dicts/corpus/*.txt"]
 
 [tool.setuptools.exclude-package-data]
 "*" = [
