@@ -284,6 +284,33 @@ make ruff
 make doc-coverage
 ```
 
+## Building and Publishing
+
+### Building the Package
+
+```bash
+# Install build dependencies
+make dev-dependencies
+
+# Build the package
+make build
+```
+
+### Publishing to PyPI
+
+1. **Update version** in `pyproject.toml`
+2. **Run quality checks**:
+   ```bash
+   make tests
+   make coverage
+   make ruff
+   ```
+3. **Build and publish**:
+   ```bash
+   make build
+   twine upload dist/*
+   ```
+
 ## Security Considerations
 
 - Validate cloaked outputs before LLM transmission

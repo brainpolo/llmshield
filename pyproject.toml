@@ -92,16 +92,17 @@ line-ending = "auto"
 
 [project.optional-dependencies]
 dev = [
-    "coverage>=7.8.0",
-    "build>=1.2.2",
-    "packaging>=24.2",
-    "pyproject_hooks>=1.2.0",
-    "setuptools>=78.1.1",
-    "sphinx>=8.2.3",
-    "myst-parser>=4.0.1",
-    "sphinx_rtd_theme",
-    "pre-commit>=4.2.0",
-    "ruff>=0.11.13",
-    "parameterized>=0.9.0",
-    "openai>=1.83.0",  # For testing with OpenAI-compatible providers.
+    "coverage>=7.8.0",        # Test coverage measurement and reporting
+    "build>=1.2.2",           # PEP 517 compliant package building
+    "packaging>=24.2",        # Core utilities for Python packages
+    "pyproject_hooks>=1.2.0", # Build backend hook implementations
+    "setuptools>=78.1.1",     # Package building and distribution tools
+    "sphinx>=8.2.3",          # Documentation generation system
+    "myst-parser>=4.0.1",     # Markdown support for Sphinx docs
+    "sphinx_rtd_theme",       # Read the Docs theme for Sphinx
+    "pre-commit>=4.2.0",      # Git pre-commit hooks framework
+    "ruff>=0.11.13",          # Fast Python linter and formatter
+    "parameterized>=0.9.0",   # Parameterized test case generation
+    "openai>=1.83.0",         # For testing with OpenAI-compatible providers
+    "twine>=6.1.0",           # Package uploading to PyPI
 ]

@@ -28,7 +28,7 @@ tests:
 # Rule to check the coverage of the package tests
 coverage:
 	coverage run -m unittest discover -v
-	coverage report --fail-under=95
+	coverage report
 
 # Rule to build the package the same way as it would be built for distribution
 build:

@@ -7,6 +7,7 @@ to their original values.
 # Module is intended for internal use only.
 """
 
+# Standard library Imports
 from collections.abc import Generator
 
 
@@ -41,6 +42,7 @@ def uncloak_stream_response(
 
         # Inner function to check if buffer has content
         def is_buffer_used(buffer: str) -> bool:
+            """Check if buffer has content."""
             return bool(buffer and buffer.strip())
 
         while is_buffer_used(buffer):

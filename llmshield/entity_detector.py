@@ -309,7 +309,7 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
             and is_capitalised
         ):
             return pending_p_noun + SPACE + word if pending_p_noun else word
-        elif pending_p_noun:
+        if pending_p_noun:
             sequential_pnouns.append(pending_p_noun.strip())
             return ""
         return pending_p_noun
