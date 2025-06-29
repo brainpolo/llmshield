@@ -16,7 +16,7 @@ class TestEntityDetector(unittest.TestCase):
     # pylint: disable=protected-access  # Testing internal methods requires access to protected members
 
     def setUp(self):
-        """Initialize detector for each test."""
+        """Initialise detector for each test."""
         self.detector = EntityDetector()
 
     def test_entity_group_types(self):
@@ -53,7 +53,11 @@ class TestEntityDetector(unittest.TestCase):
             ("contraction_ive", "I've met Alice", ["Alice"]),
             ("contraction_ill", "I'll see Bob", ["Bob"]),
             # Advanced contraction scenarios (consolidating missing lines tests)
-            ("pending_noun_contraction", "Dr. Smith I'm going to see Johnson", ["Dr", "Smith", "Johnson"]),
+            (
+                "pending_noun_contraction",
+                "Dr. Smith I'm going to see Johnson",
+                ["Dr", "Smith", "Johnson"],
+            ),
             ("lookahead_contraction", "I'm Alice going home", ["Alice"]),
             ("skip_next_logic", "Hello I've seen Mary before", ["Hello", "Mary"]),
             # Empty word handling scenarios
@@ -166,21 +170,15 @@ class TestEntityDetector(unittest.TestCase):
         """Test credit card validation."""
         text = "1234567890123456"  # Invalid credit card format
         entities, _ = self.detector._detect_numbers(text)
-        self.assertEqual(
-            len([e for e in entities if e.type == EntityType.CREDIT_CARD]), 0
-        )
+        self.assertEqual(len([e for e in entities if e.type == EntityType.CREDIT_CARD]), 0)
 
     def test_phone_number_detection(self):
         """Test phone number detection."""
         text = "Call me at +1 (555) 123-4567"
         entities, _ = self.detector._detect_numbers(text)
-        self.assertEqual(
-            len([e for e in entities if e.type == EntityType.PHONE_NUMBER]), 1
-        )
+        self.assertEqual(len([e for e in entities if e.type == EntityType.PHONE_NUMBER]), 1)
         try:
-            phone_number = next(
-                e.value for e in entities if e.type == EntityType.PHONE_NUMBER
-            )
+            phone_number = next(e.value for e in entities if e.type == EntityType.PHONE_NUMBER)
             self.assertEqual(phone_number, "+1 (555) 123-4567")
         except StopIteration:
             self.fail("No phone number entity found")

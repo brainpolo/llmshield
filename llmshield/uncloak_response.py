@@ -1,6 +1,6 @@
-"""
-Module for securely uncloaking LLM responses by replacing placeholders with
-original values.
+"""Module for securely uncloaking LLM responses.
+
+Replaces placeholders with original values after LLM processing.
 
 ! Module is intended for internal use only.
 """
@@ -17,8 +17,9 @@ def _uncloak_response(
     response: Any,
     entity_map: dict[str, str],
 ) -> str | list[Any] | dict[str, Any] | PydanticLike:
-    """Securely uncloaks the LLM response by replacing validated placeholders with
-    their original values.
+    """Securely uncloak LLM response by replacing placeholders.
+
+    Replaces validated placeholders with their original values.
     Includes strict validation and safety checks for placeholder format and content.
 
     ! Do not call this function directly, use `LLMShield.uncloak()` instead. This
@@ -26,9 +27,9 @@ def _uncloak_response(
 
     Args:
         response: The LLM response containing placeholders (e.g., [EMAIL_0], [PHONE_1]).
-        Supports both strings and structured outputs (dicts). However, note that
-        keys in dicts will NOT be uncloaked for integrity of the data structure,
-        nor will non string values in dicts be uncloaked.
+            Supports both strings and structured outputs (dicts). However, note that
+            keys in dicts will NOT be uncloaked for integrity of the data structure,
+            nor will non string values in dicts be uncloaked.
         entity_map: Mapping of placeholders to their original values
 
     Returns:
@@ -38,45 +39,59 @@ def _uncloak_response(
     if not entity_map:
         return response
 
-    if isinstance(response, str):  # Direct string replacement
+    # Handle basic types
+    result = _uncloak_basic_types(response, entity_map)
+    if result is not None:
+        return result
+
+    # Handle complex types
+    return _uncloak_complex_types(response, entity_map)
+
+
+def _uncloak_basic_types(response: Any, entity_map: dict[str, str]) -> Any:
+    """Handle uncloaking for basic types (str, list, dict)."""
+    if isinstance(response, str):
         for placeholder, original in entity_map.items():
             response = response.replace(placeholder, original)
         return response
 
-    if isinstance(response, list):  # Apply uncloaking to each element in the list
+    if isinstance(response, list):
         return [_uncloak_response(item, entity_map) for item in response]
 
-    if isinstance(response, dict):  # Apply uncloaking to each key and value in the dict
-        return {
-            key: _uncloak_response(value, entity_map) for key, value in response.items()
-        }
+    if isinstance(response, dict):
+        return {key: _uncloak_response(value, entity_map) for key, value in response.items()}
 
+    return None
+
+
+def _uncloak_complex_types(response: Any, entity_map: dict[str, str]) -> Any:
+    """Handle uncloaking for complex types (Pydantic, ChatCompletion, etc)."""
     if isinstance(response, PydanticLike):
-        # convert back to dict and reprocess
         return _uncloak_response(response.model_dump(), entity_map)
 
     # Handle OpenAI ChatCompletion objects
     if hasattr(response, "choices") and hasattr(response, "model"):
-        # This looks like an OpenAI ChatCompletion or similar object
-        # Create a copy to avoid modifying the original
-        response_copy = copy.deepcopy(response)
+        return _uncloak_chatcompletion(response, entity_map)
 
-        # Uncloak content in each choice
-        if hasattr(response_copy, "choices") and response_copy.choices:
-            for choice in response_copy.choices:
-                if hasattr(choice, "message") and hasattr(choice.message, "content"):
-                    if choice.message.content:
-                        choice.message.content = _uncloak_response(
-                            choice.message.content, entity_map
-                        )
-                # Handle streaming delta content
-                elif hasattr(choice, "delta") and hasattr(choice.delta, "content"):
-                    if choice.delta.content:
-                        choice.delta.content = _uncloak_response(
-                            choice.delta.content, entity_map
-                        )
-
-        return response_copy
-
-    # Return the response if not in [str, list, dict] (e.g. int value of dict key)
+    # Return the response if not a recognized type
     return response
+
+
+def _uncloak_chatcompletion(response: Any, entity_map: dict[str, str]) -> Any:
+    """Handle uncloaking for ChatCompletion objects."""
+    response_copy = copy.deepcopy(response)
+
+    if hasattr(response_copy, "choices") and response_copy.choices:
+        for choice in response_copy.choices:
+            if hasattr(choice, "message") and hasattr(choice.message, "content"):
+                if choice.message.content:
+                    choice.message.content = _uncloak_response(choice.message.content, entity_map)
+            # Handle streaming delta content
+            elif (
+                hasattr(choice, "delta")
+                and hasattr(choice.delta, "content")
+                and choice.delta.content
+            ):
+                choice.delta.content = _uncloak_response(choice.delta.content, entity_map)
+
+    return response_copy

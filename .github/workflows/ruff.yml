@@ -1,0 +1,49 @@
+name: Ruff Linting and Formatting
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ruff-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ruff
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Run Ruff linter (fail on any issues)
+        run: |
+          # Fail if any linting issues are found
+          ruff check llmshield/ tests/ --output-format=github
+
+          # Additional check to ensure zero issues
+          ISSUES=$(ruff check llmshield/ tests/ --quiet | wc -l || echo 0)
+          if [ "$ISSUES" -gt 0 ]; then
+            echo "❌ Found $ISSUES linting issues. Perfect score (0 issues) required."
+            exit 1
+          fi
+          echo "✅ Perfect linting score achieved (0 issues)"
+
+      - name: Run Ruff formatter check (fail on any format issues)
+        run: |
+          # Fail if any formatting issues are found
+          ruff format llmshield/ tests/ --check --diff
+
+      - name: Generate Ruff report
+        if: always()
+        run: |
+          echo "## Ruff Linting Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Files checked: $(find llmshield tests -name '*.py' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "Issues found: $(ruff check llmshield/ tests/ --quiet | wc -l || echo 0)" >> $GITHUB_STEP_SUMMARY
+          echo "Format issues: $(ruff format llmshield/ tests/ --check | wc -l || echo 0)" >> $GITHUB_STEP_SUMMARY

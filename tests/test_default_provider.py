@@ -136,9 +136,7 @@ class TestDefaultProvider(unittest.TestCase):
         # Create mock function that raises TypeError when accessing __code__
         mock_func_error = Mock()
         mock_func_error.__code__ = Mock()
-        mock_func_error.__code__.co_varnames = Mock(
-            side_effect=TypeError("Access error")
-        )
+        mock_func_error.__code__.co_varnames = Mock(side_effect=TypeError("Access error"))
 
         provider = DefaultProvider(mock_func_error)
 

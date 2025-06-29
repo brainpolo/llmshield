@@ -1,7 +1,7 @@
 """Provider factory for detecting and creating appropriate providers."""
 
 # Standard Library Imports
-from typing import Callable
+from collections.abc import Callable
 
 # Local Imports
 from .base import BaseLLMProvider
@@ -28,6 +28,7 @@ def get_provider(llm_func: Callable) -> BaseLLMProvider:
     Raises:
         RuntimeError: If no provider can handle the function (should never happen
                      due to DefaultProvider fallback)
+
     """
     for provider_class in PROVIDER_REGISTRY:
         if provider_class.can_handle(llm_func):
@@ -44,6 +45,7 @@ def register_provider(provider_class: type[BaseLLMProvider], priority: int = 0) 
         provider_class: The provider class to register
         priority: Where to insert in the registry (0 = highest priority)
                  -1 means insert before DefaultProvider
+
     """
     if priority == -1:
         # Insert before DefaultProvider (which should be last)

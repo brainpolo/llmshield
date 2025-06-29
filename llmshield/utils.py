@@ -5,15 +5,17 @@ import collections.abc
 import re
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any, BinaryIO, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, BinaryIO, Protocol, runtime_checkable
 
 # Local imports
-from llmshield.entity_detector import EntityType
 from llmshield.providers import get_provider
+
+if TYPE_CHECKING:
+    from llmshield.entity_detector import EntityType
 
 
 @runtime_checkable
-class PydanticLike(Protocol):
+class PydanticLike(Protocol):  # pylint: disable=unnecessary-ellipsis
     """A protocol for types that behave like Pydantic models.
 
     This is to provide type-safety for the uncloak function, which can accept
@@ -28,24 +30,36 @@ class PydanticLike(Protocol):
     - model_validate(data: dict) -> Any
     """
 
-    def model_dump(self) -> dict: ...
+    def model_dump(self) -> dict:
+        """Convert the model to a dictionary."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
     @classmethod
-    def model_validate(cls, data: dict) -> Any: ...
+    def model_validate(cls, data: dict) -> Any:
+        """Create a model instance from a dictionary."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 def split_fragments(text: str) -> list[str]:
-    """Split the text into fragments based on the following rules:
+    """Split the text into fragments based on the following rules.
+
     - Split on sentence boundaries (punctuation / new line)
     - Remove any empty fragments.
+
+    Args:
+        text: The text to split.
+
+    Returns:
+        A list of fragments.
+
     """
     fragments = re.split(r"[.!?]+\s+|\n+", text)
     return [f.strip() for f in fragments if f.strip()]
 
 
 def is_valid_delimiter(delimiter: str) -> bool:
-    """
-    Validate a delimiter based on the following rules:
+    """Validate a delimiter based on the following rules.
+
     - Must be a string.
     - Must be at least 1 character long.
 
@@ -54,12 +68,13 @@ def is_valid_delimiter(delimiter: str) -> bool:
 
     Returns:
         True if the delimiter is valid, False otherwise.
+
     """
     return isinstance(delimiter, str) and len(delimiter) > 0
 
 
 def wrap_entity(
-    entity_type: EntityType,
+    entity_type: "EntityType",
     suffix: int,
     start_delimiter: str,
     end_delimiter: str,
@@ -78,6 +93,7 @@ def wrap_entity(
 
     Returns:
         The wrapped entity.
+
     """
     return f"{start_delimiter}{entity_type.name}_{suffix}{end_delimiter}"
 
@@ -88,20 +104,18 @@ def normalise_spaces(text: str) -> str:
 
 
 def is_valid_stream_response(obj: object) -> bool:
-    """
-    Check if obj is an iterable suitable for streaming.
+    """Check if obj is an iterable suitable for streaming.
 
     Args:
         obj: The object to check.
 
     Returns:
         True if obj is an iterable suitable for streaming, False otherwise.
+
     """
     # Exclude string-like and mapping types
     excluded_types = (str, bytes, bytearray, collections.abc.Mapping)
-    return isinstance(obj, collections.abc.Iterable) and not isinstance(
-        obj, excluded_types
-    )
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, excluded_types)
 
 
 # Type alias that follows the OpenAI API input format for model responses.
@@ -134,7 +148,7 @@ def _should_cloak_input(input_data: Input) -> bool:
 
 
 def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, None]:
-    """Helper function to handle the ask method of LLMShield.
+    """Handle the ask method of LLMShield.
 
     This function checks if the input should be cloaked and handles both
     streaming and non-streaming cases using the provider system.
@@ -146,6 +160,7 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
 
     Returns:
         str | Generator[str, None, None]: The response from the LLM.
+
     """
     # * 1. Get the input text and determine parameter name
     input_param = "message" if "message" in kwargs else "prompt"
@@ -185,8 +200,8 @@ type Message = dict[str, str]
 
 
 def conversation_hash(obj: Message | list[Message]) -> Hash:
-    """
-    Generate a stable, hashable key for a message or a list of messages.
+    """Generate a stable, hashable key for a message or a list of messages.
+
     If a single message is provided, hash its role and content.
     If a list of messages is provided, hash the set of (role, content) pairs.
     """

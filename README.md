@@ -1,155 +1,118 @@
-# llmshield
+# LLMShield
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-green.svg)](https://github.com/yourusername/llmshield)
 
-> **Enterprise-grade PII protection for Large Language Model interactions**
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-  - [Provider System](#provider-system)
-  - [Provider Types](#provider-types)
-  - [Automatic Detection](#automatic-detection)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-  - [Basic Usage](#basic-usage)
-  - [Direct LLM Integration](#direct-llm-integration)
-  - [Streaming Support](#streaming-support)
-- [Advanced Configuration](#advanced-configuration)
-  - [Custom Delimiters](#custom-delimiters)
-  - [Conversation Caching](#conversation-caching)
-- [Supported LLM Providers](#supported-llm-providers)
-- [Entity Detection](#entity-detection)
-  - [Supported Entity Types](#supported-entity-types)
-- [Best Practices](#best-practices)
-  - [Security](#security)
-  - [Performance](#performance)
-  - [Integration](#integration)
-- [Language Support](#language-support)
-- [Requirements](#requirements)
-- [Development](#development)
-  - [Setup](#setup)
-  - [Testing](#testing)
-  - [Code Quality](#code-quality)
-  - [Building and Distribution](#building-and-distribution)
-- [Contributing](#contributing)
-- [License](#license)
-- [Production Usage](#production-usage)
+A zero-dependency Python library for protecting personally identifiable information (PII) in Large Language Model interactions through automatic entity detection and cloaking.
 
 ## Overview
 
-**llmshield** is a production-ready, zero-dependency Python library engineered for enterprise-grade protection of sensitive information in Large Language Model (LLM) interactions. It provides automatic detection and cloaking of personally identifiable information (PII) and sensitive entities, ensuring data privacy compliance while maintaining seamless LLM integration.
+LLMShield provides enterprise-grade protection for sensitive information in LLM interactions by automatically detecting and replacing PII with placeholders before transmission, then restoring original values in responses. The library employs a multi-layered detection approach combining pattern recognition, dictionary matching, and contextual analysis.
 
-Built for accuracy and performance, llmshield employs a sophisticated multi-layered approach combining dictionary-based matching, pattern recognition, contextual analysis, and rule-based classification to achieve maximum entity detection precision.
+**Key Features:**
 
-- 🔒 **Comprehensive Entity Detection**: Advanced multi-layered detection system
+- Zero external dependencies
+- Automatic entity detection and cloaking
+- Multi-turn conversation support with entity consistency
+- Streaming response handling
+- Universal LLM provider compatibility
+- Production-optimized performance
 
-  - **Proper Nouns**: Persons, Places, Organizations, Concepts
-  - **Contact Information**: Email addresses, URLs, social handles
-  - **Numeric Data**: Phone numbers, Credit card numbers, IDs
-  - **Custom Entities**: Extensible detection framework
-
-- 🚀 **Enterprise Performance**: Production-optimized with minimal latency overhead
-- 🔌 **Zero Dependencies**: Pure Python implementation with no external requirements
-- 🛡️ **End-to-End Protection**: Bidirectional security for prompts and responses
-- 🎯 **Universal LLM Support**: Provider-agnostic with specialized optimizations
-- 📊 **Conversation Memory**: Intelligent caching for multi-turn dialogues
-
-## Architecture
-
-llmshield employs a sophisticated **Provider System** that automatically detects and optimizes for different LLM APIs, ensuring seamless integration across platforms while maintaining enterprise-grade security and performance standards.
-
-### Provider System
-
-The library features an extensible provider architecture that handles LLM-specific parameter formatting and API quirks:
+## High-Level Data Flow
 
 ```mermaid
-graph TD
-    A["LLMShield.ask()"] --> B["Provider Detection"]
-    B --> C{LLM Function Analysis}
-    C -->|"openai.chat.completions.create"| D["OpenAIProvider"]
-    C -->|"openai.beta.chat.completions.parse"| D
-    C -->|"Custom/Unknown APIs"| E["DefaultProvider"]
+graph LR
+    A["Raw Input<br/>'Contact Dr. Smith at smith@hospital.org'"] --> B["Entity Detection<br/>PERSON: Dr. Smith<br/>EMAIL: smith@hospital.org"]
 
-    D --> F["OpenAI Optimizations"]
-    E --> G["Generic Handling"]
+    B --> C["PII Anonymization<br/>'Contact &lt;PERSON_0&gt; at &lt;EMAIL_1&gt;'"]
 
-    F --> H["Parameter Conversion"]
-    F --> I["Streaming Management"]
-    F --> J["Beta API Support"]
+    C --> D["LLM Processing<br/>Safe text sent to<br/>OpenAI, Claude, etc."]
 
-    G --> K["Function Introspection"]
-    G --> L["Best-effort Formatting"]
+    D --> E["Response Restoration<br/>Placeholders → Original PII"]
 
-    H --> M["LLM Function Call"]
-    I --> M
-    J --> M
-    K --> M
-    L --> M
+    E --> F["Protected Output<br/>'I'll help you contact Dr. Smith<br/>at smith@hospital.org'"]
 
-    M --> N["Response Processing"]
-    N --> O["Entity Uncloaking"]
-    O --> P["Final Response"]
+    %% Professional styling
+    classDef flowStyle fill:#f8f9fa,stroke:#495057,stroke-width:2px,color:#212529
+    classDef detectionStyle fill:#e8f4f8,stroke:#0c63e4,stroke-width:2px,color:#212529
+    classDef anonymizationStyle fill:#fff3cd,stroke:#856404,stroke-width:2px,color:#212529
+    classDef llmStyle fill:#f0e6ff,stroke:#6f42c1,stroke-width:2px,color:#212529
+    classDef restorationStyle fill:#d1ecf1,stroke:#0c5460,stroke-width:2px,color:#212529
+
+    class A flowStyle
+    class B detectionStyle
+    class C anonymizationStyle
+    class D llmStyle
+    class E restorationStyle
+    class F flowStyle
 ```
 
-#### Provider Types
+## Under the Hood: System Architecture
 
-**OpenAI Provider** (`OpenAIProvider`)
+```mermaid
+graph LR
+    subgraph Input ["Input Layer"]
+        A["Textual Input<br/>Contains PII Entities"]
+    end
 
-- Automatic detection of OpenAI API functions
-- Intelligent parameter conversion (`prompt` → `messages` format)
-- Streaming support with proper chunk handling
-- Beta API compatibility (structured outputs, function calling)
-- Automatic stream parameter management for APIs that don't support it
+    subgraph Detection ["Entity Detection Engine"]
+        B["Waterfall Detection Algorithm<br/>• Phase 1: Pattern Recognition (RegEx)<br/>• Phase 2: Numerical Validation (Luhn)<br/>• Phase 3: Linguistic Analysis (NLP)<br/>Entity Types: EMAIL, PERSON, PHONE, URL"]
+    end
 
-**Default Provider** (`DefaultProvider`)
+    subgraph Cloaking ["Entity Anonymization"]
+        C["Classification & Tokenization<br/>PII → Typed Placeholders<br/>Deterministic Mapping<br/>Format: &lt;TYPE_INDEX&gt;"]
+    end
 
-- Universal fallback for unknown LLM functions
-- Function signature introspection
-- Best-effort parameter mapping
-- Compatible with most LLM libraries (Anthropic, Cohere, Hugging Face, etc.)
+    subgraph Provider ["LLM Provider Interface"]
+        D["Provider-Agnostic API Gateway<br/>Supported: OpenAI, Anthropic Claude,<br/>Google Gemini, Azure OpenAI,<br/>AWS Bedrock, Custom Endpoints"]
+    end
 
-#### Automatic Detection
+    subgraph Restoration ["Entity De-anonymization"]
+        E["Inverse Token Mapping<br/>Placeholder Detection<br/>Bidirectional Text Reconstruction<br/>Integrity Preservation"]
+    end
 
-The provider system automatically detects your LLM function based on:
+    subgraph Output ["Output Layer"]
+        F["Reconstructed Response<br/>Original PII Restored<br/>Stream-Compatible"]
+    end
 
-- Function name patterns (`chat.completions.create`, `beta.chat.completions.parse`)
-- Module paths (`openai.*`)
-- Function signatures and parameter inspection
+    subgraph Memory ["State Management System"]
+        G["LRU Cache Implementation<br/>Conversation Continuity<br/>Hash-Based Entity Mapping<br/>O(1) Lookup Complexity"]
+    end
+
+    %% Primary data flow
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+
+    %% State management interactions
+    Memory -.->|"Read/Write<br/>Entity Maps"| C
+    Memory -.->|"Consistency<br/>Validation"| E
+
+    %% Professional styling
+    classDef inputStyle fill:#f8f9fa,stroke:#495057,stroke-width:2px,color:#212529
+    classDef detectionStyle fill:#e8f4f8,stroke:#0c63e4,stroke-width:2px,color:#212529
+    classDef cloakingStyle fill:#fff3cd,stroke:#856404,stroke-width:2px,color:#212529
+    classDef providerStyle fill:#f0e6ff,stroke:#6f42c1,stroke-width:2px,color:#212529
+    classDef restorationStyle fill:#d1ecf1,stroke:#0c5460,stroke-width:2px,color:#212529
+    classDef outputStyle fill:#d4edda,stroke:#155724,stroke-width:2px,color:#212529
+    classDef memoryStyle fill:#f8d7da,stroke:#721c24,stroke-width:2px,color:#212529
+
+    class A inputStyle
+    class B detectionStyle
+    class C cloakingStyle
+    class D providerStyle
+    class E restorationStyle
+    class F outputStyle
+    class G memoryStyle
+```
 
 ## Installation
 
-### Production Installation
-
-Install llmshield from PyPI using pip:
-
 ```bash
 pip install llmshield
-```
-
-### Development Installation
-
-For contributors and advanced users:
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/llmshield.git
-cd llmshield
-
-# Install in development mode
-pip install -e .
-```
-
-### Verification
-
-Verify your installation:
-
-```python
-import llmshield
-print(llmshield.__version__)
 ```
 
 ## Quick Start
@@ -159,22 +122,24 @@ print(llmshield.__version__)
 ```python
 from llmshield import LLMShield
 
-# Initialize with automatic provider detection
+# Initialise shield
 shield = LLMShield()
 
-# Manual cloaking/uncloaking
+# Protect sensitive information
 cloaked_prompt, entity_map = shield.cloak(
-    "Hi, I'm John Doe from Acme Corp (john.doe@acmecorp.com)"
+    "Contact John Doe at john.doe@company.com or call +1-555-0123"
 )
 print(cloaked_prompt)
-# Output: "Hi, I'm <PERSON_0> from <ORG_1> (<EMAIL_2>)"
+# Output: "Contact <PERSON_0> at <EMAIL_1> or call <PHONE_NUMBER_2>"
 
-# Send to your LLM
+# Process with LLM
 llm_response = your_llm_function(cloaked_prompt)
 
 # Restore original entities
-original_response = shield.uncloak(llm_response, entity_map)
+restored_response = shield.uncloak(llm_response, entity_map)
 ```
+
+**Note:** Individual `cloak()` and `uncloak()` methods support single messages only and do not maintain conversation history. For multi-turn conversations with entity consistency across messages, use the `ask()` method.
 
 ### Direct LLM Integration
 
@@ -182,21 +147,20 @@ original_response = shield.uncloak(llm_response, entity_map)
 from openai import OpenAI
 from llmshield import LLMShield
 
-# OpenAI example with automatic provider detection
 client = OpenAI(api_key="your-api-key")
 shield = LLMShield(llm_func=client.chat.completions.create)
 
-# Single-turn conversation
+# Single request with automatic protection
 response = shield.ask(
     model="gpt-4",
-    prompt="Hi, I'm Sarah Johnson (sarah.j@techcorp.com), help me write an email."
+    prompt="Draft an email to Sarah Johnson at sarah.j@techcorp.com"
 )
 
-# Multi-turn conversation with automatic entity consistency
+# Multi-turn conversation
 messages = [
     {"role": "user", "content": "I'm John Smith from DataCorp"},
-    {"role": "assistant", "content": "Hello John! How can I help you today?"},
-    {"role": "user", "content": "Can you email me at john@datacorp.com?"}
+    {"role": "assistant", "content": "Hello! How can I help you?"},
+    {"role": "user", "content": "Email me at john@datacorp.com"}
 ]
 
 response = shield.ask(model="gpt-4", messages=messages)
@@ -205,7 +169,6 @@ response = shield.ask(model="gpt-4", messages=messages)
 ### Streaming Support
 
 ```python
-# Streaming with real-time entity protection
 response_stream = shield.ask(
     model="gpt-4",
     prompt="Generate a report about Jane Doe (jane@example.com)",
@@ -216,220 +179,127 @@ for chunk in response_stream:
     print(chunk, end="", flush=True)
 ```
 
-## Advanced Configuration
+## Entity Detection
+
+The library detects and protects the following entity types:
+
+| Entity Type  | Examples            | Placeholder Format |
+| ------------ | ------------------- | ------------------ |
+| Person       | John Doe, Dr. Smith | `<PERSON_0>`       |
+| Organization | Acme Corp, NHS      | `<ORGANISATION_0>` |
+| Place        | London, Main Street | `<PLACE_0>`        |
+| Email        | user@domain.com     | `<EMAIL_0>`        |
+| Phone        | +1-555-0123         | `<PHONE_NUMBER_0>` |
+| URL          | https://example.com | `<URL_0>`          |
+| Credit Card  | 4111-1111-1111-1111 | `<CREDIT_CARD_0>`  |
+| IP Address   | 192.168.1.1         | `<IP_ADDRESS_0>`   |
+
+## Configuration
 
 ### Custom Delimiters
 
 ```python
-# Configure entity placeholder format
 shield = LLMShield(
-    start_delimiter='[[',  # Default: '<'
-    end_delimiter=']]'     # Default: '>'
+    start_delimiter='[[',
+    end_delimiter=']]'
 )
-# Entities will appear as [[PERSON_0]], [[EMAIL_1]], etc.
+# Entities appear as [[PERSON_0]], [[EMAIL_1]], etc.
 ```
 
 ### Conversation Caching
 
+LLMShield implements an LRU (Least Recently Used) cache to maintain entity consistency across multi-turn conversations. The cache stores entity mappings for conversation histories, ensuring that all entities (persons, organizations, emails, phones, etc.) mentioned in different messages receive the same placeholders.
+
 ```python
-# Configure cache size for multi-turn conversations
 shield = LLMShield(
     llm_func=your_llm_function,
-    max_cache_size=256  # Default: 128
+    max_cache_size=1000  # Default: 1000
 )
 ```
 
-## Supported LLM Providers
+**Cache Sizing Guidelines:**
 
-llmshield works with **any LLM library or API**, with specialized optimizations for:
+- **Small applications** (< 100 daily conversations): `max_cache_size=100-500`
+- **Medium applications** (100-1000 daily conversations): `max_cache_size=1000-5000`
+- **Large applications** (> 1000 daily conversations): `max_cache_size=5000-10000`
 
-- **OpenAI** (GPT-4, GPT-3.5, all chat models)
-- **OpenAI Beta APIs** (structured outputs, function calling)
+**Memory considerations:** Each cache entry stores approximately 1-2KB. A cache size of 1000 uses roughly 1-2MB of memory.
 
-### Compatible (via DefaultProvider)
+**Performance impact:** Cache hit rates above 80% significantly improve performance for multi-turn conversations by avoiding re-detection of previously seen entities.
 
-- **Anthropic Claude** (via `anthropic` library)
-- **Google Gemini** (via `google-generativeai`)
-- **Cohere** (via `cohere` library)
-- **Hugging Face Transformers**
-- **Azure OpenAI**
-- **AWS Bedrock**
-- **Any custom LLM function**
+## Provider Compatibility
 
-## Entity Detection
+LLMShield includes specialized support for OpenAI APIs and universal compatibility with other providers:
 
-llmshield uses a multi-layered approach combining:
+**Optimized Support:**
 
-- **Dictionary-based matching** for known entities
-- **Pattern recognition** for structured data (emails, phones, etc.)
-- **Contextual analysis** for proper nouns
-- **Rule-based classification** for entity types
+- OpenAI (GPT-4, GPT-3.5, all chat models)
+- OpenAI Beta APIs (structured outputs)
 
-### Supported Entity Types
+**Universal Compatibility:**
 
-| Category      | Examples            | Placeholder Format |
-| ------------- | ------------------- | ------------------ |
-| Persons       | John Doe, Dr. Smith | `<PERSON_0>`       |
-| Organizations | Acme Corp, NHS      | `<ORG_0>`          |
-| Places        | London, Main Street | `<PLACE_0>`        |
-| Emails        | user@domain.com     | `<EMAIL_0>`        |
-| Phone Numbers | +1-555-0123         | `<PHONE_0>`        |
-| URLs          | https://example.com | `<URL_0>`          |
-| Credit Cards  | 4111-1111-1111-1111 | `<CREDIT_CARD_0>`  |
-
-## Best Practices
-
-### 🔒 Security Guidelines
-
-- **Pre-transmission validation**: Always verify sensitive data is properly cloaked before LLM transmission
-- **Entity map security**: Store entity mappings securely using encryption for persistent storage
-- **Delimiter selection**: Choose delimiters that don't conflict with your data format or LLM training
-- **Input sanitization**: Validate and sanitize all inputs before processing
-- **Regular audits**: Periodically review cloaked outputs to ensure no PII leakage
-
-### ⚡ Performance Optimization
-
-- **Instance reuse**: Maintain single `LLMShield` instances to leverage conversation caching
-- **Cache monitoring**: Track cache hit rates for multi-turn conversations (aim for >80%)
-- **Delimiter alignment**: Select delimiters compatible with your LLM's tokenization
-- **Batch processing**: Process multiple prompts in batches when possible
-- **Memory management**: Configure appropriate cache sizes based on usage patterns
-
-### 🔧 Integration Best Practices
-
-- **Exception handling**: Implement comprehensive error handling for `ValueError` exceptions
-- **Provider testing**: Validate functionality with your specific LLM provider before production
-- **Structured outputs**: Leverage structured output capabilities for complex response processing
-- **Monitoring**: Implement logging and monitoring for entity detection accuracy
-- **Testing**: Include PII protection tests in your CI/CD pipeline
+- Anthropic Claude
+- Google Gemini
+- Cohere
+- Hugging Face Transformers
+- Azure OpenAI
+- AWS Bedrock
+- Custom LLM functions
 
 ## Language Support
 
-- **Primary**: English (optimized)
-- **Secondary**: Spanish (good accuracy)
-- **Experimental**: Other languages (reduced accuracy, potential PII leakage)
+- **English**: Full optimization and accuracy
+- **Other languages**: Experimental support with reduced accuracy
 
 ## Requirements
 
-- **Python**: 3.10+
-- **Dependencies**: None (zero-dependency architecture)
-- **Memory**: Minimal footprint with efficient caching
-- **Performance**: Sub-millisecond entity detection for typical prompts
+- Python 3.12+
+- Zero external dependencies
 
 ## Development
 
 ### Setup
 
 ```bash
-# Clone and setup development environment
 git clone https://github.com/yourusername/llmshield.git
 cd llmshield
-
-# Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install development dependencies
-make dev-dependencies
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -e ".[dev]"
 ```
 
 ### Testing
 
 ```bash
-# Run full test suite
+# Run tests
 make tests
 
-# Run with coverage
+# Coverage analysis
 make coverage
 
-# Test specific providers (requires API keys)
-OPENAI_API_KEY=your-key python -m unittest tests/providers/test_openai.py
+# Code quality checks
+make ruff
+
+# Documentation coverage
+make doc-coverage
 ```
 
-### Code Quality
+## Security Considerations
 
-```bash
-# Format code
-black llmshield/ tests/
-isort llmshield/ tests/
-
-# Lint
-flake8 llmshield/ tests/
-```
-
-### Building and Distribution
-
-#### Local Installation
-
-```bash
-# Install package locally in development mode
-pip install -e .
-
-# Or install from local build
-python -m build
-pip install dist/llmshield-*.whl
-```
-
-#### Building for Distribution
-
-```bash
-# Install build dependencies
-pip install build twine
-
-# Build the package
-python -m build
-
-# This creates:
-# - dist/llmshield-*.tar.gz (source distribution)
-# - dist/llmshield-*.whl (wheel distribution)
-```
-
-#### Publishing to PyPI
-
-```bash
-# Check the built package
-twine check dist/*
-
-# Upload to test PyPI first (recommended)
-twine upload --repository testpypi dist/*
-
-# Upload to production PyPI
-twine upload dist/*
-```
-
-**Prerequisites for publishing:**
-
-- PyPI account with API key configured
-- Maintainer permissions on the llmshield project
-- All tests passing and version bumped in `pyproject.toml`
+- Validate cloaked outputs before LLM transmission
+- Securely store entity mappings for persistent sessions
+- Choose delimiters that don't conflict with your data format
+- Implement comprehensive input validation
+- Regularly audit entity detection accuracy
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Principles
-
-- **Zero Dependencies**: Maintain pure Python implementation
-- **Performance First**: Optimize for production workloads
-- **Security Focus**: Prioritize data protection and privacy
-- **Universal Compatibility**: Support all major LLM providers
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and contribution process.
 
 ## License
 
-**GNU Affero General Public License v3.0** - See [LICENSE.txt](LICENSE.txt) for details.
+GNU Affero General Public License v3.0 - See [LICENSE.txt](LICENSE.txt) for details.
 
 ## Production Usage
 
-llmshield is used in:
-
-- [brainful.ai](https://brainful.ai)
-
----
-
-## Get Started
-
-Ready to secure your LLM interactions? Install llmshield today:
-
-```bash
-pip install llmshield
-```
+LLMShield is used in production at [brainful.ai](https://brainful.ai).

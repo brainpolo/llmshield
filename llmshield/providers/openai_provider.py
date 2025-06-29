@@ -1,7 +1,8 @@
 """OpenAI provider for handling OpenAI API specifics."""
 
 # Standard Library Imports
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 # Local Imports
 from .base import BaseLLMProvider
@@ -11,16 +12,14 @@ class OpenAIProvider(BaseLLMProvider):
     """Provider for OpenAI APIs (standard and beta)."""
 
     def __init__(self, llm_func: Callable):
-        """Initialize OpenAI provider."""
+        """Initialise OpenAI provider."""
         super().__init__(llm_func)
         self.is_beta_api = self._detect_beta_api()
 
     def _detect_beta_api(self) -> bool:
         """Detect if this is a beta API function."""
         return (
-            "beta" in self.func_qualname
-            or "beta" in self.func_module
-            or "parse" in self.func_name
+            "beta" in self.func_qualname or "beta" in self.func_module or "parse" in self.func_name
         )
 
     def prepare_single_message_params(
@@ -35,9 +34,11 @@ class OpenAIProvider(BaseLLMProvider):
         # Handle streaming for beta APIs
         if self.is_beta_api:
             if stream:
-                print(
-                    f"Warning: Beta API detected ({self.func_name}), streaming not supported. Disabling stream."
+                warning_msg = (
+                    f"Warning: Beta API detected ({self.func_name}), "
+                    "streaming not supported. Disabling stream."
                 )
+                print(warning_msg)
             # Beta APIs don't accept stream parameter at all
             prepared_kwargs.pop("stream", None)
             return prepared_kwargs, False
@@ -56,9 +57,11 @@ class OpenAIProvider(BaseLLMProvider):
         # Handle streaming for beta APIs
         if self.is_beta_api:
             if stream:
-                print(
-                    f"Warning: Beta API detected ({self.func_name}), streaming not supported. Disabling stream."
+                warning_msg = (
+                    f"Warning: Beta API detected ({self.func_name}), "
+                    "streaming not supported. Disabling stream."
                 )
+                print(warning_msg)
             # Beta APIs don't accept stream parameter at all
             prepared_kwargs.pop("stream", None)
             return prepared_kwargs, False

@@ -6,10 +6,28 @@ Uses a combination of rule-based and pattern-based approaches with:
 - Heuristic rules for proper nouns and other entities
 """
 
+# Standard Library Imports
 import re
 from dataclasses import dataclass
 from enum import Enum
 from importlib import resources
+
+# Local imports
+from llmshield.matchers.functions import _luhn_check
+from llmshield.matchers.lists import (
+    EN_ORG_COMPONENTS,
+    EN_PERSON_INITIALS,
+    EN_PLACE_COMPONENTS,
+    EN_PUNCTUATION,
+)
+from llmshield.matchers.regex import (
+    CREDIT_CARD_PATTERN,
+    EMAIL_ADDRESS_PATTERN,
+    IP_ADDRESS_PATTERN,
+    PHONE_NUMBER_PATTERN,
+    URL_PATTERN,
+)
+from llmshield.utils import normalise_spaces, split_fragments
 
 ENT_REPLACEMENT = "\n"  # Use to void overlap with another entity
 
@@ -74,41 +92,27 @@ class Entity:
         raise ValueError(msg)
 
 
-class EntityDetector:
-    """Main entity detection system that combines rule-based and pattern-based
-    approaches to identify sensitive information in text.
+class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
+    """Main entity detection system combining rule-based and pattern-based approaches.
 
-    Uses a waterfall approach to detection, where each detection method is
-    tried in order, and the text is reduced as each entity is found. This
-    eliminates the potential of overlapping entities being detected, and
-    improves the accuracy of the detection of entity type.
+    Identifies sensitive information in text using a waterfall approach where each
+    detection method is tried in order, and the text is reduced as each entity is
+    found. This eliminates potential overlapping entities and improves detection
+    accuracy.
     """
 
     def __init__(self) -> None:
         """Initialise large lists of entities."""
-        from llmshield.matchers.functions import _luhn_check
-        from llmshield.matchers.lists import (EN_COMMON_WORDS,
-                                              EN_ORG_COMPONENTS,
-                                              EN_PERSON_INITIALS,
-                                              EN_PLACE_COMPONENTS,
-                                              EN_PUNCTUATION)
-        from llmshield.matchers.regex import (CREDIT_CARD_PATTERN,
-                                              EMAIL_ADDRESS_PATTERN,
-                                              IP_ADDRESS_PATTERN,
-                                              PHONE_NUMBER_PATTERN,
-                                              URL_PATTERN)
-        from llmshield.utils import normalise_spaces, split_fragments
-
         self.split_fragments = split_fragments
         self.normalise_spaces = normalise_spaces
 
         self.cities = self._load_cities()
         self.countries = self._load_countries()
         self.organisations = self._load_organisations()
+        self.en_common_words = self._load_english_corpus()
         self.en_person_initials = EN_PERSON_INITIALS
         self.en_org_components = EN_ORG_COMPONENTS
         self.en_place_components = EN_PLACE_COMPONENTS
-        self.en_common_words = EN_COMMON_WORDS
         self.en_punctuation = EN_PUNCTUATION
 
         self.email_pattern = EMAIL_ADDRESS_PATTERN
@@ -122,35 +126,32 @@ class EntityDetector:
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt."""
-        with (
-            resources.files("llmshield.matchers.dicts")
-            .joinpath("cities.txt")
-            .open("r") as f
-        ):
+        with resources.files("llmshield.matchers.dicts").joinpath("cities.txt").open("r") as f:
             return [city.strip() for city in f.read().splitlines() if city.strip()]
 
     @staticmethod
     def _load_countries() -> list[str]:
         """Load countries from lists/countries.txt."""
-        with (
-            resources.files("llmshield.matchers.dicts")
-            .joinpath("countries.txt")
-            .open("r") as f
-        ):
+        with resources.files("llmshield.matchers.dicts").joinpath("countries.txt").open("r") as f:
             return [c.strip() for c in f.read().splitlines() if c.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
         """Load organisations from lists/organisations.txt."""
         with (
-            resources.files("llmshield.matchers.dicts")
-            .joinpath("organisations.txt")
-            .open("r") as f
+            resources.files("llmshield.matchers.dicts").joinpath("organisations.txt").open("r") as f
         ):
             return [org.strip() for org in f.read().splitlines() if org.strip()]
 
+    @staticmethod
+    def _load_english_corpus() -> set[str]:
+        """Load common English words from corpus/english.txt."""
+        corpus_path = resources.files("llmshield.matchers.dicts").joinpath("corpus/english.txt")
+        with corpus_path.open("r") as f:
+            return {word.strip().lower() for word in f.read().splitlines() if word.strip()}
+
     def detect_entities(self, text: str) -> set[Entity]:
-        """Main entry point for entity detection using waterfall methodology."""
+        """Detect entities in text using waterfall methodology."""
         detection_methods = [
             (self._detect_locators, EntityGroup.LOCATOR),
             (self._detect_numbers, EntityGroup.NUMBER),
@@ -168,6 +169,7 @@ class EntityDetector:
 
     def _detect_proper_nouns(self, text: str) -> tuple[set[Entity], str]:
         """Umbrella method for proper noun detection.
+
         It collects candidate proper nouns from the text, then classifies each.
         If an entity is classified (and potentially cleaned), it is added as an Entity.
         """
@@ -192,69 +194,93 @@ class EntityDetector:
 
         return entities, reduced_text
 
-    def _collect_proper_nouns(self, text: str) -> list[str]:  # noqa: PLR0912
+    def _collect_proper_nouns(self, text: str) -> list[str]:
         """Collect sequential proper nouns from text."""
         sequential_pnouns = []
         normalised_text = self.normalise_spaces(text)
         fragments = self.split_fragments(normalised_text)
 
         for fragment in fragments:
-            # Split on common contractions first
-            for split_word in ["I'm", "I've", "I'll"]:
-                if split_word in fragment:
-                    fragment = fragment.replace(
-                        split_word, f"{split_word} "
-                    )  # noqa: PLW2901
-
-            fragment_words = fragment.split(SPACE)
-            pending_p_noun = ""
-            skip_next = False
-
-            for i, word in enumerate(fragment_words):
-                if skip_next:
-                    skip_next = False
-                    continue
-
-                if not word:
-                    continue
-
-                # Skip personal pronouns and their contractions
-                if word in {"I'm", "I've", "I'll", "I"}:
-                    if pending_p_noun:
-                        sequential_pnouns.append(pending_p_noun.strip())
-                        pending_p_noun = ""
-                    continue
-
-                # Look ahead for potential name after "I'm", etc.
-                if i < len(fragment_words) - 1 and word in {"I'm", "I've", "I'll"}:
-                    next_word = fragment_words[i + 1]
-                    if next_word[0].isupper():
-                        pending_p_noun = next_word
-                        skip_next = True
-                    continue
-
-                normalized_word = word.strip(".,!?;:")
-                is_honorific = normalized_word in self.en_person_initials
-                is_capitalised = word and word[0].isupper()
-
-                if is_honorific or (
-                    not any(c in word for c in self.en_punctuation if c != ".")
-                    and is_capitalised
-                ):
-                    pending_p_noun = (
-                        pending_p_noun + SPACE + word if pending_p_noun else word
-                    )
-                elif pending_p_noun:
-                    sequential_pnouns.append(pending_p_noun.strip())
-                    pending_p_noun = ""
-
-            if pending_p_noun:
-                sequential_pnouns.append(pending_p_noun.strip())
+            fragment_nouns = self._process_fragment(fragment)
+            sequential_pnouns.extend(fragment_nouns)
 
         return sorted([p for p in sequential_pnouns if p], key=len, reverse=True)
 
+    def _process_fragment(self, fragment: str) -> list[str]:
+        """Process a single text fragment to extract proper nouns."""
+        # Split on common contractions first
+        for split_word in ["I'm", "I've", "I'll"]:
+            if split_word in fragment:
+                fragment = fragment.replace(split_word, f"{split_word} ")
+
+        fragment_words = fragment.split(SPACE)
+        sequential_pnouns = []
+        pending_p_noun = ""
+        skip_next = False
+
+        for i, word in enumerate(fragment_words):
+            if skip_next:
+                skip_next = False
+                continue
+
+            if not word:
+                continue
+
+            # Handle personal pronouns and contractions
+            if self._should_skip_pronoun(word, pending_p_noun, sequential_pnouns):
+                pending_p_noun = ""
+                continue
+
+            # Handle contraction lookahead
+            if self._handle_contraction_lookahead(word, i, fragment_words):
+                pending_p_noun = fragment_words[i + 1]
+                skip_next = True
+                continue
+
+            # Process potential proper noun
+            pending_p_noun = self._process_word(word, pending_p_noun, sequential_pnouns)
+
+        if pending_p_noun:
+            sequential_pnouns.append(pending_p_noun.strip())
+
+        return sequential_pnouns
+
+    def _should_skip_pronoun(
+        self, word: str, pending_p_noun: str, sequential_pnouns: list[str]
+    ) -> bool:
+        """Check if word is a pronoun that should be skipped."""
+        if word in {"I'm", "I've", "I'll", "I"}:
+            if pending_p_noun:
+                sequential_pnouns.append(pending_p_noun.strip())
+            return True
+        return False
+
+    def _handle_contraction_lookahead(self, word: str, i: int, fragment_words: list[str]) -> bool:
+        """Handle lookahead for contractions followed by names."""
+        if i < len(fragment_words) - 1 and word in {"I'm", "I've", "I'll"}:
+            next_word = fragment_words[i + 1]
+            if next_word and next_word[0].isupper():
+                return True
+        return False
+
+    def _process_word(self, word: str, pending_p_noun: str, sequential_pnouns: list[str]) -> str:
+        """Process a word for proper noun detection."""
+        normalized_word = word.strip(".,!?;:")
+        is_honorific = normalized_word in self.en_person_initials
+        is_capitalised = word and word[0].isupper()
+
+        if is_honorific or (
+            not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised
+        ):
+            return pending_p_noun + SPACE + word if pending_p_noun else word
+        elif pending_p_noun:
+            sequential_pnouns.append(pending_p_noun.strip())
+            return ""
+        return pending_p_noun
+
     def _clean_person_name(self, p_noun: str) -> str:
         """Remove a leading honorific (if any) from a person proper noun.
+
         For example "Dr. John Doe" becomes "John Doe".
         """
         words = p_noun.split()
@@ -314,9 +340,7 @@ class EntityDetector:
         p_noun_lower = p_noun.lower()
 
         # Add checks for organizations with numbers
-        if any(char.isdigit() for char in p_noun) and re.match(
-            r"^\d+[A-Z].*|.*-.*\d+.*", p_noun
-        ):
+        if any(char.isdigit() for char in p_noun) and re.match(r"^\d+[A-Z].*|.*-.*\d+.*", p_noun):
             return True
 
         # Check for multi-word organizations like "New York Times"
@@ -377,7 +401,7 @@ class EntityDetector:
             # 3. Not contain digits
             if (
                 not clean_word[0].isupper()
-                or clean_word.lower() in (w.lower() for w in self.en_common_words)
+                or clean_word.lower() in self.en_common_words
                 or any(c.isdigit() for c in clean_word)
             ):
                 return False
@@ -410,9 +434,7 @@ class EntityDetector:
                         value=credit_card.group(),
                     ),
                 )
-                reduced_text = reduced_text.replace(
-                    credit_card.group(), ENT_REPLACEMENT
-                )
+                reduced_text = reduced_text.replace(credit_card.group(), ENT_REPLACEMENT)
 
         # * 3. Detect phone numbers
         phone_numbers = self.phone_number_pattern.finditer(text)

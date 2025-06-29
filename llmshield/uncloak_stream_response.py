@@ -1,8 +1,10 @@
-"""Module Objectives:
-- After receiving a cloaked stream response from the LLM,
-uncloak the response through a buffered chunk approach.
-- It should return the a response with the placeholders restored to their original values.
-# - The module is intended for internal use only.
+"""Module for uncloaking streaming LLM responses.
+
+After receiving a cloaked stream response from the LLM, uncloaks the response
+through a buffered chunk approach. Returns responses with placeholders restored
+to their original values.
+
+# Module is intended for internal use only.
 """
 
 from collections.abc import Generator
@@ -17,8 +19,10 @@ def uncloak_stream_response(
     """Uncloaks a stream response from the LLM by replacing placeholders with their original values.
 
     Args:
-        response_stream (Generator[str, None, None]): The stream of cloaked responses.
-        entity_map (dict[str, str] | None): A mapping of placeholders to original values.
+        stream: The stream of cloaked responses.
+        entity_map: A mapping of placeholders to original values.
+        start_delimiter: The start delimiter for placeholders.
+        end_delimiter: The end delimiter for placeholders.
 
     Yields:
         str: The uncloaked response chunks.

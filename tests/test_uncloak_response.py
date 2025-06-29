@@ -9,6 +9,7 @@ class MockChatCompletion:
     """Mock ChatCompletion object similar to OpenAI's response."""
 
     def __init__(self, choices=None, model="gpt-4"):
+        """Initialise mock completion with choices and model."""
         self.choices = choices or []
         self.model = model
         self.id = "test-completion-id"
@@ -18,6 +19,7 @@ class MockChoice:
     """Mock Choice object from ChatCompletion."""
 
     def __init__(self, message=None, delta=None):
+        """Initialise mock choice with message or delta."""
         self.message = message
         self.delta = delta
         self.index = 0
@@ -27,6 +29,7 @@ class MockMessage:
     """Mock Message object from Choice."""
 
     def __init__(self, content=""):
+        """Initialise mock message with content."""
         self.content = content
         self.role = "assistant"
 
@@ -35,6 +38,7 @@ class MockDelta:
     """Mock Delta object from streaming Choice."""
 
     def __init__(self, content=""):
+        """Initialise mock delta with content."""
         self.content = content
 
 
@@ -123,9 +127,7 @@ class TestUnclokResponse(unittest.TestCase):
         self.assertIsNot(result, chatcompletion)
 
         # Verify content was uncloaked
-        self.assertEqual(
-            result.choices[0].message.content, "Hello John Doe, visit New York"
-        )
+        self.assertEqual(result.choices[0].message.content, "Hello John Doe, visit New York")
 
         # Verify original object is unchanged
         self.assertEqual(

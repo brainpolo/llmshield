@@ -1,3 +1,5 @@
+"""Tests for the LRU cache implementation."""
+
 from unittest import TestCase, main
 
 from llmshield.lru_cache import LRUCache

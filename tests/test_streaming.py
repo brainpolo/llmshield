@@ -14,6 +14,7 @@ class MockChatCompletionChunk:
     """Mock OpenAI ChatCompletionChunk for testing line 32."""
 
     def __init__(self, content: str | None):
+        """Initialise mock chunk with content."""
         self.choices = [
             type(
                 "MockChoiceDelta",
@@ -87,8 +88,7 @@ class TestStreamingCoverage(unittest.TestCase):
         """Test comprehensive chunk processing - parameterized."""
 
         def chunk_stream():
-            for chunk in chunks:
-                yield chunk
+            yield from chunks
 
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
         self.assertEqual(result, expected)
@@ -102,9 +102,7 @@ class TestStreamingCoverage(unittest.TestCase):
             yield "_0>"
             yield " additional content at end"  # This will be in buffer at end
 
-        result = list(
-            uncloak_stream_response(partial_placeholder_stream(), self.entity_map)
-        )
+        result = list(uncloak_stream_response(partial_placeholder_stream(), self.entity_map))
 
         # Should uncloak the complete placeholder and yield remaining buffer
         # This MUST hit line 65: if buffer: yield buffer

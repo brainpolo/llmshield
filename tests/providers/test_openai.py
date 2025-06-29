@@ -1,5 +1,4 @@
-"""
-Tests for OpenAI standard API to ensure all functionality is fully supported.
+"""Tests for OpenAI standard API to ensure all functionality is fully supported.
 
 @see https://platform.openai.com/docs/api-reference/chat/create
 """
@@ -9,6 +8,7 @@ import os
 from unittest import TestCase
 
 from openai import OpenAI
+
 # Third-Party Imports
 from pydantic import BaseModel
 
@@ -46,7 +46,9 @@ class TestOpenAI(TestCase):
         self.structured_messages = [
             {
                 "role": "user",
-                "content": "Format the following text into a JSON object: 'John Doe is 30 years old.'",
+                "content": (
+                    "Format the following text into a JSON object: 'John Doe is 30 years old.'"
+                ),
             },
         ]
         self.structured_response = TestModel(name="John Doe", age=30)
@@ -98,7 +100,9 @@ class TestOpenAI(TestCase):
         messages = [
             {
                 "role": "user",
-                "content": "My name is Alice Smith and I live in New York. Tell me about the weather.",
+                "content": (
+                    "My name is Alice Smith and I live in New York. Tell me about the weather."
+                ),
             }
         ]
 

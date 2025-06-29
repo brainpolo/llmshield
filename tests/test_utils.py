@@ -1,5 +1,4 @@
-"""
-Tests for utility functions in llmshield.utils
+"""Tests for utility functions in llmshield.utils.
 
 ! Module is intended for internal use only.
 """
@@ -14,10 +13,14 @@ from parameterized import parameterized
 # Local Imports
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
-
-from llmshield.utils import (PydanticLike, _should_cloak_input, ask_helper,
-                             conversation_hash, is_valid_delimiter,
-                             wrap_entity)
+from llmshield.utils import (
+    PydanticLike,
+    _should_cloak_input,
+    ask_helper,
+    conversation_hash,
+    is_valid_delimiter,
+    wrap_entity,
+)
 
 
 class TestUtils(unittest.TestCase):
@@ -49,9 +52,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(wrap_entity(EntityType.EMAIL, 1, "<", ">"), "<EMAIL_1>")
 
         # Test with multi-character delimiters
-        self.assertEqual(
-            wrap_entity(EntityType.PHONE_NUMBER, 2, "[[", "]]"), "[[PHONE_NUMBER_2]]"
-        )
+        self.assertEqual(wrap_entity(EntityType.PHONE_NUMBER, 2, "[[", "]]"), "[[PHONE_NUMBER_2]]")
 
     @parameterized.expand(
         [
@@ -82,7 +83,6 @@ class TestUtils(unittest.TestCase):
         self, description, param_name, input_value, expected_str
     ):
         """Test ask_helper when input doesn't need cloaking (line 180) - parameterized."""
-
         # Handle Path object specially
         if description == "path_message":
             input_value = Path("/test/path")
@@ -109,14 +109,12 @@ class TestUtils(unittest.TestCase):
     )
     def test_conversation_hash_edge_cases(self, description, message, expected_tuple):
         """Test conversation_hash with edge cases - parameterized."""
-
         result = conversation_hash(message)
         expected = hash(expected_tuple)
         self.assertEqual(result, expected)
 
     def test_conversation_hash_list_of_messages(self):
         """Test conversation_hash with list of messages."""
-
         # Test list of messages
         messages = [{}, {"role": "assistant"}]
         result = conversation_hash(messages)
@@ -138,11 +136,8 @@ class TestUtils(unittest.TestCase):
             ("float", 3.14, False),
         ]
     )
-    def test_should_cloak_input_comprehensive(
-        self, description, input_value, expected_result
-    ):
+    def test_should_cloak_input_comprehensive(self, description, input_value, expected_result):
         """Test _should_cloak_input with various input types - parameterized."""
-
         result = _should_cloak_input(input_value)
         self.assertEqual(result, expected_result)
 
@@ -155,9 +150,7 @@ class TestUtils(unittest.TestCase):
             ("missing_dump", "AnotherPartialModel", False),
         ]
     )
-    def test_pydantic_like_protocol_cases(
-        self, description, model_class_name, should_match
-    ):
+    def test_pydantic_like_protocol_cases(self, description, model_class_name, should_match):
         """Test PydanticLike protocol runtime checking - parameterized."""
 
         # Create test classes with different method combinations

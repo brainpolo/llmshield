@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.7"
+version = "0.0.8"
 description = "Shields your confidential data from third party LLM providers"
 readme = "README.md"
 authors = [
@@ -19,7 +19,7 @@ classifiers = [
 ]
 license-files = ["LICENSE.txt"]
 keywords = ["llm", "ai", "security", "privacy"]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 [project.urls]
 Homepage = "https://github.com/brainpolo/llmshield"
@@ -73,16 +73,14 @@ select = [
     # isort
     "I",
     "PL", # pylint rules
+    "D",  # pydocstyle rules
 ]
+ignore = [
+    "D203",  # 1 blank line required before class docstring (conflicts with D211)
+    "D213",  # Multi-line docstring summary should start at the second line (conflicts with D212)
+]
+
 exclude = [
-    "docs/*",
-    "build/*",
-    "dist/*",
-    ".github/*",
-    ".vscode/*",
-    ".mypy_cache/*",
-    ".pytest_cache/*",
-    "llmshield/matchers/dicts/*.txt", # Exclude dicts from ruff checks
     "venv/*",
 ]
 
@@ -91,18 +89,6 @@ docstring-code-format = true
 docstring-code-line-length = 20
 quote-style = "double"
 line-ending = "auto"
-exclude = [
-    "docs/*",
-    "build/*",
-    "dist/*",
-    ".github/*",
-    ".vscode/*",
-    ".mypy_cache/*",
-    ".pytest_cache/*",
-    "llmshield/matchers/dicts/*.txt", # Exclude dicts from ruff formatting
-    "venv/*",
-    "tests/*",
-]
 
 [project.optional-dependencies]
 dev = [
@@ -117,5 +103,5 @@ dev = [
     "pre-commit>=4.2.0",
     "ruff>=0.11.13",
     "parameterized>=0.9.0",
-    "openai>=1.83.0",
+    "openai>=1.83.0",  # For testing with OpenAI-compatible providers.
 ]

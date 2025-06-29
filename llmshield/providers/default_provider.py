@@ -1,7 +1,8 @@
 """Default provider for unknown/generic LLM functions."""
 
 # Standard Library Imports
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 # Local Imports
 from .base import BaseLLMProvider
@@ -58,5 +59,5 @@ class DefaultProvider(BaseLLMProvider):
 
     @classmethod
     def can_handle(cls, llm_func: Callable) -> bool:
-        """Default provider can handle any function as a fallback."""
+        """Check if this provider can handle any function as fallback."""
         return True  # This is the fallback provider

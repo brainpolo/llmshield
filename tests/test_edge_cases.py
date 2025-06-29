@@ -146,9 +146,7 @@ class TestEdgeCases(unittest.TestCase):
             ),  # Normal case
         ]
     )
-    def test_entity_map_edge_cases(
-        self, entity_map, input_text, expected_output, should_raise
-    ):
+    def test_entity_map_edge_cases(self, entity_map, input_text, expected_output, should_raise):
         """Test entity map handling with edge cases."""
         shield = LLMShield()
 
@@ -245,9 +243,7 @@ class TestEdgeCases(unittest.TestCase):
         for i in range(5):  # Reduced for parameterized testing
             text = template.format(i)
             _, entity_map = shield.cloak(text)
-            result = shield.uncloak(
-                f"Response with entities {list(entity_map.keys())}", entity_map
-            )
+            result = shield.uncloak(f"Response with entities {list(entity_map.keys())}", entity_map)
             results.append(result)
 
             # Should not contain placeholders
@@ -274,7 +270,8 @@ class TestEdgeCases(unittest.TestCase):
 
         large_text = ""
         for name in name_templates:
-            large_text += f"Hello {name}, please contact {name.lower().replace(' ', '')}@company.com. "
+            email = f"{name.lower().replace(' ', '')}@company.com"
+            large_text += f"Hello {name}, please contact {email}. "
 
         # Test the processing
         cloaked, entity_map = shield.cloak(large_text)
@@ -298,9 +295,7 @@ class TestEdgeCases(unittest.TestCase):
             ("mixed_scripts", "Hello John من نیویورک", ["John"]),  # Arabic/Persian
         ]
     )
-    def test_unicode_and_special_character_handling(
-        self, description, input_text, preserved_chars
-    ):
+    def test_unicode_and_special_character_handling(self, description, input_text, preserved_chars):
         """Test handling of Unicode and special characters."""
         shield = LLMShield()
 

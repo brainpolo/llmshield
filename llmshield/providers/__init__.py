@@ -1,6 +1,6 @@
-"""
-Provider system to provide optimal support for consistent behaviour across
-different LLM APIs.
+"""Provider system for optimal support across different LLM APIs.
+
+Provides consistent behaviour and parameter handling for various LLM providers.
 """
 
 from .provider_factory import get_provider

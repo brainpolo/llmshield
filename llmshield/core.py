@@ -36,8 +36,14 @@ from .lru_cache import LRUCache
 from .providers import get_provider
 from .uncloak_response import _uncloak_response
 from .uncloak_stream_response import uncloak_stream_response
-from .utils import (Message, PydanticLike, ask_helper, conversation_hash,
-                    is_valid_delimiter, is_valid_stream_response)
+from .utils import (
+    Message,
+    PydanticLike,
+    ask_helper,
+    conversation_hash,
+    is_valid_delimiter,
+    is_valid_stream_response,
+)
 
 DEFAULT_START_DELIMITER = "<"
 DEFAULT_END_DELIMITER = ">"
@@ -87,6 +93,7 @@ class LLMShield:
             end_delimiter: Character(s) to wrap entity placeholders (default: '>')
             llm_func: Optional function that calls your LLM (enables direct usage)
             max_cache_size: Maximum number of items to cache in the LRUCache (default: 1_000)
+
         """
         if not is_valid_delimiter(start_delimiter):
             msg = "Invalid start delimiter"
@@ -113,6 +120,7 @@ class LLMShield:
 
         Args:
             prompt: The original prompt containing sensitive information.
+            entity_map_param: Optional existing entity map to maintain consistency.
 
         Returns:
             Tuple of (cloaked_prompt, entity_mapping)
@@ -132,9 +140,10 @@ class LLMShield:
         response: str | list[Any] | dict[str, Any] | PydanticLike,
         entity_map: dict[str, str] | None = None,
     ) -> str | list[Any] | dict[str, Any] | PydanticLike:
-        """Restore original entities in the LLM response. It supports strings and
-        structured outputs consisting of any combination of strings, lists, and
-        dictionaries.
+        """Restore original entities in the LLM response.
+
+        It supports strings and structured outputs consisting of any combination
+        of strings, lists, and dictionaries.
 
         For uncloaking stream responses, use the `stream_uncloak` method instead.
 
@@ -143,7 +152,7 @@ class LLMShield:
 
         Args:
             response: The LLM response containing placeholders. Supports both
-            strings and structured outputs (dicts).
+                strings and structured outputs (dicts).
             entity_map: Mapping of placeholders to original values
                         (if empty, uses mapping from last cloak call)
 
@@ -152,7 +161,7 @@ class LLMShield:
 
         Raises:
             TypeError: If response parameters of invalid type.
-            ValueError: If no entity mapping is provided and no previous cloak call.s
+            ValueError: If no entity mapping is provided and no previous cloak call.
 
         """
         # Validate inputs
@@ -161,11 +170,11 @@ class LLMShield:
             raise ValueError(msg)
 
         # Allow ChatCompletion-like objects (have both 'choices' and 'model' attributes)
-        is_chatcompletion_like = hasattr(response, "choices") and hasattr(
-            response, "model"
-        )
+        is_chatcompletion_like = hasattr(response, "choices") and hasattr(response, "model")
 
-        if not isinstance(response, str | list | dict | PydanticLike) and not is_chatcompletion_like:  # type: ignore
+        # Check if response is valid type or ChatCompletion-like
+        valid_types = (str, list, dict, PydanticLike)
+        if not isinstance(response, valid_types) and not is_chatcompletion_like:  # type: ignore
             msg = (
                 "Response must be in [str, list, dict] or a Pydantic model, "
                 f"but got: {type(response)}!"
@@ -192,9 +201,7 @@ class LLMShield:
         response_stream: Generator[str, None, None],
         entity_map: dict[str, str] | None = None,
     ) -> Generator[str, None, None]:
-        """
-        Restore original entities in the LLM response if the response comes in
-        the form of a stream.
+        """Restore original entities in streaming LLM responses.
 
         The function processes the response stream in the form of chunks,
         attempting to yield either uncloaked chunks or the remaining buffer
@@ -213,6 +220,7 @@ class LLMShield:
 
         Yields:
             str: Uncloaked response chunks
+
         """
         # Validate the inputs
         if not response_stream:
@@ -241,7 +249,7 @@ class LLMShield:
             end_delimiter=self.end_delimiter,
         )
 
-    def ask(
+    def ask(  # pylint: disable=too-many-locals
         self, stream: bool = False, messages: list[Message] | None = None, **kwargs
     ) -> str | Generator[str, None, None]:
         """Complete end-to-end LLM interaction with automatic protection.
@@ -297,12 +305,8 @@ class LLMShield:
                 msg,
             )
 
-        if not (
-            ("prompt" in kwargs) or ("message" in kwargs) or (messages is not None)
-        ):
-            msg = (
-                "Either 'prompt', 'message' or the messages parameter must be provided!"
-            )
+        if not (("prompt" in kwargs) or ("message" in kwargs) or (messages is not None)):
+            msg = "Either 'prompt', 'message' or the messages parameter must be provided!"
             raise ValueError(msg)
 
         if "prompt" in kwargs and "message" in kwargs:
@@ -355,11 +359,11 @@ class LLMShield:
         # 5. Reconstruct the full, cloaked message list to send to the LLM
         cloaked_messages = []
         for msg in history:
-            cloaked_content, _ = self.cloak(
-                msg["content"], entity_map_param=final_entity_map
-            )
-            cloaked_messages.append({"role": msg["role"], "content": cloaked_content})  # type: ignore
-        cloaked_messages.append({"role": latest_message["role"], "content": cloaked_latest_content})  # type: ignore
+            cloaked_content, _ = self.cloak(msg["content"], entity_map_param=final_entity_map)
+            cloaked_msg = {"role": msg["role"], "content": cloaked_content}
+            cloaked_messages.append(cloaked_msg)  # type: ignore
+        final_msg = {"role": latest_message["role"], "content": cloaked_latest_content}
+        cloaked_messages.append(final_msg)  # type: ignore
 
         # 6. Call the LLM with the protected payload - with automatic provider detection
         # Get the appropriate provider for this LLM function
@@ -381,9 +385,7 @@ class LLMShield:
 
         # 8. Update the history with the latest message and the uncloaked response
         # Extract content string from ChatCompletion objects for conversation history
-        if hasattr(uncloaked_response, "choices") and hasattr(
-            uncloaked_response, "model"
-        ):
+        if hasattr(uncloaked_response, "choices") and hasattr(uncloaked_response, "model"):
             # This is a ChatCompletion object, extract the content
             response_content = uncloaked_response.choices[0].message.content
         else:

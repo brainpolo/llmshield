@@ -100,9 +100,7 @@ class TestOpenAIProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     @patch("builtins.print")
-    def test_prepare_single_message_params_beta_api_with_stream_warning(
-        self, mock_print
-    ):
+    def test_prepare_single_message_params_beta_api_with_stream_warning(self, mock_print):
         """Test preparing single message parameters for beta API with stream warning."""
         provider = OpenAIProvider(self.mock_beta_func)
 
@@ -183,9 +181,7 @@ class TestOpenAIProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     @patch("builtins.print")
-    def test_prepare_multi_message_params_beta_api_with_stream_warning(
-        self, mock_print
-    ):
+    def test_prepare_multi_message_params_beta_api_with_stream_warning(self, mock_print):
         """Test preparing multi-message parameters for beta API with stream warning."""
         provider = OpenAIProvider(self.mock_beta_func)
 

@@ -7,10 +7,13 @@ from unittest.mock import Mock
 from llmshield.providers.base import BaseLLMProvider
 from llmshield.providers.default_provider import DefaultProvider
 from llmshield.providers.openai_provider import OpenAIProvider
+
 # Local Imports
-from llmshield.providers.provider_factory import (PROVIDER_REGISTRY,
-                                                  get_provider,
-                                                  register_provider)
+from llmshield.providers.provider_factory import (
+    PROVIDER_REGISTRY,
+    get_provider,
+    register_provider,
+)
 
 
 class TestProviderFactory(unittest.TestCase):
@@ -84,9 +87,7 @@ class TestProviderFactory(unittest.TestCase):
             def can_handle(cls, llm_func):
                 return True
 
-            def prepare_single_message_params(
-                self, cloaked_text, input_param, stream, **kwargs
-            ):
+            def prepare_single_message_params(self, cloaked_text, input_param, stream, **kwargs):
                 return kwargs, stream
 
             def prepare_multi_message_params(self, cloaked_messages, stream, **kwargs):
@@ -108,9 +109,7 @@ class TestProviderFactory(unittest.TestCase):
             def can_handle(cls, llm_func):
                 return True
 
-            def prepare_single_message_params(
-                self, cloaked_text, input_param, stream, **kwargs
-            ):
+            def prepare_single_message_params(self, cloaked_text, input_param, stream, **kwargs):
                 return kwargs, stream
 
             def prepare_multi_message_params(self, cloaked_messages, stream, **kwargs):
@@ -134,9 +133,7 @@ class TestProviderFactory(unittest.TestCase):
             def can_handle(cls, llm_func):
                 return True
 
-            def prepare_single_message_params(
-                self, cloaked_text, input_param, stream, **kwargs
-            ):
+            def prepare_single_message_params(self, cloaked_text, input_param, stream, **kwargs):
                 return kwargs, stream
 
             def prepare_multi_message_params(self, cloaked_messages, stream, **kwargs):

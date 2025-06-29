@@ -50,7 +50,7 @@ Before contributing, please understand our core principles:
 
 ### Prerequisites
 
-- **Python 3.10+** (required)
+- **Python 3.12+** (required)
 - **Git** for version control
 - **Make** for build automation (optional but recommended)
 

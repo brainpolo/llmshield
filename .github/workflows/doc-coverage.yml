@@ -1,0 +1,56 @@
+name: Documentation Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  doc-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Check docstring coverage with Ruff (fail on any issues)
+        run: |
+          # Run ruff with docstring rules specifically
+          ruff check llmshield/ --select D --statistics
+
+          # Check for any docstring issues and fail if found
+          DOC_ISSUES=$(ruff check llmshield/ --select D --quiet | wc -l || echo 0)
+          if [ "$DOC_ISSUES" -gt 0 ]; then
+            echo "❌ Found $DOC_ISSUES docstring issues. Perfect documentation coverage required."
+            ruff check llmshield/ --select D  # Show the issues
+            exit 1
+          fi
+          echo "✅ Perfect docstring coverage achieved (0 issues)"
+
+      - name: Generate detailed docstring report
+        if: always()
+        run: |
+          # Create a detailed report of docstring issues
+          ruff check llmshield/ --select D --output-format=json > docstring-report.json || true
+
+          # Display summary
+          echo "## Docstring Coverage Summary"
+          echo "Files checked: $(find llmshield -name '*.py' -not -path '*/tests/*' | wc -l)"
+          echo "Docstring issues: $(ruff check llmshield/ --select D --quiet | wc -l || echo 0)"
+
+      - name: Upload docstring report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docstring-coverage-report
+          path: docstring-report.json
+          retention-days: 30

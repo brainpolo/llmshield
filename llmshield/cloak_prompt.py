@@ -1,4 +1,5 @@
-"""Module objectives:
+"""Module objectives.
+
 - Cloak the prompt before sending it to the LLM.
 - Return the cloaked prompt and a mapping of placeholders to original values.
 
@@ -21,8 +22,8 @@ def cloak_prompt(
     end_delimiter: str,
     entity_map: dict[str, str] | None = None,
 ) -> tuple[str, dict[str, str]]:
-    """
-    Rewritten cloaking function:
+    """Rewritten cloaking function.
+
     - Collects all match positions from the original prompt.
     - Sorts matches in descending order by their start index.
     - Replaces the matches in one pass.
@@ -33,8 +34,6 @@ def cloak_prompt(
 
     # Create a reverse map for quick lookups of existing values
     reversed_entity_map = {v: k for k, v in entity_map.items()}
-    if len(entity_map.keys()) > 0:
-        print("Cached Reverse entity map", reversed_entity_map)
 
     detector = EntityDetector()
     entities: set[Entity] = detector.detect_entities(prompt)

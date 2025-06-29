@@ -9,6 +9,7 @@ class TestUncloak(TestCase):
     """Tests for the uncloak functionality."""
 
     def setUp(self):
+        """Set up test fixtures."""
         self.shield = LLMShield()
 
     def test_uncloak_edge_cases(self):
@@ -19,9 +20,7 @@ class TestUncloak(TestCase):
 
         # Test partial replacements
         self.assertEqual(
-            self.shield.uncloak(
-                "Hello [PERSON_0] and [PERSON_1]", {"[PERSON_0]": "John"}
-            ),
+            self.shield.uncloak("Hello [PERSON_0] and [PERSON_1]", {"[PERSON_0]": "John"}),
             "Hello John and [PERSON_1]",
         )
 
@@ -52,9 +51,7 @@ class TestUncloak(TestCase):
                 ],
                 "confidential": True,
                 "nested": {
-                    "deeply": {
-                        "secret": "This is [PERSON_0]'s secret address: [IP_ADDRESS_0]"
-                    }
+                    "deeply": {"secret": "This is [PERSON_0]'s secret address: [IP_ADDRESS_0]"}
                 },
             },
         }
@@ -80,20 +77,14 @@ class TestUncloak(TestCase):
 
         # Verify nested dictionary is uncloaked
         self.assertEqual(uncloaked["metadata"]["sender"]["name"], "John Doe")
-        self.assertEqual(
-            uncloaked["metadata"]["sender"]["email"], "john.doe@example.com"
-        )
+        self.assertEqual(uncloaked["metadata"]["sender"]["email"], "john.doe@example.com")
         self.assertEqual(uncloaked["metadata"]["sender"]["company"], "Acme Corp")
 
         # Verify arrays of dictionaries are uncloaked
         self.assertEqual(uncloaked["metadata"]["recipients"][0]["name"], "Jane Smith")
-        self.assertEqual(
-            uncloaked["metadata"]["recipients"][0]["contact"], "+1-555-123-4567"
-        )
+        self.assertEqual(uncloaked["metadata"]["recipients"][0]["contact"], "+1-555-123-4567")
         self.assertEqual(uncloaked["metadata"]["recipients"][1]["name"], "Bob Johnson")
-        self.assertEqual(
-            uncloaked["metadata"]["recipients"][1]["contact"], "bob@example.com"
-        )
+        self.assertEqual(uncloaked["metadata"]["recipients"][1]["contact"], "bob@example.com")
 
         # Verify deeply nested structures are uncloaked
         self.assertEqual(
@@ -135,9 +126,7 @@ class TestUncloak(TestCase):
         uncloaked = shield.uncloak(structured_response, entity_map)
 
         # Verify all levels are uncloaked
-        self.assertEqual(
-            uncloaked["answer"], "My name is John Doe and I work at Acme Inc"
-        )
+        self.assertEqual(uncloaked["answer"], "My name is John Doe and I work at Acme Inc")
         self.assertEqual(uncloaked["metadata"]["entities"]["person"], "John Doe")
         self.assertEqual(uncloaked["metadata"]["entities"]["org"], "Acme Inc")
         self.assertEqual(

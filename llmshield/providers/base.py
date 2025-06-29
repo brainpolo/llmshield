@@ -2,7 +2,8 @@
 
 # Standard Library Imports
 from abc import ABC, abstractmethod
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 class BaseLLMProvider(ABC):
@@ -13,10 +14,11 @@ class BaseLLMProvider(ABC):
     """
 
     def __init__(self, llm_func: Callable):
-        """Initialize the provider with the LLM function.
+        """Initialise the provider with the LLM function.
 
         Args:
             llm_func: The LLM function to wrap
+
         """
         self.llm_func = llm_func
         self.func_name = getattr(llm_func, "__name__", "")
@@ -37,8 +39,9 @@ class BaseLLMProvider(ABC):
 
         Returns:
             Tuple of (prepared_params, updated_stream_flag)
+
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def prepare_multi_message_params(
@@ -53,8 +56,9 @@ class BaseLLMProvider(ABC):
 
         Returns:
             Tuple of (prepared_params, updated_stream_flag)
+
         """
-        pass
+        raise NotImplementedError
 
     @classmethod
     @abstractmethod
@@ -66,5 +70,6 @@ class BaseLLMProvider(ABC):
 
         Returns:
             True if this provider can handle the function
+
         """
-        pass
+        raise NotImplementedError

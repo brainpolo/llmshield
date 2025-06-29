@@ -23,12 +23,12 @@ generate-docs:
 
 # Rule to run all of the package tests
 tests:
-	python -m unittest discover -v
+	python3.12 -m unittest discover -v
 
 # Rule to check the coverage of the package tests
 coverage:
 	coverage run -m unittest discover -v
-	coverage report --fail-under=90
+	coverage report --fail-under=95
 
 # Rule to build the package the same way as it would be built for distribution
 build:
@@ -41,4 +41,21 @@ hooks:
 	pre-commit install
 	pre-commit run --all-files
 
-.PHONY: docs-help generate-docs tests coverage Makefile
+# Rule to check documentation coverage using Ruff
+doc-coverage:
+	@echo "Checking docstring coverage with Ruff..."
+	@echo "Files checked: $$(find llmshield -name '*.py' -not -path '*/tests/*' | wc -l)"
+	@echo "Docstring issues found:"
+	@ruff check llmshield/ --statistics || true
+
+# Rule to run Ruff linting and formatting
+ruff:
+	ruff check llmshield/ tests/ --fix
+	ruff format llmshield/ tests/
+
+# Rule to run Ruff check only (no fixes)
+ruff-check:
+	ruff check llmshield/ tests/
+	ruff format llmshield/ tests/ --check
+
+.PHONY: docs-help generate-docs tests coverage doc-coverage ruff ruff-check Makefile
