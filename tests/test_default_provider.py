@@ -35,8 +35,10 @@ class TestDefaultProvider(unittest.TestCase):
             "temperature": 0.8,
         }
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Check that original parameter is removed
@@ -54,7 +56,10 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     def test_prepare_single_message_params_with_message_preference(self):
-        """Test preparing single message parameters when function prefers 'message'."""
+        """Test preparing single message parameters with 'message' preference.
+
+        Validates parameter preparation when function prefers 'message'.
+        """
         # Create mock function with 'message' in parameters
         mock_func_with_message = Mock()
         mock_func_with_message.__code__ = Mock()
@@ -72,8 +77,10 @@ class TestDefaultProvider(unittest.TestCase):
         stream = False
         kwargs = {"text": "Original text", "model": "test-model"}
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Check that 'message' is used as parameter name
@@ -83,7 +90,10 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertFalse(actual_stream)
 
     def test_prepare_single_message_params_with_prompt_preference(self):
-        """Test preparing single message parameters when function prefers 'prompt'."""
+        """Test preparing single message parameters with 'prompt' preference.
+
+        Validates parameter preparation when function prefers 'prompt'.
+        """
         # Create mock function with 'prompt' but not 'message' in parameters
         mock_func_with_prompt = Mock()
         mock_func_with_prompt.__code__ = Mock()
@@ -101,8 +111,10 @@ class TestDefaultProvider(unittest.TestCase):
         stream = True
         kwargs = {"text": "Original text", "model": "test-model"}
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Check that 'prompt' is used as parameter name
@@ -111,7 +123,10 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     def test_prepare_single_message_params_no_code_attribute(self):
-        """Test preparing single message parameters when function has no __code__ attribute."""
+        """Test preparing single message parameters without __code__ attribute.
+
+        Validates fallback behavior when function has no __code__ attribute.
+        """
         # Create mock function without __code__ attribute
         mock_func_no_code = Mock()
         delattr(mock_func_no_code, "__code__")
@@ -123,8 +138,10 @@ class TestDefaultProvider(unittest.TestCase):
         stream = True
         kwargs = {"text": "Original text"}
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Should fall back to 'prompt' as default
@@ -132,11 +149,16 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     def test_prepare_single_message_params_code_access_error(self):
-        """Test preparing single message parameters when code access raises an error."""
+        """Test preparing single message parameters with code access error.
+
+        Validates error handling when code access raises an exception.
+        """
         # Create mock function that raises TypeError when accessing __code__
         mock_func_error = Mock()
         mock_func_error.__code__ = Mock()
-        mock_func_error.__code__.co_varnames = Mock(side_effect=TypeError("Access error"))
+        mock_func_error.__code__.co_varnames = Mock(
+            side_effect=TypeError("Access error")
+        )
 
         provider = DefaultProvider(mock_func_error)
 
@@ -145,8 +167,10 @@ class TestDefaultProvider(unittest.TestCase):
         stream = True
         kwargs = {"text": "Original text"}
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
         self.assertTrue(actual_stream)
 
@@ -197,11 +221,19 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertFalse(actual_stream)
 
     def test_get_preferred_param_name_message_priority(self):
-        """Test that 'message' is preferred over 'prompt' when both are available."""
+        """Test 'message' preference over 'prompt' when both are available.
+
+        Validates parameter priority selection logic.
+        """
         # Create mock function with both 'message' and 'prompt' in parameters
         mock_func_both = Mock()
         mock_func_both.__code__ = Mock()
-        mock_func_both.__code__.co_varnames = ("self", "prompt", "message", "model")
+        mock_func_both.__code__.co_varnames = (
+            "self",
+            "prompt",
+            "message",
+            "model",
+        )
 
         provider = DefaultProvider(mock_func_both)
 
@@ -222,8 +254,12 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertEqual(result, "prompt")
 
     def test_get_preferred_param_name_neither_available(self):
-        """Test fallback to 'prompt' when neither 'message' nor 'prompt' are available."""
-        # Create mock function with neither 'message' nor 'prompt' in parameters
+        """Test fallback to 'prompt' when neither parameter is available.
+
+        Validates fallback behavior when neither 'message' nor 'prompt' exist.
+        """
+        # Create mock function with neither 'message' nor 'prompt' in
+        # parameters
         mock_func_neither = Mock()
         mock_func_neither.__code__ = Mock()
         mock_func_neither.__code__.co_varnames = ("self", "text", "model")
@@ -253,7 +289,10 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertTrue(DefaultProvider.can_handle(Mock()))
 
     def test_can_handle_returns_true_always(self):
-        """Test that can_handle always returns True as it's the fallback provider."""
+        """Test that can_handle always returns True as fallback provider.
+
+        Validates the fallback provider behavior for all input types.
+        """
         # Even with None or unusual objects
         self.assertTrue(DefaultProvider.can_handle(None))
         self.assertTrue(DefaultProvider.can_handle("not a function"))

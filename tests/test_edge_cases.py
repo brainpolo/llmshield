@@ -1,4 +1,7 @@
-"""Comprehensive edge case tests for llmshield - optimized with parameterized library."""
+"""Comprehensive edge case tests for llmshield.
+
+Optimized with parameterized library for thorough testing.
+"""
 
 # Standard library Imports
 import random
@@ -18,12 +21,18 @@ class TestEdgeCases(unittest.TestCase):
         [
             # (input_value, should_succeed, expected_result/error_message)
             (None, True, None),  # None should be allowed
-            (lambda **kwargs: "response", True, "callable"),  # Function should work
+            (
+                lambda **kwargs: "response",
+                True,
+                "callable",
+            ),  # Function should work
             ("not_callable", False, "llm_func must be a callable"),
             (123, False, "llm_func must be a callable"),
         ]
     )
-    def test_llm_function_validation(self, input_val, should_succeed, expected):
+    def test_llm_function_validation(
+        self, input_val, should_succeed, expected
+    ):
         """Test LLM function validation with various input types."""
         if should_succeed:
             shield = LLMShield(llm_func=input_val)
@@ -108,7 +117,9 @@ class TestEdgeCases(unittest.TestCase):
             ({}, ValueError),  # Empty dict (falsy, raises ValueError)
         ]
     )
-    def test_stream_response_validation_invalid(self, invalid_input, expected_error):
+    def test_stream_response_validation_invalid(
+        self, invalid_input, expected_error
+    ):
         """Test stream response validation with invalid input types."""
         shield = LLMShield()
         with self.assertRaises(expected_error):
@@ -131,7 +142,12 @@ class TestEdgeCases(unittest.TestCase):
         [
             # (entity_map, input_text, expected_output, should_raise)
             ({}, "Hello <PERSON_0>", "Hello <PERSON_0>", False),  # Empty map
-            (None, "Hello <PERSON_0>", None, True),  # None map, no previous cloak
+            (
+                None,
+                "Hello <PERSON_0>",
+                None,
+                True,
+            ),  # None map, no previous cloak
             (
                 {"<PERSON_0>": "", "<PLACE_0>": ""},
                 "Hello <PERSON_0> from <PLACE_0>",
@@ -146,7 +162,9 @@ class TestEdgeCases(unittest.TestCase):
             ),  # Normal case
         ]
     )
-    def test_entity_map_edge_cases(self, entity_map, input_text, expected_output, should_raise):
+    def test_entity_map_edge_cases(
+        self, entity_map, input_text, expected_output, should_raise
+    ):
         """Test entity map handling with edge cases."""
         shield = LLMShield()
 
@@ -172,7 +190,9 @@ class TestEdgeCases(unittest.TestCase):
             ),
         ]
     )
-    def test_conversation_flow_scenarios(self, description, messages, check_func):
+    def test_conversation_flow_scenarios(
+        self, description, messages, check_func
+    ):
         """Test conversation flow with edge cases."""
 
         def mock_llm(**kwargs):
@@ -217,7 +237,8 @@ class TestEdgeCases(unittest.TestCase):
             {},  # Empty message
         ]
 
-        # Should handle gracefully (may not detect entities but shouldn't crash)
+        # Should handle gracefully (may not detect entities but shouldn't
+        # crash)
         try:
             result = shield.ask(messages=malformed_cases)
             self.assertIsInstance(result, str)
@@ -243,7 +264,9 @@ class TestEdgeCases(unittest.TestCase):
         for i in range(5):  # Reduced for parameterized testing
             text = template.format(i)
             _, entity_map = shield.cloak(text)
-            result = shield.uncloak(f"Response with entities {list(entity_map.keys())}", entity_map)
+            result = shield.uncloak(
+                f"Response with entities {list(entity_map.keys())}", entity_map
+            )
             results.append(result)
 
             # Should not contain placeholders
@@ -292,10 +315,16 @@ class TestEdgeCases(unittest.TestCase):
                 ["José", "São Paulo"],
             ),
             ("emojis", "Contact 👨‍💻 John@company.com 🏢", ["👨‍💻", "🏢"]),
-            ("mixed_scripts", "Hello John من نیویورک", ["John"]),  # Arabic/Persian
+            (
+                "mixed_scripts",
+                "Hello John من نیویورک",
+                ["John"],
+            ),  # Arabic/Persian
         ]
     )
-    def test_unicode_and_special_character_handling(self, description, input_text, preserved_chars):
+    def test_unicode_and_special_character_handling(
+        self, description, input_text, preserved_chars
+    ):
         """Test handling of Unicode and special characters."""
         shield = LLMShield()
 
@@ -330,7 +359,8 @@ class TestEdgeCases(unittest.TestCase):
                 result = shield.ask(prompt=f"Test prompt {i}")
                 if isinstance(result, str):
                     success_count += 1
-                    # Should not contain entity placeholders if processed correctly
+                    # Should not contain entity placeholders if processed
+                    # correctly
                     self.assertNotIn(f"<PERSON_{i}>", result)
             except (TypeError, ValueError):
                 error_count += 1

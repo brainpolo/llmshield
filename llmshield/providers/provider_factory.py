@@ -26,7 +26,8 @@ def get_provider(llm_func: Callable) -> BaseLLMProvider:
         An instance of the appropriate provider
 
     Raises:
-        RuntimeError: If no provider can handle the function (should never happen
+        RuntimeError: If no provider can handle the function (should never
+                     happen
                      due to DefaultProvider fallback)
 
     """
@@ -38,7 +39,9 @@ def get_provider(llm_func: Callable) -> BaseLLMProvider:
     raise RuntimeError(f"No provider found for function: {llm_func}")
 
 
-def register_provider(provider_class: type[BaseLLMProvider], priority: int = 0) -> None:
+def register_provider(
+    provider_class: type[BaseLLMProvider], priority: int = 0
+) -> None:
     """Register a new provider in the registry.
 
     Args:

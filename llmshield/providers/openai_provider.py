@@ -19,7 +19,9 @@ class OpenAIProvider(BaseLLMProvider):
     def _detect_beta_api(self) -> bool:
         """Detect if this is a beta API function."""
         return (
-            "beta" in self.func_qualname or "beta" in self.func_module or "parse" in self.func_name
+            "beta" in self.func_qualname
+            or "beta" in self.func_module
+            or "parse" in self.func_name
         )
 
     def prepare_single_message_params(
@@ -29,7 +31,9 @@ class OpenAIProvider(BaseLLMProvider):
         # Remove original parameter and convert to messages format
         prepared_kwargs = kwargs.copy()
         prepared_kwargs.pop(input_param, None)
-        prepared_kwargs["messages"] = [{"role": "user", "content": cloaked_text}]
+        prepared_kwargs["messages"] = [
+            {"role": "user", "content": cloaked_text}
+        ]
 
         # Handle streaming for beta APIs
         if self.is_beta_api:

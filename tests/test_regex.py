@@ -55,7 +55,9 @@ class TestRegexMatchers(TestCase):
         for card in valid_cards:
             with self.subTest(card=card):
                 match = CREDIT_CARD_PATTERN.search(card)
-                self.assertIsNotNone(match, f"Credit card should match: {card}")
+                self.assertIsNotNone(
+                    match, f"Credit card should match: {card}"
+                )
                 self.assertEqual(match.group(), card)
 
     def test_credit_card_pattern_invalid(self):
@@ -68,7 +70,9 @@ class TestRegexMatchers(TestCase):
         for card in invalid_cards:
             with self.subTest(card=card):
                 match = CREDIT_CARD_PATTERN.search(card)
-                self.assertIsNone(match, f"Credit card should not match: {card}")
+                self.assertIsNone(
+                    match, f"Credit card should not match: {card}"
+                )
 
     def test_ip_address_pattern_valid(self):
         """Test IP address pattern matching."""
@@ -132,7 +136,9 @@ class TestRegexMatchers(TestCase):
             with self.subTest(number=number):
                 # Use fullmatch on the trimmed candidate.
                 match = PHONE_NUMBER_PATTERN.fullmatch(number.strip())
-                self.assertIsNotNone(match, f"Phone number should match: {number}")
+                self.assertIsNotNone(
+                    match, f"Phone number should match: {number}"
+                )
                 self.assertEqual(match.group().strip(), number.strip())
 
     def test_phone_number_pattern_invalid(self):
@@ -145,7 +151,9 @@ class TestRegexMatchers(TestCase):
         for number in invalid_numbers:
             with self.subTest(number=number):
                 match = PHONE_NUMBER_PATTERN.fullmatch(number.strip())
-                self.assertIsNone(match, f"Phone number should not match: {number}")
+                self.assertIsNone(
+                    match, f"Phone number should not match: {number}"
+                )
 
 
 if __name__ == "__main__":

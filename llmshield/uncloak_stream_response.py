@@ -16,7 +16,7 @@ def uncloak_stream_response(
     start_delimiter: str = "<",
     end_delimiter: str = ">",
 ) -> Generator[str, None, None]:
-    """Uncloaks a stream response from the LLM by replacing placeholders with their original values.
+    """Uncloaks a stream response by replacing placeholders with values.
 
     Args:
         stream: The stream of cloaked responses.
@@ -30,7 +30,8 @@ def uncloak_stream_response(
     """
     buffer = ""
     for chunk in stream:
-        # Extract actual text content if possible (for OpenAI ChatCompletionChunk)
+        # Extract actual text content if possible (for OpenAI
+        # ChatCompletionChunk)
         content = getattr(chunk, "choices", None)
         if content and hasattr(chunk.choices[0].delta, "content"):
             text = chunk.choices[0].delta.content or ""

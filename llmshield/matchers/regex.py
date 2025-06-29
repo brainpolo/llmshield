@@ -3,7 +3,7 @@
 import re
 
 # * EMAIL
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Matches email addresses like:
 # - john.doe@example.com
 # - user+tag@domain.co.uk
@@ -14,12 +14,12 @@ EMAIL_ADDRESS_PATTERN = re.compile(
     r"|[._-](?![._-]))*"  # Single dots/underscores/hyphens not consecutive
     r"[a-zA-Z0-9]"  # End with alphanumeric
     r"@"  # @ symbol
-    r"(?:[a-zA-Z0-9][a-zA-Z0-9-]*\.)+"  # Domain parts must start with alphanumeric
+    r"(?:[a-zA-Z0-9][a-zA-Z0-9-]*\.)+"  # Domain parts start with alphanumeric
     r"[a-zA-Z]{2,}\b",  # TLD
 )
 
 # * CREDIT CARD
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Matches credit card numbers like:
 # - 4532015112345678    (Visa)
 # - 4532 0151 1234 5678 (Visa with spaces)
@@ -30,7 +30,8 @@ EMAIL_ADDRESS_PATTERN = re.compile(
 CREDIT_CARD_PATTERN = re.compile(
     r"\b(?:4[0-9]{15}"  # Visa 16 digits
     # Mastercard
-    r"|(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}"
+    r"|(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}"
+    r"|27[01][0-9]|2720)[0-9]{12}"
     r"|3[47][0-9]{13}"  # American Express
     r"|3(?:0[0-5]|[68][0-9])[0-9]{11}"  # Diners Club
     r"|6(?:011|5[0-9]{2})[0-9]{12}"  # Discover
@@ -39,7 +40,7 @@ CREDIT_CARD_PATTERN = re.compile(
 )
 
 # * IP ADDRESS
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Matches IPv4 addresses like:
 # - 192.168.1.1
 # - 10.0.0.0
@@ -51,7 +52,7 @@ IP_ADDRESS_PATTERN = re.compile(
 )
 
 # * URL
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Matches URLs like:
 # - https://example.com
 # - http://subdomain.example.com/path
@@ -65,18 +66,18 @@ URL_PATTERN = re.compile(
 )
 
 # * PHONE NUMBER
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # Matches various phone number formats including:
 # - US styles like "123-456-7890", "(123) 456-7890"
 # - International numbers like "+44 (123) 456-7890", "+44 84491234567"
 PHONE_NUMBER_PATTERN = re.compile(
     r"(?<!\d)"  # Negative lookbehind: ensure no digit immediately precedes.
     r"("  # Capture the entire phone number.
-    r"(?:(?:\+?\d{1,3}[-.\s]*)?"  # Optional country code (with optional '+' and separator).
+    r"(?:(?:\+?\d{1,3}[-.\s]*)?"  # Optional country code with '+'
     r"(?:\(?\d{3}\)?[-.\s]*\d{3}[-.\s]*\d{4}))"  # US/strict format: 3-3-4
     # (area code may be parenthesized).
     r"|"  # OR
-    r"(?:\+\d{1,3}[-.\s]*(?:\d[-.\s]*){7,14}\d)"  # International format: requires a leading '+'
+    r"(?:\+\d{1,3}[-.\s]*(?:\d[-.\s]*){7,14}\d)"  # International format
     # and 8 to 15 digits.
     r")"
     r"(?!\d)",  # Negative lookahead: ensure no digit immediately follows.

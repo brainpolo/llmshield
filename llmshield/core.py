@@ -1,7 +1,8 @@
 """Core module for llmshield.
 
-This module provides the main LLMShield class for protecting sensitive information
-in Large Language Model (LLM) interactions. It handles cloaking of sensitive entities
+This module provides the main LLMShield class for protecting sensitive
+information in Large Language Model (LLM) interactions. It handles cloaking of
+sensitive entities
 in prompts before sending to LLMs, and uncloaking of responses to restore the
 original information.
 
@@ -50,7 +51,7 @@ DEFAULT_END_DELIMITER = ">"
 
 
 class LLMShield:
-    """Main class for LLMShield - protects sensitive information in LLM interactions.
+    """Main class for LLMShield protecting sensitive information in LLMs.
 
     Example:
         >>> from llmshield import (
@@ -82,17 +83,23 @@ class LLMShield:
         start_delimiter: str = DEFAULT_START_DELIMITER,
         end_delimiter: str = DEFAULT_END_DELIMITER,
         llm_func: (
-            Callable[[str], str] | Callable[[str], Generator[str, None, None]] | None
+            Callable[[str], str]
+            | Callable[[str], Generator[str, None, None]]
+            | None
         ) = None,
         max_cache_size: int = 1_000,
     ) -> None:
         """Initialise LLMShield.
 
         Args:
-            start_delimiter: Character(s) to wrap entity placeholders (default: '<')
-            end_delimiter: Character(s) to wrap entity placeholders (default: '>')
-            llm_func: Optional function that calls your LLM (enables direct usage)
-            max_cache_size: Maximum number of items to cache in the LRUCache (default: 1_000)
+            start_delimiter: Character(s) to wrap entity placeholders
+                (default: '<')
+            end_delimiter: Character(s) to wrap entity placeholders
+                (default: '>')
+            llm_func: Optional function that calls your LLM (enables direct
+                usage)
+            max_cache_size: Maximum number of items to cache in the LRUCache
+                (default: 1_000)
 
         """
         if not is_valid_delimiter(start_delimiter):
@@ -120,7 +127,8 @@ class LLMShield:
 
         Args:
             prompt: The original prompt containing sensitive information.
-            entity_map_param: Optional existing entity map to maintain consistency.
+            entity_map_param: Optional existing entity map to maintain
+                consistency.
 
         Returns:
             Tuple of (cloaked_prompt, entity_mapping)
@@ -142,10 +150,12 @@ class LLMShield:
     ) -> str | list[Any] | dict[str, Any] | PydanticLike:
         """Restore original entities in the LLM response.
 
-        It supports strings and structured outputs consisting of any combination
+        It supports strings and structured outputs consisting of any
+        combination
         of strings, lists, and dictionaries.
 
-        For uncloaking stream responses, use the `stream_uncloak` method instead.
+        For uncloaking stream responses, use the `stream_uncloak` method
+        instead.
 
         Limitations:
             - Does not support tool calls.
@@ -161,7 +171,8 @@ class LLMShield:
 
         Raises:
             TypeError: If response parameters of invalid type.
-            ValueError: If no entity mapping is provided and no previous cloak call.
+            ValueError: If no entity mapping is provided and no previous
+                cloak call.
 
         """
         # Validate inputs
@@ -169,12 +180,18 @@ class LLMShield:
             msg = "Response cannot be empty"
             raise ValueError(msg)
 
-        # Allow ChatCompletion-like objects (have both 'choices' and 'model' attributes)
-        is_chatcompletion_like = hasattr(response, "choices") and hasattr(response, "model")
+        # Allow ChatCompletion-like objects (have both 'choices' and
+        # 'model' attributes)
+        is_chatcompletion_like = hasattr(response, "choices") and hasattr(
+            response, "model"
+        )
 
         # Check if response is valid type or ChatCompletion-like
         valid_types = (str, list, dict, PydanticLike)
-        if not isinstance(response, valid_types) and not is_chatcompletion_like:  # type: ignore
+        if (
+            not isinstance(response, valid_types)
+            and not is_chatcompletion_like
+        ):  # type: ignore
             msg = (
                 "Response must be in [str, list, dict] or a Pydantic model, "
                 f"but got: {type(response)}!"
@@ -185,13 +202,17 @@ class LLMShield:
 
         if entity_map is None:
             if self._last_entity_map is None:
-                msg = "No entity mapping provided or stored from previous cloak!"
+                msg = (
+                    "No entity mapping provided or stored from previous cloak!"
+                )
                 raise ValueError(msg)
             entity_map = self._last_entity_map
 
         if isinstance(response, PydanticLike):
             model_class = response.__class__
-            uncloaked_dict = _uncloak_response(response.model_dump(), entity_map)
+            uncloaked_dict = _uncloak_response(
+                response.model_dump(), entity_map
+            )
             return model_class.model_validate(uncloaked_dict)
 
         return _uncloak_response(response, entity_map)
@@ -229,7 +250,8 @@ class LLMShield:
 
         if not is_valid_stream_response(response_stream):
             msg = (
-                "Response stream must be an iterable (excluding str, bytes, dict), "
+                "Response stream must be an iterable (excluding str, bytes, "
+                "dict), "
                 f"but got: {type(response_stream)}!"
             )
             raise TypeError(
@@ -238,7 +260,9 @@ class LLMShield:
 
         if entity_map is None:
             if self._last_entity_map is None:
-                msg = "No entity mapping provided or stored from previous cloak!"
+                msg = (
+                    "No entity mapping provided or stored from previous cloak!"
+                )
                 raise ValueError(msg)
             entity_map = self._last_entity_map
 
@@ -250,7 +274,10 @@ class LLMShield:
         )
 
     def ask(  # pylint: disable=too-many-locals
-        self, stream: bool = False, messages: list[Message] | None = None, **kwargs
+        self,
+        stream: bool = False,
+        messages: list[Message] | None = None,
+        **kwargs,
     ) -> str | Generator[str, None, None]:
         """Complete end-to-end LLM interaction with automatic protection.
 
@@ -261,18 +288,23 @@ class LLMShield:
 
         Args:
             prompt/message: Original prompt with sensitive information. This
-                    will be cloaked and passed to your LLM function. Do not pass
+                    will be cloaked and passed to your LLM function. Do not
+                    pass
                     both, and do not use any other parameter names as they are
                     unrecognised by the shield.
-            stream: Whether the LLM Function is a stream or not. If True, returns
+            stream: Whether the LLM Function is a stream or not. If True,
+                    returns
                     a generator that yields incremental responses
-                    following the OpenAI Realtime Streaming API. If False, returns
+                    following the OpenAI Realtime Streaming API. If False,
+                    returns
                     the complete response as a string.
                     By default, this is False.
-            messages: List of message dictionaries for multi-turn conversations.
+            messages: List of message dictionaries for multi-turn
+                    conversations.
             They must come in the form of a list of dictionaries,
             where each dictionary has keys like "role" and "content".
-            **kwargs: Additional arguments to pass to your LLM function, such as:
+            **kwargs: Additional arguments to pass to your LLM function,
+                    such as:
                     - model: The model to use (e.g., "gpt-4")
                     - system_prompt: System instructions
                     - temperature: Sampling temperature
@@ -288,41 +320,56 @@ class LLMShield:
             Streaming API.
 
         ! Regardless of the specific implementation of the LLM Function,
-        whenever the stream parameter is true, the function will return an generator. !
+        whenever the stream parameter is true, the function will return an
+        generator. !
 
         Raises:
             ValueError: If no LLM function was provided during initialization,
-                       if prompt is invalid, or if both prompt and message are provided
+                       if prompt is invalid, or if both prompt and message
+                       are provided
 
         """
         # * 1. Validate inputs
         if self.llm_func is None:
             msg = (
-                "No LLM function provided. Either provide llm_func in constructor "
+                "No LLM function provided. Either provide llm_func in "
+                "constructor "
                 "or use cloak/uncloak separately."
             )
             raise ValueError(
                 msg,
             )
 
-        if not (("prompt" in kwargs) or ("message" in kwargs) or (messages is not None)):
-            msg = "Either 'prompt', 'message' or the messages parameter must be provided!"
+        if not (
+            ("prompt" in kwargs)
+            or ("message" in kwargs)
+            or (messages is not None)
+        ):
+            msg = (
+                "Either 'prompt', 'message' or the messages parameter must be "
+                "provided!"
+            )
             raise ValueError(msg)
 
         if "prompt" in kwargs and "message" in kwargs:
             msg = (
-                "Do not provide both 'prompt' and 'message'. Use only 'prompt' "
+                "Do not provide both 'prompt' and 'message'. Use only "
+                "'prompt' "
                 "parameter - it will be passed to your LLM function."
             )
             raise ValueError(
                 msg,
             )
 
-        if messages is not None and ("prompt" in kwargs or "message" in kwargs):
+        if messages is not None and (
+            "prompt" in kwargs or "message" in kwargs
+        ):
             msg = (
-                "Do not provide both 'prompt', 'message' and 'messages'. Use only either prompt"
+                "Do not provide both 'prompt', 'message' and 'messages'. Use "
+                "only either prompt"
                 "/message"
-                " or messages parameter - it will be passed to your LLM function."
+                " or messages parameter - it will be passed to your LLM "
+                "function."
             )
             raise ValueError(
                 msg,
@@ -341,14 +388,17 @@ class LLMShield:
         latest_message = messages[-1]
         history_key = conversation_hash(history)
 
-        # * 3. Check the cache for an existing entity map for this conversation history
+        # * 3. Check the cache for an existing entity map for this
+        # conversation history
         entity_map = self._cache.get(history_key)
         if entity_map is None:
-            # * Cache Miss: Build the entity map by processing the entire history
+            # * Cache Miss: Build the entity map by processing the entire
+            # history
             entity_map = {}
             for message in history:
                 _, entity_map = self.cloak(message["content"], entity_map)
-                # Each message is placed in the cache paired to their entity map
+                # Each message is placed in the cache paired to their entity
+                # map
                 self._cache.put(conversation_hash(message), entity_map)
 
         # * 4. Cloak the last message using the existing entity map
@@ -359,13 +409,19 @@ class LLMShield:
         # 5. Reconstruct the full, cloaked message list to send to the LLM
         cloaked_messages = []
         for msg in history:
-            cloaked_content, _ = self.cloak(msg["content"], entity_map_param=final_entity_map)
+            cloaked_content, _ = self.cloak(
+                msg["content"], entity_map_param=final_entity_map
+            )
             cloaked_msg = {"role": msg["role"], "content": cloaked_content}
             cloaked_messages.append(cloaked_msg)  # type: ignore
-        final_msg = {"role": latest_message["role"], "content": cloaked_latest_content}
+        final_msg = {
+            "role": latest_message["role"],
+            "content": cloaked_latest_content,
+        }
         cloaked_messages.append(final_msg)  # type: ignore
 
-        # 6. Call the LLM with the protected payload - with automatic provider detection
+        # 6. Call the LLM with the protected payload - with automatic
+        # provider detection
         # Get the appropriate provider for this LLM function
         provider = get_provider(self.llm_func)
 
@@ -379,13 +435,19 @@ class LLMShield:
 
         # 7. Uncloak the response
         if actual_stream:
-            uncloaked_response = self.stream_uncloak(llm_response, final_entity_map)
+            uncloaked_response = self.stream_uncloak(
+                llm_response, final_entity_map
+            )
         else:
             uncloaked_response = self.uncloak(llm_response, final_entity_map)
 
-        # 8. Update the history with the latest message and the uncloaked response
-        # Extract content string from ChatCompletion objects for conversation history
-        if hasattr(uncloaked_response, "choices") and hasattr(uncloaked_response, "model"):
+        # 8. Update the history with the latest message and the uncloaked
+        # response
+        # Extract content string from ChatCompletion objects for
+        # conversation history
+        if hasattr(uncloaked_response, "choices") and hasattr(
+            uncloaked_response, "model"
+        ):
             # This is a ChatCompletion object, extract the content
             response_content = uncloaked_response.choices[0].message.content
         else:

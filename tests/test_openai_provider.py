@@ -76,10 +76,16 @@ class TestOpenAIProvider(unittest.TestCase):
         cloaked_text = "Hello <PERSON_0>"
         input_param = "prompt"
         stream = True
-        kwargs = {"prompt": "Original text", "model": "gpt-4", "temperature": 0.7}
+        kwargs = {
+            "prompt": "Original text",
+            "model": "gpt-4",
+            "temperature": 0.7,
+        }
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Check that original parameter is removed
@@ -89,7 +95,9 @@ class TestOpenAIProvider(unittest.TestCase):
         self.assertIn("messages", prepared_params)
         self.assertEqual(len(prepared_params["messages"]), 1)
         self.assertEqual(prepared_params["messages"][0]["role"], "user")
-        self.assertEqual(prepared_params["messages"][0]["content"], cloaked_text)
+        self.assertEqual(
+            prepared_params["messages"][0]["content"], cloaked_text
+        )
 
         # Check other parameters are preserved
         self.assertEqual(prepared_params["model"], "gpt-4")
@@ -100,8 +108,13 @@ class TestOpenAIProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     @patch("builtins.print")
-    def test_prepare_single_message_params_beta_api_with_stream_warning(self, mock_print):
-        """Test preparing single message parameters for beta API with stream warning."""
+    def test_prepare_single_message_params_beta_api_with_stream_warning(
+        self, mock_print
+    ):
+        """Test preparing single message parameters for beta API.
+
+        Validates stream warning behavior when using beta API.
+        """
         provider = OpenAIProvider(self.mock_beta_func)
 
         cloaked_text = "Hello <PERSON_0>"
@@ -113,8 +126,10 @@ class TestOpenAIProvider(unittest.TestCase):
             "response_format": {"type": "json_object"},
         }
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Check warning was printed
@@ -127,14 +142,19 @@ class TestOpenAIProvider(unittest.TestCase):
 
         # Check messages format
         self.assertIn("messages", prepared_params)
-        self.assertEqual(prepared_params["messages"][0]["content"], cloaked_text)
+        self.assertEqual(
+            prepared_params["messages"][0]["content"], cloaked_text
+        )
 
         # Check stream parameter is removed and streaming is disabled
         self.assertNotIn("stream", prepared_params)
         self.assertFalse(actual_stream)
 
     def test_prepare_single_message_params_beta_api_no_stream(self):
-        """Test preparing single message parameters for beta API without streaming."""
+        """Test preparing single message parameters for beta API.
+
+        Validates behavior when streaming is disabled for beta API.
+        """
         provider = OpenAIProvider(self.mock_beta_func)
 
         cloaked_text = "Hello <PERSON_0>"
@@ -142,12 +162,16 @@ class TestOpenAIProvider(unittest.TestCase):
         stream = False
         kwargs = {"prompt": "Original text", "model": "gpt-4"}
 
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # Check messages format
-        self.assertEqual(prepared_params["messages"][0]["content"], cloaked_text)
+        self.assertEqual(
+            prepared_params["messages"][0]["content"], cloaked_text
+        )
 
         # Check stream parameter is removed
         self.assertNotIn("stream", prepared_params)
@@ -181,8 +205,13 @@ class TestOpenAIProvider(unittest.TestCase):
         self.assertTrue(actual_stream)
 
     @patch("builtins.print")
-    def test_prepare_multi_message_params_beta_api_with_stream_warning(self, mock_print):
-        """Test preparing multi-message parameters for beta API with stream warning."""
+    def test_prepare_multi_message_params_beta_api_with_stream_warning(
+        self, mock_print
+    ):
+        """Test preparing multi-message parameters for beta API.
+
+        Validates stream warning behavior for multi-message conversations.
+        """
         provider = OpenAIProvider(self.mock_beta_func)
 
         cloaked_messages = [{"role": "user", "content": "Hello <PERSON_0>"}]
@@ -205,7 +234,10 @@ class TestOpenAIProvider(unittest.TestCase):
         self.assertFalse(actual_stream)
 
     def test_prepare_multi_message_params_beta_api_no_stream(self):
-        """Test preparing multi-message parameters for beta API without streaming."""
+        """Test preparing multi-message parameters for beta API.
+
+        Validates behavior when streaming is disabled for multi-message calls.
+        """
         provider = OpenAIProvider(self.mock_beta_func)
 
         cloaked_messages = [{"role": "user", "content": "Hello <PERSON_0>"}]

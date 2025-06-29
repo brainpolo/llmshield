@@ -1,15 +1,16 @@
 """List of list-based matchers used to detect entities.
 
-@see entity_detector.py for the entity detection system that uses these matchers.
+@see entity_detector.py for the entity detection system that uses these
+matchers.
 """
 
 # * Punctuation
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 EN_PUNCTUATION = ["!", ",", ".", "?", "\\'", "\\'"]
 
 
 # * PERSON
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 EN_PERSON_INITIALS = [
     "Mr.",
     "Mrs.",
@@ -51,7 +52,7 @@ ES_PERSON_SINITIALS = [
 ]
 
 # * ORGANISATION
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 EN_ORG_COMPONENTS = [
     "Holdings",
     "Group",
@@ -90,6 +91,6 @@ ES_ORG_COMPONENTS = [
 
 
 # * PLACES
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 EN_PLACE_COMPONENTS = ["St", "St.", "Street", "Road", "Avenue", "Ave", "Rd"]

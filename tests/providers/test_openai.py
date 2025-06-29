@@ -1,4 +1,4 @@
-"""Tests for OpenAI standard API to ensure all functionality is fully supported.
+"""Tests for OpenAI standard API to ensure all functionality is supported.
 
 @see https://platform.openai.com/docs/api-reference/chat/create
 """
@@ -36,7 +36,9 @@ class TestOpenAI(TestCase):
             self.skipTest("OpenAI API key not provided")
 
         self.openai_client = OpenAI(api_key=OPENAI_API_KEY)
-        self.shield = LLMShield(llm_func=self.openai_client.chat.completions.create)
+        self.shield = LLMShield(
+            llm_func=self.openai_client.chat.completions.create
+        )
         self.messages = [
             {
                 "role": "user",
@@ -47,7 +49,8 @@ class TestOpenAI(TestCase):
             {
                 "role": "user",
                 "content": (
-                    "Format the following text into a JSON object: 'John Doe is 30 years old.'"
+                    "Format the following text into a JSON object: "
+                    "'John Doe is 30 years old.'"
                 ),
             },
         ]
@@ -77,9 +80,15 @@ class TestOpenAI(TestCase):
             print(chunk, end="", flush=True)
 
     def test_openai_beta_api_structured_output(self):
-        """Test OpenAI beta API with structured output using parse() - automatic detection."""
-        # Use beta API directly - library should automatically detect and handle parameters
-        beta_shield = LLMShield(llm_func=self.openai_client.beta.chat.completions.parse)
+        """Test OpenAI beta API with structured output using parse().
+
+        Tests automatic detection of beta API functionality.
+        """
+        # Use beta API directly - library should automatically detect and
+        # handle parameters
+        beta_shield = LLMShield(
+            llm_func=self.openai_client.beta.chat.completions.parse
+        )
 
         response = beta_shield.ask(
             model="gpt-4o-mini",
@@ -92,16 +101,23 @@ class TestOpenAI(TestCase):
         self.assertTrue(hasattr(response, "choices"))
         parsed_model = response.choices[0].message.parsed
         self.assertIsInstance(parsed_model, TestModel)
-        self.assertEqual(parsed_model.name, "John")  # Note: LLM may shorten names
+        self.assertEqual(
+            parsed_model.name, "John"
+        )  # Note: LLM may shorten names
         self.assertEqual(parsed_model.age, 30)
 
     def test_openai_chat_completion_object_integrity(self):
-        """Test that ChatCompletion objects maintain their structure after uncloaking."""
+        """Test ChatCompletion object structure preservation.
+
+        Validates that ChatCompletion objects maintain their structure after
+        uncloaking.
+        """
         messages = [
             {
                 "role": "user",
                 "content": (
-                    "My name is Alice Smith and I live in New York. Tell me about the weather."
+                    "My name is Alice Smith and I live in New York. "
+                    "Tell me about the weather."
                 ),
             }
         ]

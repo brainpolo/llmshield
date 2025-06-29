@@ -1,4 +1,4 @@
-"""A simple LRU (Least Recently Used) cache implementation using OrderedDict."""
+"""A simple LRU cache implementation using OrderedDict."""
 
 # Standard Library Imports
 from collections import OrderedDict
@@ -10,7 +10,7 @@ V = TypeVar("V")
 
 
 class LRUCache[K, V]:
-    """A simple LRU (Least Recently Used) cache implementation using OrderedDict.
+    """A simple LRU cache implementation using OrderedDict.
 
     Taken directly from: https://llego.dev/posts/implement-lru-cache-python/
     """
@@ -19,7 +19,8 @@ class LRUCache[K, V]:
         """Initialise the LRUCache with a specific capacity.
 
         Args:
-            capacity: The maximum number of items cache can hold before eviction.
+            capacity: The maximum number of items cache can hold before
+                eviction.
 
         """
         self.cache: OrderedDict[K, V] = OrderedDict()

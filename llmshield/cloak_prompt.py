@@ -44,7 +44,8 @@ def cloak_prompt(
     counter = len(entity_map)
 
     for entity in entities:
-        # If the entity value is already in our map, use the existing placeholder
+        # If the entity value is already in our map, use the existing
+        # placeholder
         if entity.value in reversed_entity_map:
             placeholder = reversed_entity_map[entity.value]
         else:
@@ -63,14 +64,19 @@ def cloak_prompt(
         # Find all occurrences of the entity value in the prompt
         escaped = re.escape(entity.value)
         for match in re.finditer(escaped, prompt):
-            matches.append((match.start(), match.end(), placeholder, entity.value))
+            matches.append(
+                (match.start(), match.end(), placeholder, entity.value)
+            )
 
-    # Sort matches in descending order by the match start index to avoid shifting
+    # Sort matches in descending order by the match start index to avoid
+    # shifting
     matches.sort(key=lambda m: m[0], reverse=True)
 
     cloaked_prompt = prompt
     # We don't need to build the entity map here again, just replace the text
     for start, end, placeholder, _ in matches:
-        cloaked_prompt = cloaked_prompt[:start] + placeholder + cloaked_prompt[end:]
+        cloaked_prompt = (
+            cloaked_prompt[:start] + placeholder + cloaked_prompt[end:]
+        )
 
     return cloaked_prompt, entity_map

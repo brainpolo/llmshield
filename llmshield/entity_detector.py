@@ -70,7 +70,11 @@ class EntityGroup(str, Enum):
                 EntityType.CONCEPT,
             },
             self.NUMBER: {EntityType.PHONE_NUMBER, EntityType.CREDIT_CARD},
-            self.LOCATOR: {EntityType.EMAIL, EntityType.URL, EntityType.IP_ADDRESS},
+            self.LOCATOR: {
+                EntityType.EMAIL,
+                EntityType.URL,
+                EntityType.IP_ADDRESS,
+            },
         }
         return group_map[self]
 
@@ -93,12 +97,12 @@ class Entity:
 
 
 class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
-    """Main entity detection system combining rule-based and pattern-based approaches.
+    """Main entity detection system using rule-based and pattern approaches.
 
-    Identifies sensitive information in text using a waterfall approach where each
-    detection method is tried in order, and the text is reduced as each entity is
-    found. This eliminates potential overlapping entities and improves detection
-    accuracy.
+    Identifies sensitive information in text using a waterfall approach where
+    each detection method is tried in order, and the text is reduced as each
+    entity is found. This eliminates potential overlapping entities and
+    improves detection accuracy.
     """
 
     def __init__(self) -> None:
@@ -126,29 +130,49 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
     @staticmethod
     def _load_cities() -> list[str]:
         """Load cities from lists/cities.txt."""
-        with resources.files("llmshield.matchers.dicts").joinpath("cities.txt").open("r") as f:
-            return [city.strip() for city in f.read().splitlines() if city.strip()]
+        with (
+            resources.files("llmshield.matchers.dicts")
+            .joinpath("cities.txt")
+            .open("r") as f
+        ):
+            return [
+                city.strip() for city in f.read().splitlines() if city.strip()
+            ]
 
     @staticmethod
     def _load_countries() -> list[str]:
         """Load countries from lists/countries.txt."""
-        with resources.files("llmshield.matchers.dicts").joinpath("countries.txt").open("r") as f:
+        with (
+            resources.files("llmshield.matchers.dicts")
+            .joinpath("countries.txt")
+            .open("r") as f
+        ):
             return [c.strip() for c in f.read().splitlines() if c.strip()]
 
     @staticmethod
     def _load_organisations() -> list[str]:
         """Load organisations from lists/organisations.txt."""
         with (
-            resources.files("llmshield.matchers.dicts").joinpath("organisations.txt").open("r") as f
+            resources.files("llmshield.matchers.dicts")
+            .joinpath("organisations.txt")
+            .open("r") as f
         ):
-            return [org.strip() for org in f.read().splitlines() if org.strip()]
+            return [
+                org.strip() for org in f.read().splitlines() if org.strip()
+            ]
 
     @staticmethod
     def _load_english_corpus() -> set[str]:
         """Load common English words from corpus/english.txt."""
-        corpus_path = resources.files("llmshield.matchers.dicts").joinpath("corpus/english.txt")
+        corpus_path = resources.files("llmshield.matchers.dicts").joinpath(
+            "corpus/english.txt"
+        )
         with corpus_path.open("r") as f:
-            return {word.strip().lower() for word in f.read().splitlines() if word.strip()}
+            return {
+                word.strip().lower()
+                for word in f.read().splitlines()
+                if word.strip()
+            }
 
     def detect_entities(self, text: str) -> set[Entity]:
         """Detect entities in text using waterfall methodology."""
@@ -171,7 +195,8 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
         """Umbrella method for proper noun detection.
 
         It collects candidate proper nouns from the text, then classifies each.
-        If an entity is classified (and potentially cleaned), it is added as an Entity.
+        If an entity is classified (and potentially cleaned), it is added as
+        an Entity.
         """
         entities = set()
         reduced_text = text
@@ -204,7 +229,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
             fragment_nouns = self._process_fragment(fragment)
             sequential_pnouns.extend(fragment_nouns)
 
-        return sorted([p for p in sequential_pnouns if p], key=len, reverse=True)
+        return sorted(
+            [p for p in sequential_pnouns if p], key=len, reverse=True
+        )
 
     def _process_fragment(self, fragment: str) -> list[str]:
         """Process a single text fragment to extract proper nouns."""
@@ -227,7 +254,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                 continue
 
             # Handle personal pronouns and contractions
-            if self._should_skip_pronoun(word, pending_p_noun, sequential_pnouns):
+            if self._should_skip_pronoun(
+                word, pending_p_noun, sequential_pnouns
+            ):
                 pending_p_noun = ""
                 continue
 
@@ -238,7 +267,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                 continue
 
             # Process potential proper noun
-            pending_p_noun = self._process_word(word, pending_p_noun, sequential_pnouns)
+            pending_p_noun = self._process_word(
+                word, pending_p_noun, sequential_pnouns
+            )
 
         if pending_p_noun:
             sequential_pnouns.append(pending_p_noun.strip())
@@ -255,7 +286,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
             return True
         return False
 
-    def _handle_contraction_lookahead(self, word: str, i: int, fragment_words: list[str]) -> bool:
+    def _handle_contraction_lookahead(
+        self, word: str, i: int, fragment_words: list[str]
+    ) -> bool:
         """Handle lookahead for contractions followed by names."""
         if i < len(fragment_words) - 1 and word in {"I'm", "I've", "I'll"}:
             next_word = fragment_words[i + 1]
@@ -263,14 +296,17 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                 return True
         return False
 
-    def _process_word(self, word: str, pending_p_noun: str, sequential_pnouns: list[str]) -> str:
+    def _process_word(
+        self, word: str, pending_p_noun: str, sequential_pnouns: list[str]
+    ) -> str:
         """Process a word for proper noun detection."""
         normalized_word = word.strip(".,!?;:")
         is_honorific = normalized_word in self.en_person_initials
         is_capitalised = word and word[0].isupper()
 
         if is_honorific or (
-            not any(c in word for c in self.en_punctuation if c != ".") and is_capitalised
+            not any(c in word for c in self.en_punctuation if c != ".")
+            and is_capitalised
         ):
             return pending_p_noun + SPACE + word if pending_p_noun else word
         elif pending_p_noun:
@@ -291,11 +327,15 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
             return " ".join(words[1:]).strip()
         return p_noun
 
-    def _classify_proper_noun(self, p_noun: str) -> tuple[str, EntityType] | None:
-        """Classify a proper noun into its entity type, and clean it if necessary.
+    def _classify_proper_noun(
+        self, p_noun: str
+    ) -> tuple[str, EntityType] | None:
+        """Classify a proper noun into its entity type and clean it.
 
-        Returns tuple (modified_value, EntityType) or None if no classification.
-        In the PERSON case, if a honorific is detected at the start, it is removed.
+        Returns tuple (modified_value, EntityType) or None if no
+        classification.
+        In the PERSON case, if a honorific is detected at the start, it is
+        removed.
         All punctuation is stripped from the final value.
         """
         if not p_noun:
@@ -303,7 +343,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
 
         def clean_value(value: str) -> str:
             """Remove all punctuation from the value."""
-            return "".join(c for c in value if c not in self.en_punctuation).strip()
+            return "".join(
+                c for c in value if c not in self.en_punctuation
+            ).strip()
 
         # 1. Check for organizations first.
         if self._is_organization(p_noun):
@@ -340,24 +382,35 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
         p_noun_lower = p_noun.lower()
 
         # Add checks for organizations with numbers
-        if any(char.isdigit() for char in p_noun) and re.match(r"^\d+[A-Z].*|.*-.*\d+.*", p_noun):
+        if any(char.isdigit() for char in p_noun) and re.match(
+            r"^\d+[A-Z].*|.*-.*\d+.*", p_noun
+        ):
             return True
 
         # Check for multi-word organizations like "New York Times"
         if len(p_noun.split()) > 2:  # noqa: PLR2004
             last_word = p_noun.split()[-1]
-            if last_word in {"Times", "News", "Corporation", "Inc", "Corp", "Co"}:
+            if last_word in {
+                "Times",
+                "News",
+                "Corporation",
+                "Inc",
+                "Corp",
+                "Co",
+            }:
                 return True
 
-        return any(org.lower() == p_noun_lower for org in self.organisations) or any(
-            comp in p_noun for comp in self.en_org_components
-        )
+        return any(
+            org.lower() == p_noun_lower for org in self.organisations
+        ) or any(comp in p_noun for comp in self.en_org_components)
 
     def _is_place(self, p_noun: str) -> bool:
         """Check if proper noun is a place."""
         return (
             any(city.lower() == p_noun.lower() for city in self.cities)
-            or any(country.lower() == p_noun.lower() for country in self.countries)
+            or any(
+                country.lower() == p_noun.lower() for country in self.countries
+            )
             or any(comp in p_noun.split() for comp in self.en_place_components)
         )
 
@@ -434,7 +487,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                         value=credit_card.group(),
                     ),
                 )
-                reduced_text = reduced_text.replace(credit_card.group(), ENT_REPLACEMENT)
+                reduced_text = reduced_text.replace(
+                    credit_card.group(), ENT_REPLACEMENT
+                )
 
         # * 3. Detect phone numbers
         phone_numbers = self.phone_number_pattern.finditer(text)
@@ -445,7 +500,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                     value=phone_number.group(),
                 ),
             )
-            reduced_text = reduced_text.replace(phone_number.group(), ENT_REPLACEMENT)
+            reduced_text = reduced_text.replace(
+                phone_number.group(), ENT_REPLACEMENT
+            )
 
         # * 4. Return the reduced text and entities found
         return entities, reduced_text
@@ -486,7 +543,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                     value=ip_address.group(),
                 ),
             )
-            reduced_text = reduced_text.replace(ip_address.group(), ENT_REPLACEMENT)
+            reduced_text = reduced_text.replace(
+                ip_address.group(), ENT_REPLACEMENT
+            )
 
         # * 4. Return the reduced text and entities found
         return entities, reduced_text

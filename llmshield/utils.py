@@ -5,7 +5,14 @@ import collections.abc
 import re
 from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Protocol, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Protocol,
+    Union,
+    runtime_checkable,
+)
 
 # Local imports
 from llmshield.providers import get_provider
@@ -99,7 +106,7 @@ def wrap_entity(
 
 
 def normalise_spaces(text: str) -> str:
-    """Normalise spaces in the text by replacing multiple spaces with a single space."""
+    """Normalise spaces by replacing multiple spaces with single space."""
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -115,21 +122,24 @@ def is_valid_stream_response(obj: object) -> bool:
     """
     # Exclude string-like and mapping types
     excluded_types = (str, bytes, bytearray, collections.abc.Mapping)
-    return isinstance(obj, collections.abc.Iterable) and not isinstance(obj, excluded_types)
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(
+        obj, excluded_types
+    )
 
 
 # Type alias that follows the OpenAI API input format for model responses.
 # This includes strings, lists of strings, dictionaries, Pydantic-like objects,
-# file paths, file-like objects, raw binary data, and tuples of filename and content.
-type Input = (
-    str  # Single string
-    | list[str]  # List of strings
-    | "PydanticLike"
-    | Path  # File paths
-    | BinaryIO  # File-like objects (open files)
-    | bytes  # Raw binary data
-    | tuple[str, bytes]  # (filename, content) pairs
-)
+# file paths, file-like objects, raw binary data, and tuples of filename and
+# content.
+Input = Union[
+    str,  # Single string
+    list[str],  # List of strings
+    "PydanticLike",
+    Path,  # File paths
+    BinaryIO,  # File-like objects (open files)
+    bytes,  # Raw binary data
+    tuple[str, bytes],  # (filename, content) pairs
+]
 
 
 def _should_cloak_input(input_data: Input) -> bool:
@@ -147,7 +157,9 @@ def _should_cloak_input(input_data: Input) -> bool:
     return isinstance(input_data, str | list)
 
 
-def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, None]:
+def ask_helper(
+    shield, stream: bool, **kwargs
+) -> str | Generator[str, None, None]:
     """Handle the ask method of LLMShield.
 
     This function checks if the input should be cloaked and handles both
@@ -174,8 +186,10 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
         provider = get_provider(shield.llm_func)
 
         # * 4. Let the provider prepare the parameters
-        prepared_params, actual_stream = provider.prepare_single_message_params(
-            cloaked_text, input_param, stream, **kwargs
+        prepared_params, actual_stream = (
+            provider.prepare_single_message_params(
+                cloaked_text, input_param, stream, **kwargs
+            )
         )
 
         # * 5. Get response from LLM
@@ -195,8 +209,8 @@ def ask_helper(shield, stream: bool, **kwargs) -> str | Generator[str, None, Non
 
 
 # Typedef for a hashable type used for conversation keys.
-type Hash = int
-type Message = dict[str, str]
+Hash = int
+Message = dict[str, str]
 
 
 def conversation_hash(obj: Message | list[Message]) -> Hash:
@@ -210,4 +224,6 @@ def conversation_hash(obj: Message | list[Message]) -> Hash:
         return hash((obj.get("role", ""), obj.get("content", "")))
 
     # List of messages
-    return hash(frozenset((msg.get("role", ""), msg.get("content", "")) for msg in obj))
+    return hash(
+        frozenset((msg.get("role", ""), msg.get("content", "")) for msg in obj)
+    )

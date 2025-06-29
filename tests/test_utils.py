@@ -48,11 +48,18 @@ class TestUtils(unittest.TestCase):
     def test_wrap_entity(self):
         """Test entity wrapping function."""
         # Test with different entity types
-        self.assertEqual(wrap_entity(EntityType.PERSON, 0, "[", "]"), "[PERSON_0]")
-        self.assertEqual(wrap_entity(EntityType.EMAIL, 1, "<", ">"), "<EMAIL_1>")
+        self.assertEqual(
+            wrap_entity(EntityType.PERSON, 0, "[", "]"), "[PERSON_0]"
+        )
+        self.assertEqual(
+            wrap_entity(EntityType.EMAIL, 1, "<", ">"), "<EMAIL_1>"
+        )
 
         # Test with multi-character delimiters
-        self.assertEqual(wrap_entity(EntityType.PHONE_NUMBER, 2, "[[", "]]"), "[[PHONE_NUMBER_2]]")
+        self.assertEqual(
+            wrap_entity(EntityType.PHONE_NUMBER, 2, "[[", "]]"),
+            "[[PHONE_NUMBER_2]]",
+        )
 
     @parameterized.expand(
         [
@@ -82,7 +89,10 @@ class TestUtils(unittest.TestCase):
     def test_ask_helper_no_cloaking_scenarios(
         self, description, param_name, input_value, expected_str
     ):
-        """Test ask_helper when input doesn't need cloaking (line 180) - parameterized."""
+        """Test ask_helper when input doesn't need cloaking (line 180).
+
+        Parameterized test for various input types that don't require cloaking.
+        """
         # Handle Path object specially
         if description == "path_message":
             input_value = Path("/test/path")
@@ -107,7 +117,9 @@ class TestUtils(unittest.TestCase):
             ("missing_role", {"content": "hello"}, ("", "hello")),
         ]
     )
-    def test_conversation_hash_edge_cases(self, description, message, expected_tuple):
+    def test_conversation_hash_edge_cases(
+        self, description, message, expected_tuple
+    ):
         """Test conversation_hash with edge cases - parameterized."""
         result = conversation_hash(message)
         expected = hash(expected_tuple)
@@ -128,7 +140,11 @@ class TestUtils(unittest.TestCase):
             ("normal_string", "hello", True),
             ("empty_list", [], True),
             ("string_list", ["hello", "world"], True),
-            ("mixed_list", ["string", 123], True),  # Still a list, so should cloak
+            (
+                "mixed_list",
+                ["string", 123],
+                True,
+            ),  # Still a list, so should cloak
             ("integer", 123, False),
             ("dict", {"key": "value"}, False),
             ("bytes", b"bytes", False),
@@ -136,8 +152,13 @@ class TestUtils(unittest.TestCase):
             ("float", 3.14, False),
         ]
     )
-    def test_should_cloak_input_comprehensive(self, description, input_value, expected_result):
-        """Test _should_cloak_input with various input types - parameterized."""
+    def test_should_cloak_input_comprehensive(
+        self, description, input_value, expected_result
+    ):
+        """Test _should_cloak_input with various input types.
+
+        Parameterized test for comprehensive input type validation.
+        """
         result = _should_cloak_input(input_value)
         self.assertEqual(result, expected_result)
 
@@ -150,7 +171,9 @@ class TestUtils(unittest.TestCase):
             ("missing_dump", "AnotherPartialModel", False),
         ]
     )
-    def test_pydantic_like_protocol_cases(self, description, model_class_name, should_match):
+    def test_pydantic_like_protocol_cases(
+        self, description, model_class_name, should_match
+    ):
         """Test PydanticLike protocol runtime checking - parameterized."""
 
         # Create test classes with different method combinations

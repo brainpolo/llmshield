@@ -20,15 +20,20 @@ def _uncloak_response(
     """Securely uncloak LLM response by replacing placeholders.
 
     Replaces validated placeholders with their original values.
-    Includes strict validation and safety checks for placeholder format and content.
+    Includes strict validation and safety checks for placeholder format and
+    content.
 
-    ! Do not call this function directly, use `LLMShield.uncloak()` instead. This
+    ! Do not call this function directly, use `LLMShield.uncloak()` instead.
+    ! This
     ! is because this function is not type-safe.
 
     Args:
-        response: The LLM response containing placeholders (e.g., [EMAIL_0], [PHONE_1]).
-            Supports both strings and structured outputs (dicts). However, note that
-            keys in dicts will NOT be uncloaked for integrity of the data structure,
+        response: The LLM response containing placeholders (e.g., [EMAIL_0],
+            [PHONE_1]).
+            Supports both strings and structured outputs (dicts). However, note
+            that
+            keys in dicts will NOT be uncloaked for integrity of the data
+            structure,
             nor will non string values in dicts be uncloaked.
         entity_map: Mapping of placeholders to their original values
 
@@ -59,7 +64,10 @@ def _uncloak_basic_types(response: Any, entity_map: dict[str, str]) -> Any:
         return [_uncloak_response(item, entity_map) for item in response]
 
     if isinstance(response, dict):
-        return {key: _uncloak_response(value, entity_map) for key, value in response.items()}
+        return {
+            key: _uncloak_response(value, entity_map)
+            for key, value in response.items()
+        }
 
     return None
 
@@ -83,15 +91,21 @@ def _uncloak_chatcompletion(response: Any, entity_map: dict[str, str]) -> Any:
 
     if hasattr(response_copy, "choices") and response_copy.choices:
         for choice in response_copy.choices:
-            if hasattr(choice, "message") and hasattr(choice.message, "content"):
+            if hasattr(choice, "message") and hasattr(
+                choice.message, "content"
+            ):
                 if choice.message.content:
-                    choice.message.content = _uncloak_response(choice.message.content, entity_map)
+                    choice.message.content = _uncloak_response(
+                        choice.message.content, entity_map
+                    )
             # Handle streaming delta content
             elif (
                 hasattr(choice, "delta")
                 and hasattr(choice.delta, "content")
                 and choice.delta.content
             ):
-                choice.delta.content = _uncloak_response(choice.delta.content, entity_map)
+                choice.delta.content = _uncloak_response(
+                    choice.delta.content, entity_map
+                )
 
     return response_copy

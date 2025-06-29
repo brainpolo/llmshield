@@ -33,7 +33,7 @@ graph LR
 
     E --> F["Protected Output<br/>'I'll help you contact Dr. Smith<br/>at smith@hospital.org'"]
 
-    %% Professional styling
+    %% Styling
     classDef flowStyle fill:#f8f9fa,stroke:#495057,stroke-width:2px,color:#212529
     classDef detectionStyle fill:#e8f4f8,stroke:#0c63e4,stroke-width:2px,color:#212529
     classDef anonymizationStyle fill:#fff3cd,stroke:#856404,stroke-width:2px,color:#212529
@@ -91,7 +91,7 @@ graph LR
     Memory -.->|"Read/Write<br/>Entity Maps"| C
     Memory -.->|"Consistency<br/>Validation"| E
 
-    %% Professional styling
+    %% Styling
     classDef inputStyle fill:#f8f9fa,stroke:#495057,stroke-width:2px,color:#212529
     classDef detectionStyle fill:#e8f4f8,stroke:#0c63e4,stroke-width:2px,color:#212529
     classDef cloakingStyle fill:#fff3cd,stroke:#856404,stroke-width:2px,color:#212529

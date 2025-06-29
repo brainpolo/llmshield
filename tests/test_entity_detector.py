@@ -52,24 +52,42 @@ class TestEntityDetector(unittest.TestCase):
             ("contraction_im", "I'm John", ["John"]),
             ("contraction_ive", "I've met Alice", ["Alice"]),
             ("contraction_ill", "I'll see Bob", ["Bob"]),
-            # Advanced contraction scenarios (consolidating missing lines tests)
+            # Advanced contraction scenarios (consolidating missing lines
+            # tests)
             (
                 "pending_noun_contraction",
                 "Dr. Smith I'm going to see Johnson",
                 ["Dr", "Smith", "Johnson"],
             ),
             ("lookahead_contraction", "I'm Alice going home", ["Alice"]),
-            ("skip_next_logic", "Hello I've seen Mary before", ["Hello", "Mary"]),
+            (
+                "skip_next_logic",
+                "Hello I've seen Mary before",
+                ["Hello", "Mary"],
+            ),
             # Empty word handling scenarios
             ("empty_word_spaces", "Dr.   Smith", ["Dr", "Smith"]),
-            ("pending_noun_reset", "Dr. Smith went to the store quickly", ["Dr", "Smith"]),
+            (
+                "pending_noun_reset",
+                "Dr. Smith went to the store quickly",
+                ["Dr", "Smith"],
+            ),
         ]
     )
-    def test_proper_noun_collection_comprehensive(self, description, text, expected_names):
-        """Comprehensive test for proper noun collection including contractions and edge cases."""
+    def test_proper_noun_collection_comprehensive(
+        self, description, text, expected_names
+    ):
+        """Comprehensive test for proper noun collection.
+
+        Includes contractions and edge cases for thorough validation.
+        """
         result = self.detector._collect_proper_nouns(text)
         for name in expected_names:
-            self.assertIn(name, result, f"Expected '{name}' in result for case: {description}")
+            self.assertIn(
+                name,
+                result,
+                f"Expected '{name}' in result for case: {description}",
+            )
 
     def test_collect_proper_nouns_honorifics(self):
         """Test honorific handling in proper noun collection."""
@@ -88,8 +106,13 @@ class TestEntityDetector(unittest.TestCase):
             ("empty_string", "", ""),
         ]
     )
-    def test_clean_person_name_comprehensive(self, description, input_name, expected):
-        """Test person name cleaning with various edge cases - parameterized."""
+    def test_clean_person_name_comprehensive(
+        self, description, input_name, expected
+    ):
+        """Test person name cleaning with various edge cases.
+
+        Parameterized test for comprehensive name cleaning validation.
+        """
         result = self.detector._clean_person_name(input_name)
         self.assertEqual(result, expected)
 
@@ -101,15 +124,24 @@ class TestEntityDetector(unittest.TestCase):
             ("regular_name", "John Smith", False),
             # Regex pattern tests (consolidating lines 339, 343)
             ("org_with_numbers_dash", "3M-2024", True),  # ^\d+[A-Z].* pattern
-            ("org_complex_pattern", "IBM-Solutions-2024", True),  # .*-.*\d+.* pattern
+            (
+                "org_complex_pattern",
+                "IBM-Solutions-2024",
+                True,
+            ),  # .*-.*\d+.* pattern
             ("org_number_prefix", "2024Tech", True),  # ^\d+[A-Z].* pattern
             # Multi-word organization tests
             ("multi_word_times", "New York Times", True),
             ("multi_word_corporation", "Microsoft Corporation", True),
         ]
     )
-    def test_organization_detection_comprehensive(self, description, text, expected):
-        """Comprehensive test for organization detection including regex patterns."""
+    def test_organization_detection_comprehensive(
+        self, description, text, expected
+    ):
+        """Comprehensive test for organization detection.
+
+        Includes regex patterns for thorough organization validation.
+        """
         result = self.detector._is_organization(text)
         self.assertEqual(result, expected, f"Failed for {description}: {text}")
 
@@ -155,7 +187,9 @@ class TestEntityDetector(unittest.TestCase):
             ("with_punctuation", "API!", False),
         ]
     )
-    def test_concept_detection_comprehensive(self, description, text, expected):
+    def test_concept_detection_comprehensive(
+        self, description, text, expected
+    ):
         """Comprehensive test for concept detection hitting line 287."""
         result = self.detector._is_concept(text)
         self.assertEqual(result, expected, f"Failed for {description}: {text}")
@@ -170,15 +204,21 @@ class TestEntityDetector(unittest.TestCase):
         """Test credit card validation."""
         text = "1234567890123456"  # Invalid credit card format
         entities, _ = self.detector._detect_numbers(text)
-        self.assertEqual(len([e for e in entities if e.type == EntityType.CREDIT_CARD]), 0)
+        self.assertEqual(
+            len([e for e in entities if e.type == EntityType.CREDIT_CARD]), 0
+        )
 
     def test_phone_number_detection(self):
         """Test phone number detection."""
         text = "Call me at +1 (555) 123-4567"
         entities, _ = self.detector._detect_numbers(text)
-        self.assertEqual(len([e for e in entities if e.type == EntityType.PHONE_NUMBER]), 1)
+        self.assertEqual(
+            len([e for e in entities if e.type == EntityType.PHONE_NUMBER]), 1
+        )
         try:
-            phone_number = next(e.value for e in entities if e.type == EntityType.PHONE_NUMBER)
+            phone_number = next(
+                e.value for e in entities if e.type == EntityType.PHONE_NUMBER
+            )
             self.assertEqual(phone_number, "+1 (555) 123-4567")
         except StopIteration:
             self.fail("No phone number entity found")

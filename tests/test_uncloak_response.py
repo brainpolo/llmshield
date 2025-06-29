@@ -99,7 +99,8 @@ class TestUnclokResponse(unittest.TestCase):
     def test_uncloak_pydantic_like_object(self):
         """Test uncloaking Pydantic-like object."""
 
-        # Create a simple object that has model_dump method but not choices/model
+        # Create a simple object that has model_dump method but not
+        # choices/model
         class MockPydantic:
             def model_dump(self):
                 return {"name": "<PERSON_0>", "email": "<EMAIL_0>"}
@@ -127,7 +128,9 @@ class TestUnclokResponse(unittest.TestCase):
         self.assertIsNot(result, chatcompletion)
 
         # Verify content was uncloaked
-        self.assertEqual(result.choices[0].message.content, "Hello John Doe, visit New York")
+        self.assertEqual(
+            result.choices[0].message.content, "Hello John Doe, visit New York"
+        )
 
         # Verify original object is unchanged
         self.assertEqual(
@@ -136,7 +139,10 @@ class TestUnclokResponse(unittest.TestCase):
         )
 
     def test_uncloak_chatcompletion_with_delta_content(self):
-        """Test uncloaking ChatCompletion object with delta content (streaming)."""
+        """Test uncloaking ChatCompletion object with delta content.
+
+        Validates streaming response handling for delta content.
+        """
         # Create mock ChatCompletion with delta content
         delta = MockDelta(content="Hello <PERSON_0>")
         choice = MockChoice(delta=delta)
@@ -260,8 +266,14 @@ class TestUnclokResponse(unittest.TestCase):
             "users": [
                 {
                     "name": "<PERSON_0>",
-                    "contacts": {"email": "<EMAIL_0>", "location": "<PLACE_0>"},
-                    "messages": ["Hello from <PERSON_0>", "Living in <PLACE_0>"],
+                    "contacts": {
+                        "email": "<EMAIL_0>",
+                        "location": "<PLACE_0>",
+                    },
+                    "messages": [
+                        "Hello from <PERSON_0>",
+                        "Living in <PLACE_0>",
+                    ],
                 }
             ],
             "metadata": {"total": 1, "processed": True},
@@ -273,7 +285,10 @@ class TestUnclokResponse(unittest.TestCase):
             "users": [
                 {
                     "name": "John Doe",
-                    "contacts": {"email": "john@example.com", "location": "New York"},
+                    "contacts": {
+                        "email": "john@example.com",
+                        "location": "New York",
+                    },
                     "messages": ["Hello from John Doe", "Living in New York"],
                 }
             ],

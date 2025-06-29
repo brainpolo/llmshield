@@ -87,10 +87,14 @@ class TestProviderFactory(unittest.TestCase):
             def can_handle(cls, llm_func):
                 return True
 
-            def prepare_single_message_params(self, cloaked_text, input_param, stream, **kwargs):
+            def prepare_single_message_params(
+                self, cloaked_text, input_param, stream, **kwargs
+            ):
                 return kwargs, stream
 
-            def prepare_multi_message_params(self, cloaked_messages, stream, **kwargs):
+            def prepare_multi_message_params(
+                self, cloaked_messages, stream, **kwargs
+            ):
                 return kwargs, stream
 
         # Register at priority 0 (highest)
@@ -109,10 +113,14 @@ class TestProviderFactory(unittest.TestCase):
             def can_handle(cls, llm_func):
                 return True
 
-            def prepare_single_message_params(self, cloaked_text, input_param, stream, **kwargs):
+            def prepare_single_message_params(
+                self, cloaked_text, input_param, stream, **kwargs
+            ):
                 return kwargs, stream
 
-            def prepare_multi_message_params(self, cloaked_messages, stream, **kwargs):
+            def prepare_multi_message_params(
+                self, cloaked_messages, stream, **kwargs
+            ):
                 return kwargs, stream
 
         # Register before DefaultProvider (priority -1)
@@ -133,10 +141,14 @@ class TestProviderFactory(unittest.TestCase):
             def can_handle(cls, llm_func):
                 return True
 
-            def prepare_single_message_params(self, cloaked_text, input_param, stream, **kwargs):
+            def prepare_single_message_params(
+                self, cloaked_text, input_param, stream, **kwargs
+            ):
                 return kwargs, stream
 
-            def prepare_multi_message_params(self, cloaked_messages, stream, **kwargs):
+            def prepare_multi_message_params(
+                self, cloaked_messages, stream, **kwargs
+            ):
                 return kwargs, stream
 
         # Register at position 1
