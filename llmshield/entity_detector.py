@@ -96,7 +96,7 @@ class Entity:
         raise ValueError(msg)
 
 
-class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-public-methods
+class EntityDetector:
     """Main entity detection system using rule-based and pattern approaches.
 
     Identifies sensitive information in text using a waterfall approach where
@@ -254,14 +254,16 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
                 continue
 
             # Handle personal pronouns and contractions
-            if self._should_skip_pronoun(
+            if EntityDetector._should_skip_pronoun(
                 word, pending_p_noun, sequential_pnouns
             ):
                 pending_p_noun = ""
                 continue
 
             # Handle contraction lookahead
-            if self._handle_contraction_lookahead(word, i, fragment_words):
+            if EntityDetector._handle_contraction_lookahead(
+                word, i, fragment_words
+            ):
                 pending_p_noun = fragment_words[i + 1]
                 skip_next = True
                 continue
@@ -276,8 +278,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
 
         return sequential_pnouns
 
+    @staticmethod
     def _should_skip_pronoun(
-        self, word: str, pending_p_noun: str, sequential_pnouns: list[str]
+        word: str, pending_p_noun: str, sequential_pnouns: list[str]
     ) -> bool:
         """Check if word is a pronoun that should be skipped."""
         if word in {"I'm", "I've", "I'll", "I"}:
@@ -286,8 +289,9 @@ class EntityDetector:  # pylint: disable=too-many-instance-attributes,too-few-pu
             return True
         return False
 
+    @staticmethod
     def _handle_contraction_lookahead(
-        self, word: str, i: int, fragment_words: list[str]
+        word: str, i: int, fragment_words: list[str]
     ) -> bool:
         """Handle lookahead for contractions followed by names."""
         if i < len(fragment_words) - 1 and word in {"I'm", "I've", "I'll"}:

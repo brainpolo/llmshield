@@ -102,7 +102,8 @@ class TestUnclokResponse(unittest.TestCase):
         # Create a simple object that has model_dump method but not
         # choices/model
         class MockPydantic:
-            def model_dump(self):
+            @staticmethod
+            def model_dump() -> dict:
                 return {"name": "<PERSON_0>", "email": "<EMAIL_0>"}
 
             @classmethod

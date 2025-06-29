@@ -178,7 +178,8 @@ class TestUtils(unittest.TestCase):
 
         # Create test classes with different method combinations
         class GoodModel:
-            def model_dump(self) -> dict:
+            @staticmethod
+            def model_dump() -> dict:
                 return {}
 
             @classmethod
@@ -189,7 +190,8 @@ class TestUtils(unittest.TestCase):
             pass
 
         class PartialModel:
-            def model_dump(self) -> dict:
+            @staticmethod
+            def model_dump() -> dict:
                 return {}
 
             # Missing model_validate
