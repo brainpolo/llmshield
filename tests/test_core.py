@@ -623,7 +623,6 @@ class TestCoreFunctionality(TestCase):
 
         # 2. Second cloak with a new prompt, passing the previous map
         # This prompt reuses "John" and adds a new entity.
-        # TODO: Fix the noun detection and change this.
         second_prompt = "John , my email is jane.doe@example.com."
         cloaked_prompt, final_entity_map = shield.cloak(
             second_prompt, entity_map_param=initial_entity_map.copy()
@@ -1412,18 +1411,18 @@ class TestCoreFunctionality(TestCase):
                 key: self._replace_entities_in_dict(value, replacements)
                 for key, value in data.items()
             }
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [
                 self._replace_entities_in_dict(item, replacements)
                 for item in data
             ]
-        elif isinstance(data, str):
+        if isinstance(data, str):
             result = data
             for original, placeholder in replacements.items():
                 result = result.replace(original, placeholder)
             return result
-        else:
-            return data
+
+        return data
 
     @parameterized.expand(
         [

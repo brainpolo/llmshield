@@ -238,7 +238,7 @@ class TestEntityDetectorMissingLines(unittest.TestCase):
         # Use text that creates proper nouns but won't classify
         # (lowercase words that get split)
         text = "this is lowercase text"
-        entities, reduced_text = detector._detect_proper_nouns(text)
+        entities, _ = detector._detect_proper_nouns(text)
 
         # Should return empty entities set
         self.assertEqual(len(entities), 0)

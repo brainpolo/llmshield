@@ -8,7 +8,8 @@ Description:
 Test Classes:
     - TestOpenAIProvider: Tests OpenAI provider functionality
 
-Author: LLMShield by brainpolo, 2025
+Author:
+    LLMShield by brainpolo, 2025
 """
 
 # Standard library imports
@@ -349,8 +350,8 @@ class TestOpenAIProvider(unittest.TestCase):
             stream=False,
             tools=[{"type": "function", "function": {"name": "get_weather"}}],
         )
-
         # Verify message structure is preserved
+        self.assertEqual(stream, False)
         self.assertEqual(len(params["messages"]), 3)
         self.assertIsNone(params["messages"][1]["content"])
         self.assertIn("tool_calls", params["messages"][1])

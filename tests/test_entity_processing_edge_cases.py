@@ -127,7 +127,6 @@ class TestEntityProcessingEdgeCases(unittest.TestCase):
         )
 
         entities = self.detector.detect_entities(complex_text)
-        {entity.value for entity in entities}
         entity_types = {entity.type for entity in entities}
 
         # Should detect various entity types

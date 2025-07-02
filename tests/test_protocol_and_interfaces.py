@@ -201,9 +201,7 @@ class TestProtocolAndInterfaces(unittest.TestCase):
                 # This code should not execute at runtime
                 # This import should not execute
                 raise AssertionError("TYPE_CHECKING should be False")
-            else:
-                # This should execute
-                pass
+            pass
         except ImportError:
             # This shouldn't happen since the import is conditional
             self.fail("Conditional import under TYPE_CHECKING failed")

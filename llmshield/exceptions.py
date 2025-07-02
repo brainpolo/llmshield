@@ -28,8 +28,6 @@ class LLMShieldError(Exception):
     catching all LLMShield-specific errors with a single except clause.
     """
 
-    pass
-
 
 class EntityDetectionError(LLMShieldError):
     """Raised when entity detection fails.
@@ -39,8 +37,6 @@ class EntityDetectionError(LLMShieldError):
     processing failures.
     """
 
-    pass
-
 
 class ResourceLoadError(LLMShieldError):
     """Raised when resource files cannot be loaded.
@@ -49,8 +45,6 @@ class ResourceLoadError(LLMShieldError):
     resources cannot be loaded due to file not found, permission
     errors, or encoding issues.
     """
-
-    pass
 
 
 class ValidationError(LLMShieldError, ValueError):
@@ -64,8 +58,6 @@ class ValidationError(LLMShieldError, ValueError):
     compatibility with existing error handling.
     """
 
-    pass
-
 
 class CloakingError(LLMShieldError):
     """Raised when cloaking operations fail.
@@ -73,8 +65,6 @@ class CloakingError(LLMShieldError):
     This exception is raised when the cloaking process encounters
     an error, such as delimiter conflicts or processing failures.
     """
-
-    pass
 
 
 class UncloakingError(LLMShieldError):
@@ -84,8 +74,6 @@ class UncloakingError(LLMShieldError):
     an error, such as missing entity mappings or invalid placeholders.
     """
 
-    pass
-
 
 class ProviderError(LLMShieldError):
     """Raised when LLM provider operations fail.
@@ -93,5 +81,3 @@ class ProviderError(LLMShieldError):
     This exception is raised when provider-specific operations fail,
     such as parameter conversion errors or API incompatibilities.
     """
-
-    pass
