@@ -1,4 +1,17 @@
-"""Tests for entity detection and classification."""
+"""Test entity detection and classification functionality.
+
+Description:
+    This test module provides comprehensive testing for the EntityDetector
+    class, covering all entity types including emails, phone numbers, IP
+    addresses, credit cards, SSNs, URLs, and various proper nouns.
+
+Test Classes:
+    - TestEntityDetector: Main test suite for entity detection
+    - TestEntityDetectorEdgeCases: Tests edge cases and special scenarios
+    - TestEntityDetectorRegexCompilation: Tests regex pattern compilation
+
+Author: LLMShield by brainpolo, 2025
+"""
 
 # Standard library Imports
 import unittest
@@ -33,7 +46,7 @@ class TestEntityDetector(unittest.TestCase):
         )
         self.assertEqual(
             EntityGroup.NUMBER.get_types(),
-            {EntityType.PHONE_NUMBER, EntityType.CREDIT_CARD},
+            {EntityType.PHONE, EntityType.CREDIT_CARD},
         )
         self.assertEqual(
             EntityGroup.LOCATOR.get_types(),
@@ -118,7 +131,7 @@ class TestEntityDetector(unittest.TestCase):
 
     @parameterized.expand(
         [
-            # Basic organization tests
+            # Basic organisation tests
             ("known_org", "Microsoft", True),
             ("org_with_component", "Google Inc", True),
             ("regular_name", "John Smith", False),
@@ -130,19 +143,19 @@ class TestEntityDetector(unittest.TestCase):
                 True,
             ),  # .*-.*\d+.* pattern
             ("org_number_prefix", "2024Tech", True),  # ^\d+[A-Z].* pattern
-            # Multi-word organization tests
+            # Multi-word organisation tests
             ("multi_word_times", "New York Times", True),
             ("multi_word_corporation", "Microsoft Corporation", True),
         ]
     )
-    def test_organization_detection_comprehensive(
+    def test_organisation_detection_comprehensive(
         self, description, text, expected
     ):
-        """Comprehensive test for organization detection.
+        """Comprehensive test for organisation detection.
 
-        Includes regex patterns for thorough organization validation.
+        Includes regex patterns for thorough organisation validation.
         """
-        result = self.detector._is_organization(text)
+        result = self.detector._is_organisation(text)
         self.assertEqual(result, expected, f"Failed for {description}: {text}")
 
     @parameterized.expand(
@@ -213,11 +226,11 @@ class TestEntityDetector(unittest.TestCase):
         text = "Call me at +1 (555) 123-4567"
         entities, _ = self.detector._detect_numbers(text)
         self.assertEqual(
-            len([e for e in entities if e.type == EntityType.PHONE_NUMBER]), 1
+            len([e for e in entities if e.type == EntityType.PHONE]), 1
         )
         try:
             phone_number = next(
-                e.value for e in entities if e.type == EntityType.PHONE_NUMBER
+                e.value for e in entities if e.type == EntityType.PHONE
             )
             self.assertEqual(phone_number, "+1 (555) 123-4567")
         except StopIteration:

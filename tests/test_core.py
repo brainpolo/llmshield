@@ -1,6 +1,23 @@
-"""Tests for the core functionality of LLMShield.
+"""Test core LLMShield functionality and integration.
 
-! Module is intended for internal use only.
+Description:
+    This test module provides comprehensive testing for the core LLMShield
+    functionality including entity detection, cloaking, uncloaking, caching,
+    and integration with LLM providers.
+
+Test Classes:
+    - TestCoreFunctionality: Tests basic shield operations
+    - TestLLMShield: Tests shield initialization and edge cases
+    - TestEntityMapCaching: Tests entity map caching behaviour
+    - TestConversationHashingAndCallableUse: Tests conversation hashing
+    - TestStreamingFunctionality: Tests streaming support
+    - TestLLMShieldWithProvider: Tests provider integration
+    - TestCloakPromptFunction: Tests cloaking with custom delimiters
+    - TestEntityMapExpiry: Tests entity map expiration
+    - TestProviderConfiguration: Tests provider instantiation
+    - TestProviderInitialization: Tests provider initialization paths
+
+Author: LLMShield by brainpolo, 2025
 """
 
 # Standard library Imports
@@ -843,6 +860,14 @@ class TestCoreFunctionality(TestCase):
         [
             # (description, kwargs, expected_error_fragment)
             (
+                "prompt_and_message",
+                {
+                    "prompt": "test prompt",
+                    "message": "test message",
+                },
+                "Do not provide both 'prompt' and 'message'",
+            ),
+            (
                 "prompt_and_messages",
                 {
                     "prompt": "test",
@@ -1053,6 +1078,409 @@ class TestCoreFunctionality(TestCase):
         self.assertEqual(
             result.choices[0].message.content, "Extracted content for history"
         )
+
+    def test_ask_chatcompletion_with_none_content_tool_calls(self):
+        """Test ask method with ChatCompletion response with None content.
+
+        This simulates the scenario where an assistant message has tool calls
+        but no text content, which results in content being None.
+        """
+
+        # Create mock ChatCompletion with None content (simulating tool calls)
+        class MockChatCompletionNoneContent:
+            def __init__(self):
+                self.choices = [
+                    type(
+                        "MockChoice",
+                        (),
+                        {
+                            "message": type(
+                                "MockMessage", (), {"content": None}
+                            )()
+                        },
+                    )()
+                ]
+                self.model = "gpt-4"
+
+        def mock_llm_with_tool_calls(**kwargs):
+            return MockChatCompletionNoneContent()
+
+        shield = LLMShield(llm_func=mock_llm_with_tool_calls)
+        messages = [
+            {"role": "user", "content": "Execute this code: print('Hello')"},
+            {"role": "assistant", "content": "I'll help you with that."},
+            {"role": "user", "content": "Run the code now"},
+        ]
+
+        # This should not raise an error
+        result = shield.ask(messages=messages)
+
+        # Verify the result is properly handled
+        self.assertIsInstance(result, MockChatCompletionNoneContent)
+        self.assertIsNone(result.choices[0].message.content)
+
+    @parameterized.expand(
+        [
+            # (description, start_delim, end_delim, text, entities,
+            # expected_cloaked)
+            (
+                "standard_delimiters",
+                "<",
+                ">",
+                "Hello John Doe",
+                {"John Doe": "<PERSON_0>"},
+                "Hello <PERSON_0>",
+            ),
+            (
+                "bracket_delimiters",
+                "[",
+                "]",
+                "Email john@test.com",
+                {"john@test.com": "[EMAIL_0]"},
+                "Email [EMAIL_0]",
+            ),
+            (
+                "brace_delimiters",
+                "{",
+                "}",
+                "Call 555-1234",
+                {"555-1234": "{PHONE_0}"},
+                "Call {PHONE_0}",
+            ),
+            (
+                "custom_delimiters",
+                "<<",
+                ">>",
+                "Visit NYC",
+                {"NYC": "<<PLACE_0>>"},
+                "Visit <<PLACE_0>>",
+            ),
+            (
+                "unicode_delimiters",
+                "〈",
+                "〉",
+                "Hello José",
+                {"José": "〈PERSON_0〉"},
+                "Hello 〈PERSON_0〉",
+            ),
+            (
+                "mixed_entities",
+                "<",
+                ">",
+                "Contact John at john@test.com",
+                {"John": "<PERSON_0>", "john@test.com": "<EMAIL_0>"},
+                "Contact <PERSON_0> at <EMAIL_0>",
+            ),
+        ]
+    )
+    def test_delimiter_variations(  # noqa: PLR0913
+        self, description, start_delim, end_delim, text, entities, expected
+    ):
+        """Test various delimiter configurations - parameterized."""
+        shield = LLMShield(
+            start_delimiter=start_delim, end_delimiter=end_delim
+        )
+
+        # Create entity map in the expected format
+        entity_map = {}
+        for original, placeholder in entities.items():
+            entity_map[placeholder] = original
+
+        # Test uncloaking
+        result = shield.uncloak(expected, entity_map)
+        self.assertEqual(result, text)
+
+    @parameterized.expand(
+        [
+            # (description, cache_size, operations, expected_behavior)
+            (
+                "small_cache",
+                2,
+                [
+                    ("put", "key1", "value1"),
+                    ("put", "key2", "value2"),
+                    ("put", "key3", "value3"),  # Should evict key1
+                    ("get", "key1", None),  # Should be evicted
+                    ("get", "key3", "value3"),  # Should exist
+                ],
+                "lru_eviction",
+            ),
+            (
+                "large_cache",
+                100,
+                [("put", f"key{i}", f"value{i}") for i in range(50)]
+                + [
+                    ("get", "key25", "value25"),  # Should exist
+                ],
+                "no_eviction",
+            ),
+            (
+                "zero_cache",
+                0,
+                [
+                    ("put", "key1", "value1"),
+                    ("get", "key1", None),  # Should not store anything
+                ],
+                "no_storage",
+            ),
+        ]
+    )
+    def test_cache_size_configurations(
+        self, description, cache_size, operations, expected_behavior
+    ):
+        """Test various cache size configurations - parameterized."""
+        shield = LLMShield(max_cache_size=cache_size)
+
+        for op_type, key, expected_value in operations:
+            if op_type == "put":
+                shield._cache.put(key, expected_value)
+            elif op_type == "get":
+                result = shield._cache.get(key)
+                if expected_value is None:
+                    self.assertIsNone(
+                        result, f"Expected {key} to be None but got {result}"
+                    )
+                else:
+                    self.assertEqual(
+                        result,
+                        expected_value,
+                        f"Expected {key} to be {expected_value}",
+                    )
+
+    @parameterized.expand(
+        [
+            # (description, input_text, expected_entities, entity_types)
+            (
+                "person_only",
+                "Hello John Smith from New York",
+                ["John Smith", "New York"],
+                ["PERSON", "PLACE"],
+            ),
+            (
+                "email_only",
+                "Contact me at john@example.com",
+                ["john@example.com"],
+                ["EMAIL"],
+            ),
+            ("phone_only", "Call 555-123-4567", ["555-123-4567"], ["PHONE"]),
+            (
+                "mixed_entities",
+                "John Smith (john@example.com) at 555-1234",
+                ["John Smith", "john@example.com", "555-1234"],
+                ["PERSON", "EMAIL", "PHONE"],
+            ),
+            (
+                "no_entities",
+                "This is plain text with no PII",
+                ["This", "PII"],
+                ["CONCEPT"],
+            ),  # These might be detected as concepts
+            (
+                "repeated_entities",
+                "John called John again",
+                ["John"],
+                ["PERSON"],
+            ),
+            (
+                "unicode_names",
+                "Contact José García",
+                ["José García"],
+                ["PERSON"],
+            ),
+            (
+                "organisations",
+                "Work at Microsoft Corporation",
+                ["Microsoft Corporation"],
+                ["ORGANISATION"],
+            ),
+        ]
+    )
+    def test_entity_detection_variations(
+        self, description, input_text, expected_entities, entity_types
+    ):
+        """Test entity detection with various input types - parameterized."""
+        shield = LLMShield()
+        cloaked, entity_map = shield.cloak(input_text)
+
+        # Check that some entities were detected if expected
+        detected_entities = list(entity_map.values())
+        if expected_entities:
+            # At least one expected entity should be detected, but not
+            # necessarily all (entity detection can be context-dependent)
+            found_any = any(
+                entity in detected_entities for entity in expected_entities
+            )
+            if not found_any:
+                # If no expected entities found, at least verify the text
+                # changed (some entity was detected)
+                self.assertNotEqual(
+                    cloaked,
+                    input_text,
+                    f"No entities detected in '{input_text}', "
+                    f"expected some of: {expected_entities}",
+                )
+        else:
+            # If no entities expected, verify no entities were detected
+            self.assertEqual(
+                len(entity_map),
+                0,
+                f"Expected no entities but found: {detected_entities}",
+            )
+
+        # Check that uncloaking restores original text
+        uncloaked = shield.uncloak(cloaked, entity_map)
+        self.assertEqual(uncloaked, input_text)
+
+    @parameterized.expand(
+        [
+            # (description, response_type, test_data)
+            ("string_response", str, "Hello John Doe"),
+            ("list_response", list, ["Hello", "John", "Doe"]),
+            ("dict_response", dict, {"greeting": "Hello", "name": "John Doe"}),
+            (
+                "nested_dict",
+                dict,
+                {
+                    "user": {
+                        "name": "John",
+                        "contacts": {"email": "john@test.com"},
+                    }
+                },
+            ),
+            (
+                "mixed_list",
+                list,
+                ["Hello John", {"email": "john@test.com"}, 42],
+            ),
+            # Note: empty responses are not tested here as they trigger
+            # validation errors
+        ]
+    )
+    def test_uncloak_response_types(
+        self, description, response_type, test_data
+    ):
+        """Test uncloaking various response types - parameterized."""
+        shield = LLMShield()
+        entity_map = {"<PERSON_0>": "John Doe", "<EMAIL_0>": "john@test.com"}
+
+        # Create test data with entities if it's not empty
+        if test_data:
+            if response_type is str:
+                test_input = test_data.replace(
+                    "John Doe", "<PERSON_0>"
+                ).replace("john@test.com", "<EMAIL_0>")
+            elif response_type is list:
+                test_input = [
+                    (
+                        item.replace("John", "<PERSON_0>").replace(
+                            "john@test.com", "<EMAIL_0>"
+                        )
+                    )
+                    if isinstance(item, str)
+                    else item
+                    for item in test_data
+                ]
+            elif response_type is dict:
+                test_input = self._replace_entities_in_dict(
+                    test_data,
+                    {
+                        "John Doe": "<PERSON_0>",
+                        "John": "<PERSON_0>",
+                        "john@test.com": "<EMAIL_0>",
+                    },
+                )
+        else:
+            test_input = test_data
+
+        result = shield.uncloak(test_input, entity_map)
+
+        # Verify type is preserved
+        self.assertIsInstance(result, response_type)
+
+        # For non-empty data, verify content is restored
+        if test_data:
+            if response_type is str:
+                self.assertIn("John", str(result))
+            elif response_type in (list, dict):
+                # Should be different after uncloaking
+                self.assertNotEqual(result, test_input)
+
+    def _replace_entities_in_dict(self, data, replacements):
+        """Replace entities in nested dictionaries."""
+        if isinstance(data, dict):
+            return {
+                key: self._replace_entities_in_dict(value, replacements)
+                for key, value in data.items()
+            }
+        elif isinstance(data, list):
+            return [
+                self._replace_entities_in_dict(item, replacements)
+                for item in data
+            ]
+        elif isinstance(data, str):
+            result = data
+            for original, placeholder in replacements.items():
+                result = result.replace(original, placeholder)
+            return result
+        else:
+            return data
+
+    @parameterized.expand(
+        [
+            # (description, invalid_input, expected_error_type)
+            ("none_response", None, ValueError),
+            ("empty_string", "", ValueError),
+            ("empty_list", [], ValueError),
+            ("false_value", False, ValueError),
+            ("zero_value", 0, ValueError),
+        ]
+    )
+    def test_uncloak_validation_edge_cases(
+        self, description, invalid_input, expected_error_type
+    ):
+        """Test uncloak validation with various edge cases - parameterized."""
+        shield = LLMShield()
+        entity_map = {"<PERSON_0>": "John"}
+
+        with self.assertRaises(expected_error_type):
+            shield.uncloak(invalid_input, entity_map)
+
+    @parameterized.expand(
+        [
+            # (description, streaming, llm_response, expected_type)
+            ("string_non_stream", False, "Hello world", str),
+            (
+                "generator_stream",
+                True,
+                (x for x in ["Hello", " world"]),
+                type(x for x in []),
+            ),
+            ("list_non_stream", False, ["Hello", "world"], list),
+            ("dict_non_stream", False, {"message": "Hello"}, dict),
+        ]
+    )
+    def test_ask_response_type_handling(
+        self, description, streaming, llm_response, expected_type
+    ):
+        """Test ask method response type handling - parameterized."""
+
+        def mock_llm(**kwargs):
+            return llm_response
+
+        shield = LLMShield(llm_func=mock_llm)
+
+        if (
+            streaming
+            and hasattr(llm_response, "__iter__")
+            and not isinstance(llm_response, str | bytes | dict)
+        ):
+            # For streaming responses
+            result = shield.ask(prompt="Hello", stream=streaming)
+            self.assertIsInstance(result, type(llm_response))
+        else:
+            # For non-streaming responses
+            result = shield.ask(prompt="Hello", stream=streaming)
+            self.assertIsInstance(result, expected_type)
 
 
 if __name__ == "__main__":

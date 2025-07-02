@@ -1,4 +1,15 @@
-"""Tests for OpenAI provider functionality."""
+"""Test OpenAI provider integration and parameter handling.
+
+Description:
+    This test module validates the OpenAIProvider class that handles
+    OpenAI-specific API integration, including parameter conversion,
+    beta APIs, and streaming support.
+
+Test Classes:
+    - TestOpenAIProvider: Tests OpenAI provider functionality
+
+Author: LLMShield by brainpolo, 2025
+"""
 
 # Standard library imports
 import unittest
@@ -303,6 +314,47 @@ class TestOpenAIProvider(unittest.TestCase):
         mock_func.__name__ = "create"
         delattr(mock_func, "__qualname__")
         self.assertTrue(OpenAIProvider.can_handle(mock_func))
+
+    def test_prepare_params_with_tool_calls(self):
+        """Test parameter preparation preserves tool call message structure."""
+        # Messages with tool calls (None content)
+        messages = [
+            {"role": "user", "content": "What's the weather?"},
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": "call_123",
+                        "type": "function",
+                        "function": {
+                            "name": "get_weather",
+                            "arguments": '{"location": "London"}',
+                        },
+                    }
+                ],
+            },
+            {
+                "role": "tool",
+                "content": "15°C, Partly cloudy",
+                "tool_call_id": "call_123",
+            },
+        ]
+
+        provider = OpenAIProvider(self.mock_standard_func)
+
+        # Test that prepare_multi_message_params preserves structure
+        params, stream = provider.prepare_multi_message_params(
+            cloaked_messages=messages,
+            stream=False,
+            tools=[{"type": "function", "function": {"name": "get_weather"}}],
+        )
+
+        # Verify message structure is preserved
+        self.assertEqual(len(params["messages"]), 3)
+        self.assertIsNone(params["messages"][1]["content"])
+        self.assertIn("tool_calls", params["messages"][1])
+        self.assertEqual(params["messages"][2]["role"], "tool")
 
 
 if __name__ == "__main__":

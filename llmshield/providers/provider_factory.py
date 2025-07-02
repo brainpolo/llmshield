@@ -1,9 +1,24 @@
-"""Provider factory for detecting and creating appropriate providers."""
+"""Provider factory for detecting and creating appropriate providers.
+
+Description:
+    This module implements the factory pattern for LLM provider detection
+    and instantiation. It maintains a registry of available providers and
+    automatically selects the most appropriate one based on the LLM function
+    characteristics.
+
+Functions:
+    get_provider: Automatically selects appropriate provider for LLM function
+    register_provider: Registers new providers in the factory
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 # Standard Library Imports
 from collections.abc import Callable
 
 # Local Imports
+from .anthropic_provider import AnthropicProvider
 from .base import BaseLLMProvider
 from .default_provider import DefaultProvider
 from .openai_provider import OpenAIProvider
@@ -11,6 +26,7 @@ from .openai_provider import OpenAIProvider
 # Registry of available providers in priority order
 # Earlier providers are checked first
 PROVIDER_REGISTRY = [
+    AnthropicProvider,
     OpenAIProvider,
     DefaultProvider,  # Must be last as it's the fallback
 ]

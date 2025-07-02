@@ -201,7 +201,7 @@ class EntityDetector:
 
 ### Test Requirements
 
-- **100% test coverage** for new features (95% minimum overall coverage threshold)
+- **100% test coverage** for new features (98% minimum overall coverage threshold)
 - **Maintain existing coverage** - don't break existing tests
 - **Test both happy and error paths**
 - **Include edge cases and boundary conditions**

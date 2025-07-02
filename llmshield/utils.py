@@ -1,4 +1,26 @@
-"""Module for utility functions for the llmshield library."""
+"""Utility functions and type definitions.
+
+Description:
+    This module provides common utility functions, type definitions, and
+    helper protocols used throughout the LLMShield library. It includes
+    validation functions, text processing utilities, and protocol
+    definitions for type safety.
+
+Protocols:
+    PydanticLike: Protocol for Pydantic-compatible objects
+
+Functions:
+    split_fragments: Split text into processable fragments
+    is_valid_delimiter: Validate delimiter strings
+    wrap_entity: Create placeholder strings for entities
+    normalise_spaces: Normalize whitespace in text
+    is_valid_stream_response: Check if response is streamable
+    conversation_hash: Generate hash for conversation caching
+    ask_helper: Internal helper for LLM ask operations
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 # Python imports
 import collections.abc
@@ -220,10 +242,38 @@ def conversation_hash(obj: Message | list[Message]) -> Hash:
     If a list of messages is provided, hash the set of (role, content) pairs.
     """
     if isinstance(obj, dict):
-        # Single message
-        return hash((obj.get("role", ""), obj.get("content", "")))
+        # Single message - handle None content
+        content = obj.get("content", "")
+        if content is None:
+            content = ""
+        elif isinstance(content, list):
+            # Handle list content (Anthropic tool results)
+            content = str(content)
+        return hash((obj.get("role", ""), content))
+
+    # Handle non-dict objects (like Anthropic Message objects)
+    if hasattr(obj, "role") and hasattr(obj, "content"):
+        # Single message object
+        content = getattr(obj, "content", "")
+        if content is None:
+            content = ""
+        return hash((getattr(obj, "role", ""), str(content)))
 
     # List of messages
-    return hash(
-        frozenset((msg.get("role", ""), msg.get("content", "")) for msg in obj)
-    )
+    hash_items = []
+    for msg in obj:
+        if isinstance(msg, dict):
+            content = msg.get("content", "")
+            if content is None:
+                content = ""
+            elif isinstance(content, list):
+                # Handle list content (Anthropic tool results)
+                content = str(content)
+            hash_items.append((msg.get("role", ""), content))
+        else:
+            # Handle message objects (like Anthropic Message objects)
+            content = getattr(msg, "content", "")
+            if content is None:
+                content = ""
+            hash_items.append((getattr(msg, "role", ""), str(content)))
+    return hash(frozenset(hash_items))

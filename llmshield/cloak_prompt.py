@@ -1,9 +1,20 @@
-"""Module objectives.
+"""Prompt cloaking module.
 
-- Cloak the prompt before sending it to the LLM.
-- Return the cloaked prompt and a mapping of placeholders to original values.
+Description:
+    This module handles the replacement of sensitive entities in prompts with
+    secure placeholders before sending to LLMs. It maintains a mapping of
+    placeholders to original values for later restoration.
 
-! Module is intended for internal use only.
+Functions:
+    cloak_prompt: Replace sensitive entities with placeholders
+
+Note:
+    This module is intended for internal use only. Users should interact
+    with the LLMShield class rather than calling these functions directly.
+
+Author:
+    LLMShield by brainpolo, 2025
+
 """
 
 # Standard Library Imports
@@ -11,7 +22,7 @@ import re
 from collections import OrderedDict
 
 # Local Imports
-from .entity_detector import Entity, EntityDetector
+from .entity_detector import Entity, EntityConfig, EntityDetector
 from .utils import wrap_entity
 
 
@@ -21,13 +32,26 @@ def cloak_prompt(
     start_delimiter: str,
     end_delimiter: str,
     entity_map: dict[str, str] | None = None,
+    entity_config: EntityConfig | None = None,
 ) -> tuple[str, dict[str, str]]:
-    """Rewritten cloaking function.
+    """Cloak sensitive entities in prompt with selective configuration.
 
-    - Collects all match positions from the original prompt.
-    - Sorts matches in descending order by their start index.
-    - Replaces the matches in one pass.
-    - Accepts an existing entity_map to maintain placeholder consistency.
+    Args:
+        prompt: Text to cloak entities in
+        start_delimiter: Opening delimiter for placeholders
+        end_delimiter: Closing delimiter for placeholders
+        entity_map: Existing placeholder mappings for consistency
+        entity_config: Configuration for selective entity detection
+
+    Returns:
+        Tuple of (cloaked_prompt, entity_mapping)
+
+    Note:
+        - Collects all match positions from the original prompt
+        - Sorts matches in descending order by start index
+        - Replaces matches in one pass for optimal performance
+        - Maintains placeholder consistency across calls
+
     """
     if entity_map is None:
         entity_map = OrderedDict()
@@ -35,7 +59,7 @@ def cloak_prompt(
     # Create a reverse map for quick lookups of existing values
     reversed_entity_map = {v: k for k, v in entity_map.items()}
 
-    detector = EntityDetector()
+    detector = EntityDetector(entity_config)
     entities: set[Entity] = detector.detect_entities(prompt)
 
     matches = []

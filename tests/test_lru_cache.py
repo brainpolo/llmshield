@@ -1,4 +1,15 @@
-"""Tests for the LRU cache implementation."""
+"""Test LRU cache implementation and eviction policies.
+
+Description:
+    This test module provides comprehensive testing for the Least Recently
+    Used (LRU) cache implementation, including capacity management,
+    eviction policies, and cache hit/miss behaviour.
+
+Test Classes:
+    - TestLRUCache: Tests LRU cache operations and eviction
+
+Author: LLMShield by brainpolo, 2025
+"""
 
 from unittest import TestCase, main
 

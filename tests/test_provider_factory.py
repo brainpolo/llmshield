@@ -1,4 +1,15 @@
-"""Tests for provider factory functionality."""
+"""Test provider factory and registration system.
+
+Description:
+    This test module validates the provider factory functionality that
+    automatically detects and registers LLM providers, enabling seamless
+    integration with various LLM services.
+
+Test Classes:
+    - TestProviderFactory: Tests provider registration and retrieval
+
+Author: LLMShield by brainpolo, 2025
+"""
 
 # Standard library imports
 import unittest

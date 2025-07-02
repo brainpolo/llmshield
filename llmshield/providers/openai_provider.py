@@ -1,4 +1,17 @@
-"""OpenAI provider for handling OpenAI API specifics."""
+"""OpenAI provider for handling OpenAI API specifics.
+
+Description:
+    This module provides specialised handling for OpenAI API functions,
+    including both standard and beta APIs. It manages parameter conversion
+    to OpenAI's expected format and handles streaming capabilities based
+    on API version detection.
+
+Classes:
+    OpenAIProvider: Specialised provider for OpenAI API integration
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 # Standard Library Imports
 from collections.abc import Callable

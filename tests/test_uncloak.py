@@ -1,4 +1,16 @@
-"""Tests for response uncloaking."""
+"""Test uncloaking functionality for restoring entities.
+
+Description:
+    This test module provides testing for the uncloaking functionality that
+    restores original entities from cloaked placeholders in LLM responses,
+    with focus on edge cases and error handling.
+
+Test Classes:
+    - TestUncloak: Tests uncloaking edge cases and validation
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 from unittest import TestCase
 

@@ -1,7 +1,19 @@
 """List of list-based matchers used to detect entities.
 
-@see entity_detector.py for the entity detection system that uses these
-matchers.
+Description:
+    This module contains lists of keywords and components used for entity
+    detection. These lists include person titles, organisation identifiers,
+    place components, and punctuation markers that help identify and classify
+    different types of entities in text.
+
+Lists:
+    EN_PUNCTUATION: Common English punctuation marks
+    EN_PERSON_INITIALS: Titles and honorifics for person detection
+    EN_ORG_COMPONENTS: Corporate suffixes and identifiers
+    EN_PLACE_COMPONENTS: Street and place name components
+
+Author:
+    LLMShield by brainpolo, 2025
 """
 
 # * Punctuation
@@ -34,22 +46,6 @@ EN_PERSON_INITIALS = [
     "CTO",
 ]
 
-ES_PERSON_SINITIALS = [
-    "Sr",
-    "Sra",
-    "Srta",
-    "Dr",
-    "Prof",
-    "Sra",
-    "Srta",
-    "Srta",
-    "Srta",
-    "Srta",
-    "Srta",
-    "Srta",
-    "Srta",
-    "Srta",
-]
 
 # * ORGANISATION
 # ----------------------------------------------------------------------------
@@ -70,25 +66,6 @@ EN_ORG_COMPONENTS = [
     "Pty",
     "L.P.",
 ]
-
-ES_ORG_COMPONENTS = [
-    "Holdings",
-    "Grupo",
-    "LLP",
-    "Ltd",
-    "Corp",
-    "Corporación",
-    "Inc",
-    "Industrias",
-    "Empresa",
-    "Co",
-    "LLC",
-    "GmbH",
-    "AG",
-    "Pty",
-    "L.P.",
-]
-
 
 # * PLACES
 # ----------------------------------------------------------------------------

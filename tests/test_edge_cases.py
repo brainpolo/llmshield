@@ -1,6 +1,14 @@
-"""Comprehensive edge case tests for llmshield.
+"""Test edge cases and boundary conditions.
 
-Optimized with parameterized library for thorough testing.
+Description:
+    This test module provides comprehensive testing of edge cases and
+    boundary conditions throughout the library, including empty inputs,
+    special characters, malformed data, and extreme scenarios.
+
+Test Classes:
+    - TestEdgeCases: Tests comprehensive edge cases
+
+Author: LLMShield by brainpolo, 2025
 """
 
 # Standard library Imports
@@ -242,7 +250,7 @@ class TestEdgeCases(unittest.TestCase):
         try:
             result = shield.ask(messages=malformed_cases)
             self.assertIsInstance(result, str)
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, ValueError):
             # Acceptable to fail on malformed input
             pass
 

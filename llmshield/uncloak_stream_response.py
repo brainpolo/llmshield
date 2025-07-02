@@ -1,10 +1,20 @@
-"""Module for uncloaking streaming LLM responses.
+"""Streaming response uncloaking module.
 
-After receiving a cloaked stream response from the LLM, uncloaks the response
-through a buffered chunk approach. Returns responses with placeholders restored
-to their original values.
+Description:
+    This module handles the restoration of original sensitive data in
+    streaming LLM responses. It uses an intelligent buffering approach to
+    handle placeholders that may be split across multiple stream chunks.
 
-# Module is intended for internal use only.
+Functions:
+    stream_uncloak_response: Restore entities in streaming LLM responses
+
+Note:
+    This module is intended for internal use only. Users should interact
+    with the LLMShield class rather than calling these functions directly.
+
+Author:
+    LLMShield by brainpolo, 2025
+
 """
 
 # Standard library Imports

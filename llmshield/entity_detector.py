@@ -1,18 +1,36 @@
-"""Module for detecting and classifying different types of entities in text.
+"""Entity detection and classification module.
 
-Uses a combination of rule-based and pattern-based approaches with:
-- Regex patterns for structured data (emails, URLs, etc.)
-- Dictionary lookups for known entities (cities, countries, organizations)
-- Heuristic rules for proper nouns and other entities
+Description:
+    This module implements comprehensive entity detection algorithms to
+    identify personally identifiable information (PII) and sensitive data in
+    text. It uses a multi-layered approach combining regex patterns,
+    dictionary lookups, and contextual analysis to accurately detect various
+    entity types.
+
+Classes:
+    EntityDetector: Main class for detecting entities in text
+    Entity: Data class representing a detected entity
+    EntityType: Enumeration of supported entity types
+    EntityGroup: Grouping of entity types into categories
+    EntityConfig: Configuration for selective entity detection
+
+Detection Methods:
+    - Regex patterns for structured data (emails, URLs, phone numbers)
+    - Dictionary lookups for known entities (cities, countries, organisations)
+    - Contextual analysis for proper nouns and person names
+    - Heuristic rules for complex entity patterns
+
+Author:
+    LLMShield by brainpolo, 2025
 """
 
 # Standard Library Imports
 import re
 from dataclasses import dataclass
 from enum import Enum
-from importlib import resources
 
 # Local imports
+from llmshield.cache.entity_cache import get_entity_cache
 from llmshield.matchers.functions import _luhn_check
 from llmshield.matchers.lists import (
     EN_ORG_COMPONENTS,
@@ -39,18 +57,43 @@ class EntityType(str, Enum):
 
     # Proper Nouns
     PERSON = "PERSON"
-    ORGANISATION = "ORGANISATION"
+    ORGANISATION = "ORGANISATION"  # British spelling maintained
     PLACE = "PLACE"
     CONCEPT = "CONCEPT"
 
     # Numbers
-    PHONE_NUMBER = "PHONE_NUMBER"
+    PHONE = "PHONE"  # Simplified name
     CREDIT_CARD = "CREDIT_CARD"
 
     # Locators
     EMAIL = "EMAIL"
     URL = "URL"
     IP_ADDRESS = "IP_ADDRESS"
+
+    @classmethod
+    def all(cls) -> frozenset["EntityType"]:
+        """Return frozenset of all entity types."""
+        return frozenset(cls)
+
+    @classmethod
+    def locators(cls) -> frozenset["EntityType"]:
+        """Return entity types that are location-based identifiers."""
+        return frozenset([cls.EMAIL, cls.IP_ADDRESS, cls.URL])
+
+    @classmethod
+    def numbers(cls) -> frozenset["EntityType"]:
+        """Return entity types that are numeric identifiers."""
+        return frozenset([cls.PHONE, cls.CREDIT_CARD])
+
+    @classmethod
+    def proper_nouns(cls) -> frozenset["EntityType"]:
+        """Return entity types that are proper nouns."""
+        return frozenset(
+            [cls.PERSON, cls.PLACE, cls.ORGANISATION, cls.CONCEPT]
+        )
+
+    # Legacy compatibility
+    PHONE_NUMBER = "PHONE"  # Alias for backward compatibility
 
 
 class EntityGroup(str, Enum):
@@ -69,7 +112,7 @@ class EntityGroup(str, Enum):
                 EntityType.PLACE,
                 EntityType.CONCEPT,
             },
-            self.NUMBER: {EntityType.PHONE_NUMBER, EntityType.CREDIT_CARD},
+            self.NUMBER: {EntityType.PHONE, EntityType.CREDIT_CARD},
             self.LOCATOR: {
                 EntityType.EMAIL,
                 EntityType.URL,
@@ -96,6 +139,57 @@ class Entity:
         raise ValueError(msg)
 
 
+class EntityConfig:
+    """Configuration for selective entity detection and cloaking."""
+
+    def __init__(self, enabled_types: frozenset[EntityType] | None = None):
+        """Initialize entity configuration.
+
+        Args:
+            enabled_types: Set of entity types to detect and cloak.
+                          If None, all types are enabled by default.
+
+        """
+        self.enabled_types = (
+            enabled_types if enabled_types is not None else EntityType.all()
+        )
+
+    def is_enabled(self, entity_type: EntityType) -> bool:
+        """Check if an entity type is enabled for detection."""
+        return entity_type in self.enabled_types
+
+    def with_disabled(self, *disabled_types: EntityType) -> "EntityConfig":
+        """Create new config with specified types disabled."""
+        new_enabled = self.enabled_types - frozenset(disabled_types)
+        return EntityConfig(new_enabled)
+
+    def with_enabled(self, *enabled_types: EntityType) -> "EntityConfig":
+        """Create new config with only specified types enabled."""
+        return EntityConfig(frozenset(enabled_types))
+
+    @classmethod
+    def disable_locations(cls) -> "EntityConfig":
+        """Create config with location-based entities disabled."""
+        return cls().with_disabled(
+            EntityType.PLACE, EntityType.IP_ADDRESS, EntityType.URL
+        )
+
+    @classmethod
+    def disable_persons(cls) -> "EntityConfig":
+        """Create config with person entities disabled."""
+        return cls().with_disabled(EntityType.PERSON)
+
+    @classmethod
+    def disable_contacts(cls) -> "EntityConfig":
+        """Create config with contact information disabled."""
+        return cls().with_disabled(EntityType.EMAIL, EntityType.PHONE)
+
+    @classmethod
+    def only_financial(cls) -> "EntityConfig":
+        """Create config with only financial entities enabled."""
+        return cls().with_enabled(EntityType.CREDIT_CARD)
+
+
 class EntityDetector:
     """Main entity detection system using rule-based and pattern approaches.
 
@@ -105,77 +199,39 @@ class EntityDetector:
     improves detection accuracy.
     """
 
-    def __init__(self) -> None:
-        """Initialise large lists of entities."""
+    def __init__(self, config: EntityConfig | None = None) -> None:
+        """Initialize entity detector with optional selective configuration.
+
+        Args:
+            config: Configuration for selective entity detection.
+                   If None, all entity types are enabled.
+
+        """
+        self.config = config or EntityConfig()
+        self.cache = get_entity_cache()
+
+        # Utility functions
         self.split_fragments = split_fragments
         self.normalise_spaces = normalise_spaces
 
-        self.cities = self._load_cities()
-        self.countries = self._load_countries()
-        self.organisations = self._load_organisations()
-        self.en_common_words = self._load_english_corpus()
+        # Static data (lightweight references)
         self.en_person_initials = EN_PERSON_INITIALS
         self.en_org_components = EN_ORG_COMPONENTS
         self.en_place_components = EN_PLACE_COMPONENTS
         self.en_punctuation = EN_PUNCTUATION
 
+        # Compiled regex patterns (shared across instances)
         self.email_pattern = EMAIL_ADDRESS_PATTERN
         self.credit_card_pattern = CREDIT_CARD_PATTERN
         self.ip_address_pattern = IP_ADDRESS_PATTERN
         self.url_pattern = URL_PATTERN
         self.phone_number_pattern = PHONE_NUMBER_PATTERN
 
+        # Utility functions
         self.luhn_check = _luhn_check
 
-    @staticmethod
-    def _load_cities() -> list[str]:
-        """Load cities from lists/cities.txt."""
-        with (
-            resources.files("llmshield.matchers.dicts")
-            .joinpath("cities.txt")
-            .open("r") as f
-        ):
-            return [
-                city.strip() for city in f.read().splitlines() if city.strip()
-            ]
-
-    @staticmethod
-    def _load_countries() -> list[str]:
-        """Load countries from lists/countries.txt."""
-        with (
-            resources.files("llmshield.matchers.dicts")
-            .joinpath("countries.txt")
-            .open("r") as f
-        ):
-            return [c.strip() for c in f.read().splitlines() if c.strip()]
-
-    @staticmethod
-    def _load_organisations() -> list[str]:
-        """Load organisations from lists/organisations.txt."""
-        with (
-            resources.files("llmshield.matchers.dicts")
-            .joinpath("organisations.txt")
-            .open("r") as f
-        ):
-            return [
-                org.strip() for org in f.read().splitlines() if org.strip()
-            ]
-
-    @staticmethod
-    def _load_english_corpus() -> set[str]:
-        """Load common English words from corpus/english.txt."""
-        corpus_path = resources.files("llmshield.matchers.dicts").joinpath(
-            "corpus/english.txt"
-        )
-        with corpus_path.open("r") as f:
-            return {
-                word.strip().lower()
-                for word in f.read().splitlines()
-                if word.strip()
-            }
-
     def detect_entities(self, text: str) -> set[Entity]:
-        """Detect entities in text using waterfall methodology."""
+        """Detect entities using waterfall methodology with filtering."""
         detection_methods = [
             (self._detect_locators, EntityGroup.LOCATOR),
             (self._detect_numbers, EntityGroup.NUMBER),
@@ -185,9 +241,21 @@ class EntityDetector:
         entities: set[Entity] = set()
         working_text: str = text
 
-        for method, _ in detection_methods:  # Use _ for unused group variable
+        for method, group in detection_methods:
+            # Skip entire groups if no types are enabled
+            group_types = group.get_types()
+            if not any(self.config.is_enabled(t) for t in group_types):
+                continue
+
             new_entities, working_text = method(working_text)
-            entities.update(new_entities)
+
+            # Filter entities based on configuration
+            filtered_entities = {
+                entity
+                for entity in new_entities
+                if self.config.is_enabled(entity.type)
+            }
+            entities.update(filtered_entities)
 
         return entities
 
@@ -351,8 +419,8 @@ class EntityDetector:
                 c for c in value if c not in self.en_punctuation
             ).strip()
 
-        # 1. Check for organizations first.
-        if self._is_organization(p_noun):
+        # 1. Check for organisations first.
+        if self._is_organisation(p_noun):
             return (clean_value(p_noun), EntityType.ORGANISATION)
 
         # 2. Check for places.
@@ -380,18 +448,18 @@ class EntityDetector:
             and not any(c in p_noun for c in self.en_punctuation)
         )
 
-    def _is_organization(self, p_noun: str) -> bool:
-        """Check if proper noun is an organization."""
-        # Case-insensitive check for organization names
+    def _is_organisation(self, p_noun: str) -> bool:
+        """Check if proper noun is an organisation."""
+        # Case-insensitive check for organisation names
         p_noun_lower = p_noun.lower()
 
-        # Add checks for organizations with numbers
+        # Add checks for organisations with numbers
         if any(char.isdigit() for char in p_noun) and re.match(
             r"^\d+[A-Z].*|.*-.*\d+.*", p_noun
         ):
             return True
 
-        # Check for multi-word organizations like "New York Times"
+        # Check for multi-word organisations like "New York Times"
         if len(p_noun.split()) > 2:  # noqa: PLR2004
             last_word = p_noun.split()[-1]
             if last_word in {
@@ -404,18 +472,15 @@ class EntityDetector:
             }:
                 return True
 
-        return any(
-            org.lower() == p_noun_lower for org in self.organisations
-        ) or any(comp in p_noun for comp in self.en_org_components)
+        return self.cache.is_organisation(p_noun_lower) or any(
+            comp in p_noun for comp in self.en_org_components
+        )
 
     def _is_place(self, p_noun: str) -> bool:
         """Check if proper noun is a place."""
-        return (
-            any(city.lower() == p_noun.lower() for city in self.cities)
-            or any(
-                country.lower() == p_noun.lower() for country in self.countries
-            )
-            or any(comp in p_noun.split() for comp in self.en_place_components)
+        p_noun_lower = p_noun.lower()
+        return self.cache.is_place(p_noun_lower) or any(
+            comp in p_noun.split() for comp in self.en_place_components
         )
 
     def _is_person(self, p_noun: str) -> bool:
@@ -458,7 +523,7 @@ class EntityDetector:
             # 3. Not contain digits
             if (
                 not clean_word[0].isupper()
-                or clean_word.lower() in self.en_common_words
+                or self.cache.is_english_word(clean_word.lower())
                 or any(c.isdigit() for c in clean_word)
             ):
                 return False
@@ -500,7 +565,7 @@ class EntityDetector:
         for phone_number in phone_numbers:
             entities.add(
                 Entity(
-                    type=EntityType.PHONE_NUMBER,
+                    type=EntityType.PHONE,
                     value=phone_number.group(),
                 ),
             )

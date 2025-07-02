@@ -1,4 +1,21 @@
-"""List of regex-based matchers used to detect entities."""
+"""List of regex-based matchers used to detect entities.
+
+Description:
+    This module contains compiled regular expression patterns for detecting
+    various types of sensitive information including email addresses, credit
+    card numbers, IP addresses, URLs, and phone numbers. Each pattern is
+    carefully crafted to balance accuracy and performance.
+
+Patterns:
+    EMAIL_ADDRESS_PATTERN: Matches email addresses
+    CREDIT_CARD_PATTERN: Matches credit card numbers (various formats)
+    IP_ADDRESS_PATTERN: Matches IPv4 addresses
+    URL_PATTERN: Matches HTTP/HTTPS URLs
+    PHONE_NUMBER_PATTERN: Matches phone numbers (US and international)
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 import re
 

@@ -1,8 +1,7 @@
 version = 1
 
 exclude_patterns = [
-  "venv/**",
-  "**/migrations/**",
+  "venv/**"
 ]
 
 test_patterns = [
@@ -11,7 +10,7 @@ test_patterns = [
 
 [[analyzers]]
 name = "python"
-dependency_file_paths = ["requirements.txt"]
+dependency_file_paths = ["pyproject.toml"]
 enabled = true
 
 [[transformers]]
