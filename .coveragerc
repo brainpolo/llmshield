@@ -19,7 +19,7 @@ exclude_lines =
 show_missing = True
 skip_covered = True
 precision = 2
-fail_under = 95.0
+fail_under = 98.0
 
 # Add column settings for better terminal output
 format = text

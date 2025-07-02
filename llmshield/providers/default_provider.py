@@ -1,4 +1,17 @@
-"""Default provider for unknown/generic LLM functions."""
+"""Default provider for unknown/generic LLM functions.
+
+Description:
+    This module implements the default provider that serves as a fallback for
+    handling generic LLM functions. It attempts to handle unknown LLM APIs by
+    inspecting their parameter names and making reasonable assumptions about
+    how to prepare the parameters.
+
+Classes:
+    DefaultProvider: Fallback provider for generic LLM function handling
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 # Standard Library Imports
 from collections.abc import Callable

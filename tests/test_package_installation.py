@@ -1,8 +1,15 @@
-"""Tests to verify package builds correctly and all resources are accessible.
+"""Test package installation and resource accessibility.
 
-This test suite verifies that the package can be built, installed, and that
-all required data files are properly included and accessible. This catches
-packaging configuration issues that would only surface after installation.
+Description:
+    This test module verifies that the package can be built, installed, and
+    that all required data files are properly included and accessible. This
+    catches packaging configuration issues that would only surface after
+    installation.
+
+Test Classes:
+    - TestPackageInstallation: Tests package build and resource access
+
+Author: LLMShield by brainpolo, 2025
 """
 
 import subprocess
@@ -42,23 +49,23 @@ class TestPackageInstallation(unittest.TestCase):
 
         # Verify all expected data structures are populated
         self.assertGreater(
-            len(detector.cities),
+            len(detector.cache.cities),
             0,
             "Cities list should not be empty after loading cities.txt",
         )
         self.assertGreater(
-            len(detector.countries),
+            len(detector.cache.countries),
             0,
             "Countries list should not be empty after loading countries.txt",
         )
         self.assertGreater(
-            len(detector.organisations),
+            len(detector.cache.organisations),
             0,
             "Organisations list should not be empty after loading "
             "organisations.txt",
         )
         self.assertGreater(
-            len(detector.en_common_words),
+            len(detector.cache.english_corpus),
             0,
             "English corpus should not be empty after loading "
             "corpus/english.txt",

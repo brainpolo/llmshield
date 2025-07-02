@@ -1,4 +1,16 @@
-"""Base provider class for LLM API handling."""
+"""Base provider class for LLM API handling.
+
+Description:
+    This module defines the abstract base class for LLM providers. All provider
+    implementations must inherit from this class and implement the required
+    methods for parameter preparation and API compatibility checking.
+
+Classes:
+    BaseProvider: Abstract base class for LLM provider implementations
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 # Standard Library Imports
 from abc import ABC, abstractmethod

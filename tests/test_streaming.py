@@ -1,4 +1,16 @@
-"""Targeted streaming tests for missing coverage lines - highly optimized."""
+"""Test streaming functionality and chunk processing.
+
+Description:
+    This test module provides testing for streaming response handling,
+    including chunk processing, buffer management, and proper uncloaking
+    of streamed content from LLM providers.
+
+Test Classes:
+    - MockChatCompletionChunk: Mock OpenAI streaming chunk
+    - TestStreamingCoverage: Tests streaming response handling
+
+Author: LLMShield by brainpolo, 2025
+"""
 
 # Standard library Imports
 import unittest

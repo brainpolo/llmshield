@@ -1,12 +1,20 @@
-"""A simple LRU cache implementation using OrderedDict."""
+"""LRU cache implementation for entity maps.
+
+Description:
+    This module provides a lightweight Least Recently Used (LRU) cache
+    implementation used for storing entity mappings across conversation
+    turns. It enables efficient reuse of entity replacements in multi-turn
+    conversations.
+
+Classes:
+    LRUCache: Generic LRU cache with configurable capacity
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 # Standard Library Imports
 from collections import OrderedDict
-from typing import TypeVar
-
-# Type Variables
-K = TypeVar("K")
-V = TypeVar("V")
 
 
 class LRUCache[K, V]:

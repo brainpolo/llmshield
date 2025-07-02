@@ -25,18 +25,54 @@ generate-docs:
 tests:
 	python3.12 -m unittest discover -v
 
+# Rule to run tests on Python 3.13
+tests-py313:
+	python3.13 -m unittest discover -v
+
+# Rule to run tests on all supported Python versions
+test-all:
+	@echo "Testing with Python 3.12..."
+	python3.12 -m unittest discover -v
+	@echo "\nTesting with Python 3.13..."
+	python3.13 -m unittest discover -v
+
 # Rule to check the coverage of the package tests
 coverage:
 	coverage run -m unittest discover -v
 	coverage report
 
+# Rule to check coverage on Python 3.13
+coverage-py313:
+	python3.13 -m coverage run -m unittest discover -v
+	python3.13 -m coverage report
+
+# Rule to check coverage on all supported Python versions
+coverage-all:
+	@echo "Coverage with Python 3.12..."
+	coverage run -m unittest discover -v
+	coverage report
+	@echo "\nCoverage with Python 3.13..."
+	python3.13 -m coverage run -m unittest discover -v
+	python3.13 -m coverage report
+
 # Rule to build the package the same way as it would be built for distribution
 build:
-	python -m build
+	python3 -m build
 
 # Rule to verify package builds correctly and all resources are accessible
 verify-package:
 	python3.12 -m unittest tests.test_package_installation -v
+
+# Rule to verify package on Python 3.13
+verify-package-py313:
+	python3.13 -m unittest tests.test_package_installation -v
+
+# Rule to verify package on all supported Python versions
+verify-package-all:
+	@echo "Verifying package with Python 3.12..."
+	python3.12 -m unittest tests.test_package_installation -v
+	@echo "\nVerifying package with Python 3.13..."
+	python3.13 -m unittest tests.test_package_installation -v
 
 dev-dependencies:
 	pip install -e ".[dev]"
@@ -62,4 +98,4 @@ ruff-check:
 	ruff check llmshield/ tests/
 	ruff format llmshield/ tests/ --check
 
-.PHONY: docs-help generate-docs tests coverage doc-coverage ruff ruff-check verify-package Makefile
+.PHONY: docs-help generate-docs tests test-all coverage coverage-all build verify-package verify-package-all ruff ruff-check hooks dev-dependencies Makefile

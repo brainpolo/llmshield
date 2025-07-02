@@ -9,13 +9,16 @@ on:
 jobs:
   doc-coverage:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -36,21 +39,10 @@ jobs:
           fi
           echo "✅ Perfect docstring coverage achieved (0 issues)"
 
-      - name: Generate detailed docstring report
+      - name: Generate docstring summary
         if: always()
         run: |
-          # Create a detailed report of docstring issues
-          ruff check llmshield/ --select D --output-format=json > docstring-report.json || true
-
           # Display summary
-          echo "## Docstring Coverage Summary"
+          echo "## Docstring Coverage Summary - Python ${{ matrix.python-version }}"
           echo "Files checked: $(find llmshield -name '*.py' -not -path '*/tests/*' | wc -l)"
           echo "Docstring issues: $(ruff check llmshield/ --select D --quiet | wc -l || echo 0)"
-
-      - name: Upload docstring report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docstring-coverage-report
-          path: docstring-report.json
-          retention-days: 30

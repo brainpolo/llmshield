@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmshield"
-version = "0.0.9"
+version = "1.0.0"
 description = "Shields your confidential data from third party LLM providers."
 readme = "README.md"
 authors = [
@@ -28,6 +28,7 @@ Issues = "https://github.com/brainpolo/llmshield/issues"
 [tool.setuptools]
 packages = [
     "llmshield",
+    "llmshield.cache",
     "llmshield.matchers",
     "llmshield.matchers.dicts",
     "llmshield.matchers.dicts.corpus",

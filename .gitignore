@@ -19,6 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.ruff_cache/
 
 # Virtual Environment
 venv/
@@ -33,6 +34,8 @@ ENV/
 *.swo
 .DS_Store
 CLAUDE.md
+.cursorrules
+.claude
 
 # Testing
 .pytest_cache/

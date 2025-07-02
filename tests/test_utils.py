@@ -1,6 +1,18 @@
-"""Tests for utility functions in llmshield.utils.
+"""Test utility functions and helper methods.
 
-! Module is intended for internal use only.
+Description:
+    This test module provides testing for utility functions including
+    conversation hashing, entity wrapping, input processing, and various
+    helper functions used throughout the library.
+
+Test Classes:
+    - TestConversationHash: Tests conversation hashing functionality
+    - TestWrapEntity: Tests entity wrapping with delimiters
+    - TestUtils: Tests miscellaneous utility functions
+    - TestShouldCloakInput: Tests input cloaking logic
+    - TestProcessAskHelperInput: Tests input processing helpers
+
+Author: LLMShield by brainpolo, 2025
 """
 
 # Standard library Imports
@@ -57,8 +69,8 @@ class TestUtils(unittest.TestCase):
 
         # Test with multi-character delimiters
         self.assertEqual(
-            wrap_entity(EntityType.PHONE_NUMBER, 2, "[[", "]]"),
-            "[[PHONE_NUMBER_2]]",
+            wrap_entity(EntityType.PHONE, 2, "[[", "]]"),
+            "[[PHONE_2]]",
         )
 
     @parameterized.expand(

@@ -1,4 +1,16 @@
-"""List of functions-based matchers used to detect entities."""
+"""List of functions-based matchers used to detect entities.
+
+Description:
+    This module contains utility functions used for entity validation and
+    detection. Currently includes specialised validation algorithms such
+    as the Luhn check for credit card validation.
+
+Functions:
+    _luhn_check: Validates card numbers using the Luhn algorithm
+
+Author:
+    LLMShield by brainpolo, 2025
+"""
 
 
 def _luhn_check(card_number: str) -> bool:
