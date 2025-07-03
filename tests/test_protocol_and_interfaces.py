@@ -173,7 +173,7 @@ class TestProtocolAndInterfaces(unittest.TestCase):
             (123.45, False, "Float should not be cloaked"),
             (None, False, "None should not be cloaked"),
             (True, False, "Boolean should not be cloaked"),
-            (set([1, 2, 3]), False, "Set should not be cloaked"),
+            ({1, 2, 3}, False, "Set should not be cloaked"),
         ]
     )
     def test_should_cloak_input_non_cloak_types(
@@ -201,7 +201,7 @@ class TestProtocolAndInterfaces(unittest.TestCase):
                 # This code should not execute at runtime
                 # This import should not execute
                 raise AssertionError("TYPE_CHECKING should be False")
-            pass
+
         except ImportError:
             # This shouldn't happen since the import is conditional
             self.fail("Conditional import under TYPE_CHECKING failed")
@@ -220,16 +220,6 @@ class TestProtocolAndInterfaces(unittest.TestCase):
                 return {}
 
             # Missing model_validate method
-
-        class WrongSignatureImplementation:
-            """Class with wrong method signatures."""
-
-            def model_dump(self) -> str:  # Wrong return type
-                return "not a dict"
-
-            @classmethod
-            def model_validate(cls, data: str):  # Wrong parameter type
-                return cls()
 
         # Test incomplete implementation
         _ = IncompleteImplementation()  # Test incomplete implementation

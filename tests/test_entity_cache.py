@@ -82,132 +82,153 @@ class TestEntityDictionaryCache(unittest.TestCase):
     def test_double_checked_locking_init(self):
         """Test the double-checked locking pattern in __init__."""
         cache = EntityDictionaryCache()
+        cache._initialized = False
+        cache.__init__()
+        self.assertTrue(cache._initialized)
 
-        # Manually set _initialized to False to test the inner check
+    def test_double_checked_locking_race_condition(self):
+        """Test race condition in double-checked locking pattern."""
+        cache = EntityDictionaryCache()
+        init_count = 0
+
+        def counting_init(*args, **kwargs):
+            nonlocal init_count
+            if hasattr(cache, "_initialized") and cache._initialized:
+                return
+            time.sleep(0.001)
+            with cache._lock:
+                if cache._initialized:
+                    return
+                init_count += 1
+                cache._initialized = True
+
+        cache.__init__ = counting_init
         cache._initialized = False
 
-        # Call __init__ again - should set _initialized back to True
+        threads = [threading.Thread(target=cache.__init__) for _ in range(10)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(init_count, 1)
+        self.assertTrue(cache._initialized)
+
+    def test_init_race_condition_real(self):
+        """Test real race condition in __init__ to hit line 51."""
+        EntityDictionaryCache._instance = None
+        barrier = threading.Barrier(5)
+        instances = []
+
+        def create_with_delay():
+            barrier.wait()
+            instances.append(EntityDictionaryCache())
+
+        threads = [
+            threading.Thread(target=create_with_delay) for _ in range(5)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        # All should be same instance
+        self.assertTrue(all(inst is instances[0] for inst in instances))
+
+        # Test line 51 race condition
+        cache = instances[0]
+        cache._initialized = False
+
+        def set_initialized():
+            time.sleep(0.001)
+            with cache._lock:
+                cache._initialized = True
+
+        setter = threading.Thread(target=set_initialized)
+        setter.start()
         cache.__init__()
+        setter.join()
 
         self.assertTrue(cache._initialized)
+
+    def _mock_resource_file(self, mock_resources, content):
+        """Mock resource file loading."""
+        mock_file = mock_open(read_data=content)
+        mock_open_return = mock_file.return_value
+        (
+            mock_resources.files.return_value.joinpath.return_value.open.return_value
+        ) = mock_open_return
 
     @patch("llmshield.error_handling.resources")
     def test_cities_property_lazy_loading(self, mock_resources):
         """Test cities property with lazy loading."""
-        # Mock file content
-        mock_file = mock_open(read_data="london\nparis\nnew york\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "london\nparis\nnew york\n")
         cache = EntityDictionaryCache()
 
-        # First access should load
         cities = cache.cities
         self.assertIsInstance(cities, frozenset)
-        self.assertIn("london", cities)
-        self.assertIn("paris", cities)
-        self.assertIn("new york", cities)
-
-        # Second access should use cached version
-        cities2 = cache.cities
-        self.assertIs(cities, cities2)
+        self.assertEqual(cities, frozenset(["london", "paris", "new york"]))
+        self.assertIs(cities, cache.cities)  # Cached
 
     @patch("llmshield.error_handling.resources")
     def test_countries_property_lazy_loading(self, mock_resources):
         """Test countries property with lazy loading."""
-        mock_file = mock_open(read_data="united kingdom\nfrance\ncanada\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(
+            mock_resources, "united kingdom\nfrance\ncanada\n"
+        )
         cache = EntityDictionaryCache()
 
         countries = cache.countries
         self.assertIsInstance(countries, frozenset)
-        self.assertIn("united kingdom", countries)
-        self.assertIn("france", countries)
-        self.assertIn("canada", countries)
+        expected = frozenset(["united kingdom", "france", "canada"])
+        self.assertEqual(countries, expected)
 
     @patch("llmshield.error_handling.resources")
     def test_organisations_property_lazy_loading(self, mock_resources):
         """Test organisations property with lazy loading."""
-        mock_file = mock_open(read_data="microsoft\ngoogle\namazon\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "microsoft\ngoogle\namazon\n")
         cache = EntityDictionaryCache()
 
         organisations = cache.organisations
         self.assertIsInstance(organisations, frozenset)
-        self.assertIn("microsoft", organisations)
-        self.assertIn("google", organisations)
-        self.assertIn("amazon", organisations)
+        expected = frozenset(["microsoft", "google", "amazon"])
+        self.assertEqual(organisations, expected)
 
     @patch("llmshield.error_handling.resources")
     def test_english_corpus_property_lazy_loading(self, mock_resources):
         """Test english_corpus property with lazy loading."""
-        mock_file = mock_open(read_data="the\nand\nof\nto\na\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "the\nand\nof\nto\na\n")
         cache = EntityDictionaryCache()
 
         corpus = cache.english_corpus
         self.assertIsInstance(corpus, frozenset)
-        self.assertIn("the", corpus)
-        self.assertIn("and", corpus)
-        self.assertIn("of", corpus)
+        self.assertTrue({"the", "and", "of"}.issubset(corpus))
 
     @patch("llmshield.error_handling.resources")
     def test_get_all_places(self, mock_resources):
         """Test get_all_places method."""
-        mock_file = mock_open(read_data="london\nparis\nuk\nfrance\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "london\nparis\nuk\nfrance\n")
         cache = EntityDictionaryCache()
 
         all_places = cache.get_all_places()
-
-        # Should contain both cities and countries
-        self.assertIn("london", all_places)
-        self.assertIn("paris", all_places)
-        self.assertIn("uk", all_places)
-        self.assertIn("france", all_places)
+        expected = frozenset(["london", "paris", "uk", "france"])
+        self.assertEqual(all_places, expected)
 
     @patch("llmshield.error_handling.resources")
     def test_is_place_method(self, mock_resources):
         """Test is_place method."""
-        mock_file = mock_open(read_data="london\nparis\nuk\nfrance\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "london\nparis\nuk\nfrance\n")
         cache = EntityDictionaryCache()
 
-        # Test city lookup
-        self.assertTrue(cache.is_place("london"))
-        self.assertTrue(cache.is_place("paris"))
-
-        # Test country lookup
-        self.assertTrue(cache.is_place("uk"))
-        self.assertTrue(cache.is_place("france"))
-
-        # Test non-place
+        # Test places
+        for place in ["london", "paris", "uk", "france"]:
+            self.assertTrue(cache.is_place(place))
         self.assertFalse(cache.is_place("notaplace"))
 
     @patch("llmshield.error_handling.resources")
     def test_is_organisation_method(self, mock_resources):
         """Test is_organisation method."""
-        mock_file = mock_open(read_data="microsoft\ngoogle\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "microsoft\ngoogle\n")
         cache = EntityDictionaryCache()
 
         self.assertTrue(cache.is_organisation("microsoft"))
@@ -217,114 +238,74 @@ class TestEntityDictionaryCache(unittest.TestCase):
     @patch("llmshield.error_handling.resources")
     def test_is_english_word_method(self, mock_resources):
         """Test is_english_word method."""
-        mock_file = mock_open(read_data="the\nand\nof\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "the\nand\nof\n")
         cache = EntityDictionaryCache()
 
-        self.assertTrue(cache.is_english_word("the"))
-        self.assertTrue(cache.is_english_word("and"))
+        for word in ["the", "and"]:
+            self.assertTrue(cache.is_english_word(word))
         self.assertFalse(cache.is_english_word("notaword"))
 
     @patch("llmshield.error_handling.resources")
     def test_preload_all_method(self, mock_resources):
         """Test preload_all method."""
-        mock_file = mock_open(read_data="test\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "test\n")
         cache = EntityDictionaryCache()
 
-        # All should be None initially
-        self.assertIsNone(cache._cities)
-        self.assertIsNone(cache._countries)
-        self.assertIsNone(cache._organisations)
-        self.assertIsNone(cache._english_corpus)
+        # Verify all are None initially
+        attrs = ["_cities", "_countries", "_organisations", "_english_corpus"]
+        self.assertTrue(all(getattr(cache, attr) is None for attr in attrs))
 
-        # Preload all
         cache.preload_all()
 
         # All should be loaded now
-        self.assertIsNotNone(cache._cities)
-        self.assertIsNotNone(cache._countries)
-        self.assertIsNotNone(cache._organisations)
-        self.assertIsNotNone(cache._english_corpus)
+        loaded = all(getattr(cache, attr) is not None for attr in attrs)
+        self.assertTrue(loaded)
 
     @patch("llmshield.error_handling.resources")
     def test_get_memory_stats_empty(self, mock_resources):
         """Test get_memory_stats when nothing is loaded."""
         cache = EntityDictionaryCache()
-
-        stats = cache.get_memory_stats()
-
-        # Should be empty since nothing is loaded
-        self.assertEqual(stats, {})
+        self.assertEqual(cache.get_memory_stats(), {})
 
     @patch("llmshield.error_handling.resources")
     def test_get_memory_stats_partial(self, mock_resources):
         """Test get_memory_stats with partial loading."""
-        mock_file = mock_open(read_data="item1\nitem2\nitem3\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "item1\nitem2\nitem3\n")
         cache = EntityDictionaryCache()
 
-        # Load only cities
-        _ = cache.cities
-
+        _ = cache.cities  # Load only cities
         stats = cache.get_memory_stats()
 
-        # Should only have cities
-        self.assertIn("cities", stats)
-        self.assertEqual(stats["cities"], 3)
-        self.assertNotIn("countries", stats)
-        self.assertNotIn("organisations", stats)
-        self.assertNotIn("english_corpus", stats)
+        self.assertEqual(stats, {"cities": 3})
 
     @patch("llmshield.error_handling.resources")
     def test_get_memory_stats_full(self, mock_resources):
         """Test get_memory_stats with full loading."""
-        mock_file = mock_open(read_data="item1\nitem2\n")
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
-
+        self._mock_resource_file(mock_resources, "item1\nitem2\n")
         cache = EntityDictionaryCache()
 
-        # Load all
         cache.preload_all()
-
         stats = cache.get_memory_stats()
 
-        # Should have all dictionaries
-        self.assertIn("cities", stats)
-        self.assertIn("countries", stats)
-        self.assertIn("organisations", stats)
-        self.assertIn("english_corpus", stats)
-
         # Should have all dictionaries loaded
+        expected_keys = {
+            "cities",
+            "countries",
+            "organisations",
+            "english_corpus",
+        }
+        self.assertEqual(set(stats.keys()), expected_keys)
         self.assertEqual(len(stats), 4)
 
     @patch("llmshield.error_handling.resources")
     def test_load_dict_file_with_comments(self, mock_resources):
         """Test _load_dict_file handles comments and empty lines."""
-        mock_file = mock_open(
-            read_data="# This is a comment\nitem1\n\n"
-            "# Another comment\nitem2\n\n"
-        )
-        (
-            mock_resources.files.return_value.joinpath.return_value.open.return_value
-        ) = mock_file.return_value
+        content = "# This is a comment\nitem1\n\n# Another comment\nitem2\n\n"
+        self._mock_resource_file(mock_resources, content)
 
         cache = EntityDictionaryCache()
-
         result = cache._load_dict_file("test.txt")
 
-        # Should only contain actual items, not comments or empty lines
         self.assertEqual(result, frozenset(["item1", "item2"]))
 
     @patch("llmshield.error_handling.resources")

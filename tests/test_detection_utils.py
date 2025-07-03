@@ -16,7 +16,9 @@ import unittest
 from unittest.mock import Mock
 
 from llmshield.detection_utils import (
+    extract_anthropic_content,
     extract_chatcompletion_content,
+    is_anthropic_message_like,
     is_chatcompletion_like,
 )
 
@@ -40,88 +42,63 @@ class TestDetectionUtils(unittest.TestCase):
 
     def test_is_chatcompletion_like_invalid(self):
         """Test is_chatcompletion_like with invalid objects."""
-        # Missing choices
-        obj = Mock()
-        obj.model = "gpt-4"
-        delattr(obj, "choices")
-        self.assertFalse(is_chatcompletion_like(obj))
+        # Test missing attributes
+        for attrs in [{"model": "gpt-4"}, {"choices": []}]:
+            obj = Mock(**attrs)
+            for attr in ["choices", "model"]:
+                if attr not in attrs:
+                    delattr(obj, attr)
+            self.assertFalse(is_chatcompletion_like(obj))
 
-        # Missing model
-        obj = Mock()
-        obj.choices = []
-        delattr(obj, "model")
-        self.assertFalse(is_chatcompletion_like(obj))
-
-        # Non-object types
-        self.assertFalse(is_chatcompletion_like("string"))
-        self.assertFalse(is_chatcompletion_like(123))
-        self.assertFalse(is_chatcompletion_like(None))
-        self.assertFalse(is_chatcompletion_like([]))
-        self.assertFalse(is_chatcompletion_like({}))
+        # Test non-object types
+        for invalid in ["string", 123, None, [], {}]:
+            self.assertFalse(is_chatcompletion_like(invalid))
 
     def test_extract_chatcompletion_content_valid(self):
         """Test extract_chatcompletion_content with valid content."""
         # Regular message content
-        message = Mock(content="Hello world")
-        choice = Mock(message=message)
-        obj = Mock(choices=[choice], model="gpt-4")
-
-        content = extract_chatcompletion_content(obj)
-        self.assertEqual(content, "Hello world")
+        obj = Mock(
+            choices=[Mock(message=Mock(content="Hello world"))], model="gpt-4"
+        )
+        self.assertEqual(extract_chatcompletion_content(obj), "Hello world")
 
         # Streaming delta content
-        delta = Mock(content="Streaming content")
-        choice = Mock(delta=delta)
+        choice = Mock(delta=Mock(content="Streaming content"))
         delattr(choice, "message")
         obj = Mock(choices=[choice], model="gpt-4")
-
         content = extract_chatcompletion_content(obj)
         self.assertEqual(content, "Streaming content")
 
     def test_extract_chatcompletion_content_none(self):
         """Test extract_chatcompletion_content with None content."""
-        # None content in message
-        message = Mock(content=None)
-        choice = Mock(message=message)
-        obj = Mock(choices=[choice], model="gpt-4")
-
-        content = extract_chatcompletion_content(obj)
-        self.assertIsNone(content)
-
-        # None content in delta
-        delta = Mock(content=None)
-        choice = Mock(delta=delta)
-        delattr(choice, "message")
-        obj = Mock(choices=[choice], model="gpt-4")
-
-        content = extract_chatcompletion_content(obj)
-        self.assertIsNone(content)
+        # Test None content in both message and delta
+        for attr_name in ["message", "delta"]:
+            choice = Mock(**{attr_name: Mock(content=None)})
+            if attr_name == "delta":
+                delattr(choice, "message")
+            obj = Mock(choices=[choice], model="gpt-4")
+            self.assertIsNone(extract_chatcompletion_content(obj))
 
     def test_extract_chatcompletion_content_invalid(self):
         """Test extract_chatcompletion_content with invalid objects."""
-        # Not ChatCompletion-like
-        obj = Mock()
-        delattr(obj, "model")
-        content = extract_chatcompletion_content(obj)
-        self.assertIsNone(content)
+        test_cases = [
+            Mock(),  # Missing model attribute
+            Mock(choices=[], model="gpt-4"),  # Empty choices
+            Mock(choices=[Mock()], model="gpt-4"),  # No message/delta
+            "string",
+            123,
+            None,  # Non-object types
+        ]
 
-        # Empty choices
-        obj = Mock(choices=[], model="gpt-4")
-        content = extract_chatcompletion_content(obj)
-        self.assertIsNone(content)
+        # Cleanup Mock objects
+        if hasattr(test_cases[0], "model"):
+            delattr(test_cases[0], "model")
+        for attr in ["message", "delta"]:
+            if hasattr(test_cases[2].choices[0], attr):
+                delattr(test_cases[2].choices[0], attr)
 
-        # Choice without message or delta
-        choice = Mock()
-        delattr(choice, "message")
-        delattr(choice, "delta")
-        obj = Mock(choices=[choice], model="gpt-4")
-        content = extract_chatcompletion_content(obj)
-        self.assertIsNone(content)
-
-        # Non-object types
-        self.assertIsNone(extract_chatcompletion_content("string"))
-        self.assertIsNone(extract_chatcompletion_content(123))
-        self.assertIsNone(extract_chatcompletion_content(None))
+        for obj in test_cases:
+            self.assertIsNone(extract_chatcompletion_content(obj))
 
     def test_extract_chatcompletion_content_missing_attributes(self):
         """Test extract_chatcompletion_content with missing attributes."""
@@ -155,6 +132,25 @@ class TestDetectionUtils(unittest.TestCase):
 
         content = extract_chatcompletion_content(obj)
         self.assertIsNone(content)
+
+    def test_extract_anthropic_content_attribute_error(self):
+        """Test extract_anthropic_content with AttributeError."""
+
+        class BadAnthropicMessage:
+            role = "assistant"
+            model = "claude-3"
+            content = None
+
+            def __getattribute__(self, name):
+                if name == "content" and hasattr(self, "_accessing_content"):
+                    raise AttributeError("content attribute error")
+                return object.__getattribute__(self, name)
+
+        bad_msg = BadAnthropicMessage()
+        self.assertTrue(is_anthropic_message_like(bad_msg))
+
+        bad_msg._accessing_content = True
+        self.assertIsNone(extract_anthropic_content(bad_msg))
 
 
 if __name__ == "__main__":

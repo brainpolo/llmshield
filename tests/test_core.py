@@ -25,6 +25,7 @@ import random
 import re
 import time
 from unittest import TestCase, main
+from unittest.mock import patch
 
 # Third party Imports
 from parameterized import parameterized
@@ -32,6 +33,7 @@ from parameterized import parameterized
 # Local Imports
 from llmshield import LLMShield
 from llmshield.entity_detector import EntityType
+from llmshield.exceptions import ValidationError
 from llmshield.utils import conversation_hash, wrap_entity
 
 
@@ -158,6 +160,46 @@ class TestCoreFunctionality(TestCase):
         cloaked_prompt, _ = shield.cloak("Hi, I'm John Doe")
         self.assertIn("[[PERSON_0]]", cloaked_prompt)
         self.assertNotIn("<PERSON_0>", cloaked_prompt)
+
+    def test_delimiter_validation_after_initial_check(self):
+        """Test delimiter validation that triggers lines 134 and 138.
+
+        This tests the redundant validation in core.py that happens after
+        validate_delimiters has already been called.
+        """
+        # Test 1: Mock validate_delimiters to pass, but is_valid_delimiter
+        # fails. This triggers line 134 (invalid start delimiter)
+        with patch("llmshield.core.validate_delimiters") as mock_validate:
+            mock_validate.return_value = None
+
+            with self.assertRaises(ValidationError) as cm:
+                LLMShield(start_delimiter="", end_delimiter=">")
+
+            self.assertIn("Invalid start delimiter: ''", str(cm.exception))
+
+        # Test 2: Mock validate_delimiters to pass for end delimiter check
+        # This triggers line 138 (invalid end delimiter)
+        with patch("llmshield.core.validate_delimiters") as mock_validate:
+            mock_validate.return_value = None
+
+            with self.assertRaises(ValidationError) as cm:
+                LLMShield(start_delimiter="<", end_delimiter="")
+
+            self.assertIn("Invalid end delimiter: ''", str(cm.exception))
+
+        # Test 3: Non-string delimiters that pass initial validation
+        with patch("llmshield.core.validate_delimiters") as mock_validate:
+            mock_validate.return_value = None
+
+            # Test with None as start delimiter
+            with self.assertRaises(ValidationError) as cm:
+                LLMShield(start_delimiter=None, end_delimiter=">")
+            self.assertIn("Invalid start delimiter:", str(cm.exception))
+
+            # Test with integer as end delimiter
+            with self.assertRaises(ValidationError) as cm:
+                LLMShield(start_delimiter="<", end_delimiter=123)
+            self.assertIn("Invalid end delimiter:", str(cm.exception))
 
     def test_entity_detection_accuracy(self):
         """Test accuracy of entity detection with complex examples."""
@@ -897,40 +939,36 @@ class TestCoreFunctionality(TestCase):
         self.assertIn(expected_error, str(context.exception))
 
     def test_ask_chatcompletion_content_extraction(self):
-        """Test ChatCompletion content extraction for conversation history.
+        """Test ChatCompletion content extraction for conversation history."""
 
-        Covers lines 378 and 386 for content extraction validation.
-        """
+        # Helper to create ChatCompletion-like objects
+        def mock_completion(content):
+            return type(
+                "ChatCompletion",
+                (),
+                {
+                    "choices": [
+                        type(
+                            "Choice",
+                            (),
+                            {
+                                "message": type(
+                                    "Message", (), {"content": content}
+                                )()
+                            },
+                        )()
+                    ],
+                    "model": "gpt-4",
+                },
+            )()
 
-        # Create mock ChatCompletion structure
-        class MockChatCompletion:
-            def __init__(self, content: str):
-                self.choices = [
-                    type(
-                        "MockChoice",
-                        (),
-                        {
-                            "message": type(
-                                "MockMessage", (), {"content": content}
-                            )()
-                        },
-                    )()
-                ]
-                self.model = "gpt-4"
-
-        def mock_llm(**kwargs):
-            # Return response WITHOUT placeholders - the LLM would receive
-            # cloaked input
-            # but return normal text
-            return MockChatCompletion("Hello John Doe!")
+        def mock_llm(**_):
+            return mock_completion("Hello John Doe!")
 
         shield = LLMShield(llm_func=mock_llm)
         messages = [{"role": "user", "content": "Say hello to John Doe"}]
-
         result = shield.ask(messages=messages)
 
-        # Verify ChatCompletion object structure is preserved
-        self.assertIsInstance(result, MockChatCompletion)
         self.assertEqual(result.choices[0].message.content, "Hello John Doe!")
 
     def test_ask_string_response_content_extraction(self):

@@ -646,6 +646,39 @@ class TestUnclokResponse(unittest.TestCase):
                         if key in item:
                             self.assertIn(key, item)
 
+    def test_uncloak_anthropic_message(self):
+        """Test uncloaking Anthropic Message object."""
+
+        def create_anthropic_message(content):
+            return type(
+                "AnthropicMessage",
+                (),
+                {
+                    "id": "msg_test",
+                    "type": "message",
+                    "role": "assistant",
+                    "content": content,
+                    "model": "claude-3",
+                    "stop_reason": "end_turn",
+                },
+            )()
+
+        # Test string content
+        msg = create_anthropic_message("Hello <PERSON_0> from <PLACE_0>")
+        result = _uncloak_response(msg, self.entity_map)
+        self.assertEqual(result.content, "Hello John Doe from New York")
+
+        # Test list content blocks
+        msg = create_anthropic_message(
+            [
+                {"type": "text", "text": "Hello <PERSON_0>"},
+                {"type": "text", "text": "Visit <PLACE_0>"},
+            ]
+        )
+        result = _uncloak_response(msg, self.entity_map)
+        self.assertEqual(result.content[0]["text"], "Hello John Doe")
+        self.assertEqual(result.content[1]["text"], "Visit New York")
+
 
 if __name__ == "__main__":
     unittest.main()

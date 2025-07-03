@@ -22,7 +22,7 @@ from llmshield.utils import conversation_hash
 class TestAnthropicToolResults(unittest.TestCase):
     """Test Anthropic tool result message handling."""
 
-    def test_validate_messages_with_list_content(self):
+    def test_validate_messages_with_list_content(self):  # skipcq: PYL-R0201
         """Test validation accepts list content for tool results."""
         messages = [
             {"role": "user", "content": "What's the weather?"},

@@ -14,17 +14,12 @@ Author:
     LLMShield by brainpolo, 2025
 """
 
-import logging
+# Standard Library Imports
 from importlib import resources
 from typing import Any
 
+# Local Imports
 from .exceptions import ResourceLoadError, ValidationError
-
-# Configure logger
-logger = logging.getLogger(__name__)
-
-# Maximum allowed prompt length (1 million characters)
-MAX_PROMPT_LENGTH = 1_000_000
 
 
 def validate_prompt_input(
@@ -76,16 +71,17 @@ def _validate_multiple_inputs(
             "Do not provide both 'prompt' and 'message'. Use only "
             "'prompt' parameter - it will be passed to your LLM function."
         )
-    elif messages is not None and (prompt is not None or message is not None):
+
+    if messages is not None and (prompt is not None or message is not None):
         raise ValidationError(
             "Do not provide both 'prompt', 'message' and 'messages'. Use "
             "only either prompt/message or messages parameter - it will "
             "be passed to your LLM function."
         )
-    else:
-        raise ValidationError(
-            "Only one of 'prompt', 'message', or 'messages' can be provided"
-        )
+
+    raise ValidationError(
+        "Only one of 'prompt', 'message', or 'messages' can be provided"
+    )
 
 
 def _validate_string_input(value: str, name: str) -> None:
@@ -93,10 +89,6 @@ def _validate_string_input(value: str, name: str) -> None:
     if not isinstance(value, str):
         raise ValidationError(
             f"{name} must be string, got {type(value).__name__}"
-        )
-    if len(value) > MAX_PROMPT_LENGTH:
-        raise ValidationError(
-            f"{name} too long: {len(value)} > {MAX_PROMPT_LENGTH}"
         )
 
 
@@ -240,9 +232,6 @@ def safe_resource_load(
             f"{package}/{resource_name}"
         ) from None
     except Exception as e:
-        logger.error(
-            f"{operation_name} failed for {package}/{resource_name}: {e}"
-        )
         raise ResourceLoadError(
             f"{operation_name} failed: {package}/{resource_name} - {e}"
         ) from e

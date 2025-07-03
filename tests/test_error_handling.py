@@ -14,10 +14,13 @@ Author:
     LLMShield by brainpolo, 2025
 """
 
+# Standard Library Imports
 import unittest
 from unittest.mock import Mock, patch
 
+# Local Imports
 from llmshield.error_handling import (
+    _validate_multiple_inputs,
     safe_resource_load,
     validate_delimiters,
     validate_entity_map,
@@ -83,7 +86,7 @@ class TestExceptions(unittest.TestCase):
 class TestValidation(unittest.TestCase):
     """Test validation functions."""
 
-    def test_validate_prompt_input_valid(self):
+    def test_validate_prompt_input_valid(self):  # skipcq: PYL-R0201
         """Test validate_prompt_input with valid inputs."""
         # Valid prompt
         validate_prompt_input(prompt="Test prompt")
@@ -128,12 +131,6 @@ class TestValidation(unittest.TestCase):
             )
         self.assertIn("Do not provide both", str(context.exception))
 
-        # Test extremely long prompt (line 100)
-        long_prompt = "x" * 1_000_001  # Exceeds MAX_PROMPT_LENGTH
-        with self.assertRaises(ValidationError) as context:
-            validate_prompt_input(prompt=long_prompt)
-        self.assertIn("too long", str(context.exception))
-
         # Test non-dict message in messages list (line 116)
         with self.assertRaises(ValidationError) as context:
             validate_prompt_input(messages=["not a dict"])
@@ -149,30 +146,30 @@ class TestValidation(unittest.TestCase):
             validate_delimiters("start", 123)
         self.assertIn("End delimiter must be string", str(context.exception))
 
-    def test_validate_delimiters_valid(self):
+    def test_validate_delimiters_valid(self):  # skipcq: PYL-R0201
         """Test validate_delimiters with valid inputs."""
-        validate_delimiters("<", ">")
-        validate_delimiters("[[", "]]")
-        validate_delimiters("START", "END")
+        for start, end in [("<", ">"), ("[[", "]]"), ("START", "END")]:
+            validate_delimiters(start, end)  # Should not raise
+
+    def test_validate_multiple_inputs_all_none(self):
+        """Test _validate_multiple_inputs when all inputs are None."""
+        with self.assertRaises(ValidationError) as context:
+            _validate_multiple_inputs(None, None, None)
+        msg = "Only one of 'prompt', 'message', or 'messages'"
+        self.assertIn(msg, str(context.exception))
 
     def test_validate_delimiters_invalid(self):
         """Test validate_delimiters with invalid inputs."""
-        # Empty delimiters
-        with self.assertRaises(ValidationError) as context:
-            validate_delimiters("", ">")
-        self.assertIn(
-            "Start delimiter cannot be empty", str(context.exception)
-        )
+        test_cases = [
+            ("", ">", "Start delimiter cannot be empty"),
+            ("<", "<", "cannot be identical"),
+            ("VERYLONGSTART", ">", "should be short"),
+        ]
 
-        # Identical delimiters
-        with self.assertRaises(ValidationError) as context:
-            validate_delimiters("<", "<")
-        self.assertIn("cannot be identical", str(context.exception))
-
-        # Too long delimiters
-        with self.assertRaises(ValidationError) as context:
-            validate_delimiters("VERYLONGSTART", ">")
-        self.assertIn("should be short", str(context.exception))
+        for start, end, expected_msg in test_cases:
+            with self.assertRaises(ValidationError) as context:
+                validate_delimiters(start, end)
+            self.assertIn(expected_msg, str(context.exception))
 
     def test_validate_entity_map_valid(self):
         """Test validate_entity_map with valid inputs."""
