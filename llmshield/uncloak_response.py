@@ -107,9 +107,7 @@ def _uncloak_complex_types(response: Any, entity_map: dict[str, str]) -> Any:
 
 
 # skipcq: PYL-R1000
-def _uncloak_chatcompletion(
-    response: Any, entity_map: dict[str, str]
-) -> Any:
+def _uncloak_chatcompletion(response: Any, entity_map: dict[str, str]) -> Any:
     """Handle uncloaking for ChatCompletion objects."""
     response_copy = copy.deepcopy(response)
 

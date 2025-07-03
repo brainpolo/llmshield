@@ -145,7 +145,6 @@ class EntityDictionaryCache:
         """Load English corpus from resource file."""
         return self._load_dict_file("corpus/english.txt")
 
-
     # skipcq: PYL-R0201
     def _load_dict_file(self, filename: str) -> frozenset[str]:
         """Load and process dictionary files.
