@@ -151,7 +151,7 @@ class TestEntityDictionaryCache(unittest.TestCase):
 
         self.assertTrue(cache._initialized)
 
-    def _mock_resource_file(self, mock_resources, content):
+    def _mock_resource_file(self, mock_resources, content):  # skipcq: PY-R0201
         """Mock resource file loading."""
         mock_file = mock_open(read_data=content)
         mock_open_return = mock_file.return_value

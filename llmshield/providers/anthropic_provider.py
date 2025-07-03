@@ -121,10 +121,8 @@ class AnthropicProvider(BaseLLMProvider):
 
         return converted_messages
 
-    def _parse_tool_arguments(
-        self,
-        arguments: str,
-    ) -> dict:  # skipcq: PYL-R0201
+    # skipcq: PYL-R0201
+    def _parse_tool_arguments(self, arguments: str) -> dict:
         """Parse tool arguments from JSON string to dict."""
         try:
             return json.loads(arguments) if arguments else {}
