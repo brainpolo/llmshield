@@ -75,7 +75,7 @@ verify-package-all:
 	python3.13 -m unittest tests.test_package_installation -v
 
 dev-dependencies:
-	pip install -e ".[dev]"
+	pip install -e ".[dev,corpus-spanish,corpus-all]"
 
 hooks:
 	pre-commit install

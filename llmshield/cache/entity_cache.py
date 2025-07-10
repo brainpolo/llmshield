@@ -19,6 +19,8 @@ Author:
 
 import threading
 
+from llmshield.cache.loader import loader
+
 from ..error_handling import safe_resource_load
 
 
@@ -54,6 +56,7 @@ class EntityDictionaryCache:
             self._countries: frozenset[str] | None = None
             self._organisations: frozenset[str] | None = None
             self._english_corpus: frozenset[str] | None = None
+            self._composite_corpus: frozenset[str] | None = None
             self._initialized = True
 
     @property
@@ -92,6 +95,17 @@ class EntityDictionaryCache:
                     self._english_corpus = self._load_english_corpus()
         return self._english_corpus
 
+    @property
+    def composite_corpus(self) -> frozenset[str]:
+        """Get the corpus from the other languages."""
+        if self._composite_corpus is None:
+            with self._lock:
+                if self._composite_corpus is None:
+                    self._composite_corpus = self._load_all_corpuses()
+        return (
+            self._composite_corpus if self._composite_corpus else frozenset()
+        )
+
     def get_all_places(self) -> frozenset[str]:
         """Get combined cities and countries set."""
         return self.cities | self.countries
@@ -107,6 +121,10 @@ class EntityDictionaryCache:
     def is_english_word(self, text_lower: str) -> bool:
         """O(1) lookup for English words."""
         return text_lower in self.english_corpus
+
+    def is_foreign_word(self, text_lower: str) -> bool:
+        """O(1) lookup for foreign words in the composite corpus."""
+        return text_lower in self.composite_corpus
 
     def preload_all(self) -> None:
         """Preload all dictionaries for optimal performance."""
@@ -127,6 +145,8 @@ class EntityDictionaryCache:
             stats["organisations"] = len(self._organisations)
         if self._english_corpus is not None:
             stats["english_corpus"] = len(self._english_corpus)
+        if self._composite_corpus is not None:
+            stats["composite_corpus"] = len(self._composite_corpus)
         return stats
 
     def _load_cities(self) -> frozenset[str]:
@@ -144,6 +164,25 @@ class EntityDictionaryCache:
     def _load_english_corpus(self) -> frozenset[str]:
         """Load English corpus from resource file."""
         return self._load_dict_file("corpus/english.txt")
+
+    def _load_all_corpuses(self) -> frozenset[str] | None:
+        """Load all corpuses containing all of the words from the additional non-English language packs."""
+        corpus_frozenset: frozenset[str] = frozenset()
+
+        for lang in loader.get_available_languages():
+            try:
+                imported_frozenset = frozenset(
+                    entry.lower()
+                    for entry in safe_resource_load(
+                        "llmshield_" + lang + "_corpus",
+                        str(lang + ".txt"),
+                        f"Loading {lang} corpus",
+                    )
+                )
+                corpus_frozenset = corpus_frozenset | imported_frozenset
+            except ImportError:
+                continue
+            return corpus_frozenset if not corpus_frozenset else None
 
     # skipcq: PYL-R0201
     def _load_dict_file(self, filename: str) -> frozenset[str]:
