@@ -52,7 +52,6 @@ packages = [
     ".mypy_cache/*",
     "build/*",
     "dist/*",
-    "*.egg-info",
     "Makefile",
 ]
 
