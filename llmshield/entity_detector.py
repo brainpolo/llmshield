@@ -526,6 +526,7 @@ class EntityDetector:
             if (
                 not clean_word[0].isupper()
                 or self.cache.is_english_word(clean_word.lower())
+                or self.cache.is_foreign_word(clean_word.lower())
                 or any(c.isdigit() for c in clean_word)
             ):
                 return False

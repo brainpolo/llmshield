@@ -52,7 +52,6 @@ packages = [
     ".mypy_cache/*",
     "build/*",
     "dist/*",
-    "*.egg-info",
     "Makefile",
 ]
 
@@ -108,3 +107,5 @@ dev = [
     "openai>=1.83.0",         # For testing with OpenAI-compatible providers
     "twine>=6.1.0",           # Package uploading to PyPI
 ]
+corpus-spanish = ["llmshield-spanish-corpus"]
+corpus-all = ["llmshield-spanish-corpus"] # Should be updated when we expand to more languages.

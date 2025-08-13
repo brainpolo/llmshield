@@ -28,7 +28,7 @@ from unittest import TestCase, main
 from unittest.mock import patch
 
 # Third party Imports
-from parameterized import parameterized
+from parameterized import parameterized  # type: ignore
 
 # Local Imports
 from llmshield import LLMShield
