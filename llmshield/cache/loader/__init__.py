@@ -1,1 +1,1 @@
-""" "Corpus loader that works with separate language packages."""
+""" "Corpus loader that works with separate language packages."""  # noqa: D210

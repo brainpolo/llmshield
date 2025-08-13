@@ -165,8 +165,9 @@ class EntityDictionaryCache:
         """Load English corpus from resource file."""
         return self._load_dict_file("corpus/english.txt")
 
-    def _load_all_corpuses(self) -> frozenset[str] | None:
-        """Load all corpuses containing all of the words from the additional non-English language packs."""
+    @staticmethod
+    def _load_all_corpuses() -> frozenset[str] | None:
+        """Load all corpuses containing all of the words from the additional non-English language packs."""  # noqa: E501
         corpus_frozenset: frozenset[str] = frozenset()
 
         for lang in loader.get_available_languages():
@@ -175,14 +176,15 @@ class EntityDictionaryCache:
                     entry.lower()
                     for entry in safe_resource_load(
                         "llmshield_" + lang + "_corpus",
-                        str(lang + ".txt"),
+                        f"data/{lang}.txt",
                         f"Loading {lang} corpus",
                     )
                 )
                 corpus_frozenset = corpus_frozenset | imported_frozenset
             except ImportError:
                 continue
-            return corpus_frozenset if not corpus_frozenset else None
+
+        return corpus_frozenset if corpus_frozenset else None
 
     # skipcq: PYL-R0201
     def _load_dict_file(self, filename: str) -> frozenset[str]:

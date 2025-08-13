@@ -11,11 +11,11 @@ def get_available_languages() -> list[str]:
 
     """
     available = []
-    common_languages = ["spanish"]  # TODO: Add more languages as needed
+    common_languages = ["spanish"]
 
     for lang in common_languages:
         try:
-            importlib.import_module(f"llmshield_corpus_{lang}")
+            importlib.import_module(f"llmshield_{lang}_corpus")
             available.append(lang)
         except ImportError:
             continue
