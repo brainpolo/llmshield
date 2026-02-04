@@ -103,6 +103,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test cache eviction behavior with size 1."""
 
         def mock_llm(**kwargs):
+            """Mock LLM function that returns a dummy response."""
             return "response"
 
         shield = LLMShield(llm_func=mock_llm, max_cache_size=1)
@@ -204,6 +205,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test conversation flow with edge cases."""
 
         def mock_llm(**kwargs):
+            """Mock LLM function that echoes the last message content."""
             return f"Response to: {kwargs.get('messages', [])[-1]['content']}"
 
         shield = LLMShield(llm_func=mock_llm)
@@ -214,6 +216,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test long conversation separately due to complexity."""
 
         def mock_llm(**kwargs):
+            """Mock LLM function that echoes the last message content."""
             return f"Response to: {kwargs.get('messages', [])[-1]['content']}"
 
         shield = LLMShield(llm_func=mock_llm)
@@ -235,6 +238,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test handling of malformed inputs."""
 
         def mock_llm(**kwargs):
+            """Mock LLM function that returns a static response."""
             return "response"
 
         shield = LLMShield(llm_func=mock_llm)
@@ -264,6 +268,7 @@ class TestEdgeCases(unittest.TestCase):
         """Test behavior under simulated concurrent usage."""
 
         def mock_llm(**kwargs):
+            """Mock LLM function that returns a static response."""
             return "response"
 
         shield = LLMShield(llm_func=mock_llm)

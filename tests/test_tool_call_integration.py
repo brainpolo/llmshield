@@ -23,6 +23,7 @@ class TestToolCallIntegration(unittest.TestCase):
         llm_received = []
 
         def mock_llm(**kwargs):
+            """Mock LLM function that captures input and returns tool calls."""
             # Capture what LLM receives
             messages = kwargs.get("messages", [])
             llm_received.append(messages)
@@ -129,6 +130,7 @@ class TestToolCallIntegration(unittest.TestCase):
         call_count = 0
 
         def mock_llm(**kwargs):
+            """Mock LLM function for multi-turn tool call simulation."""
             nonlocal call_count
             call_count += 1
 

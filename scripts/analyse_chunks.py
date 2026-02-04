@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from llmshield import LLMShield
+from llmshield import LLMShield  # skipcq: FLK-E402
 
 
 def analyse_in_chunks(file_path: str, chunk_size: int = 50000):

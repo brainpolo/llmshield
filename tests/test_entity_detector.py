@@ -135,7 +135,7 @@ class TestEntityDetector(unittest.TestCase):
             ("regular_name", "John Smith", False),
             ("google_inc", "Google Inc", True),
             ("microsoft_corp", "Microsoft Corporation", True),
-            ("multi_word_times", "New York Times", True)
+            ("multi_word_times", "New York Times", True),
         ]
     )
     def test_organisation_detection_comprehensive(

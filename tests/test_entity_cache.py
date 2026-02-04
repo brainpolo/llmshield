@@ -53,6 +53,7 @@ class TestEntityDictionaryCache(unittest.TestCase):
         instances = []
 
         def create_instance():
+            """Create and append an instance of EntityDictionaryCache."""
             instances.append(EntityDictionaryCache())
 
         # Create multiple instances from different threads
@@ -92,6 +93,7 @@ class TestEntityDictionaryCache(unittest.TestCase):
         init_count = 0
 
         def counting_init(*args, **kwargs):
+            """Initialise the function and count calls."""
             nonlocal init_count
             if hasattr(cache, "_initialized") and cache._initialized:
                 return
@@ -121,6 +123,7 @@ class TestEntityDictionaryCache(unittest.TestCase):
         instances = []
 
         def create_with_delay():
+            """Create instance after a barrier synchronization wait."""
             barrier.wait()
             instances.append(EntityDictionaryCache())
 
@@ -139,12 +142,13 @@ class TestEntityDictionaryCache(unittest.TestCase):
         cache = instances[0]
         cache._initialized = False
 
-        def set_initialized():
+        def set_initialised():
+            """Set initialised state with a small delay."""
             time.sleep(0.001)
             with cache._lock:
                 cache._initialized = True
 
-        setter = threading.Thread(target=set_initialized)
+        setter = threading.Thread(target=set_initialised)
         setter.start()
         cache.__init__()
         setter.join()
@@ -359,6 +363,7 @@ class TestEntityDictionaryCache(unittest.TestCase):
         original_open = mock_open(read_data="test\n")
 
         def delayed_open(*args, **kwargs):
+            """Mock open with a small delay to test race conditions."""
             time.sleep(0.1)  # Small delay to increase chance of race condition
             return original_open.return_value
 
@@ -370,6 +375,7 @@ class TestEntityDictionaryCache(unittest.TestCase):
         results = []
 
         def load_cities():
+            """Load cities from cache into the results list."""
             results.append(cache.cities)
 
         # Start multiple threads trying to load cities simultaneously

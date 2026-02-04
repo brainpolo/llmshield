@@ -6,9 +6,8 @@ Description:
     and integration with core functionality for fine-grained PII control.
 
 Test Classes:
-    - TestSelectivePIIDetection: Tests selective detection features
-    - TestEntityConfigFactory: Tests EntityConfig factory methods
-    - TestSelectivePIIIntegration: Tests integration with LLMShield
+    - TestSelectivePIIDetection: Tests selective detection features, factory
+      methods, and integration with LLMShield.
 
 Author:
     LLMShield by brainpolo, 2025-2026
@@ -338,7 +337,7 @@ class TestSelectivePIIDetection(unittest.TestCase):
         """Test selective filtering with ask method using mock LLM."""
 
         def mock_llm(prompt, **kwargs):
-            # Simple mock that echoes the input
+            """Mock LLM function that echoes input."""
             return f"Response: {prompt}"
 
         # Create shield that disables contact information
@@ -650,6 +649,7 @@ class TestSelectivePIIDetection(unittest.TestCase):
         """Test that chaining preserves other LLMShield settings."""
 
         def mock_llm(p):
+            """Mock LLM function that returns prompt."""
             return p
 
         original = LLMShield(

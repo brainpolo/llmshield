@@ -77,16 +77,18 @@ class EntityType(StrEnum):
     @classmethod
     def default_types(cls) -> frozenset["EntityType"]:
         """Return default entity types for PII detection."""
-        return frozenset([
-            cls.PERSON,
-            cls.ORGANISATION,
-            cls.PLACE,
-            cls.EMAIL,
-            cls.PHONE,
-            cls.CREDIT_CARD,
-            cls.URL,
-            cls.IP_ADDRESS,
-        ])
+        return frozenset(
+            [
+                cls.PERSON,
+                cls.ORGANISATION,
+                cls.PLACE,
+                cls.EMAIL,
+                cls.PHONE,
+                cls.CREDIT_CARD,
+                cls.URL,
+                cls.IP_ADDRESS,
+            ]
+        )
 
     @classmethod
     def locators(cls) -> frozenset["EntityType"]:
