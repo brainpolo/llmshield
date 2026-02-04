@@ -26,7 +26,7 @@ Author:
 
 # Standard Library Imports
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 # Local imports
 from llmshield.cache.entity_cache import get_entity_cache
@@ -51,7 +51,7 @@ ENT_REPLACEMENT = "\n"  # Use to void overlap with another entity
 SPACE = " "
 
 
-class EntityType(str, Enum):
+class EntityType(StrEnum):
     """Primary classification of entity types."""
 
     # Proper Nouns
@@ -109,7 +109,7 @@ class EntityType(str, Enum):
     PHONE_NUMBER = "PHONE"  # Alias for backward compatibility
 
 
-class EntityGroup(str, Enum):
+class EntityGroup(StrEnum):
     """Groups of related entity types."""
 
     PNOUN = "PNOUN"
@@ -178,9 +178,9 @@ class EntityConfig:
         new_enabled = self.enabled_types - frozenset(disabled_types)
         return EntityConfig(new_enabled)
 
-    def with_enabled(
+    def with_enabled( # skipcq: PYL-R0201
         self, *enabled_types: EntityType
-    ) -> "EntityConfig":  # skipcq: PYL-R0201
+    ) -> "EntityConfig":
         """Create new config with only specified types enabled."""
         return EntityConfig(frozenset(enabled_types))
 
@@ -528,7 +528,7 @@ class EntityDetector:
 
     def _is_organisation(self, p_noun: str) -> bool:
         """Check if proper noun is an organisation.
-        
+
         Uses the organisations.txt dictionary.
         """
         p_noun_lower = p_noun.lower()
