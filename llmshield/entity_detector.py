@@ -21,7 +21,7 @@ Detection Methods:
     - Heuristic rules for complex entity patterns
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 # Standard Library Imports
@@ -74,6 +74,20 @@ class EntityType(str, Enum):
     def all(cls) -> frozenset["EntityType"]:
         """Return frozenset of all entity types."""
         return frozenset(cls)
+
+    @classmethod
+    def default_types(cls) -> frozenset["EntityType"]:
+        """Return default entity types for PII detection."""
+        return frozenset([
+            cls.PERSON,
+            cls.ORGANISATION,
+            cls.PLACE,
+            cls.EMAIL,
+            cls.PHONE,
+            cls.CREDIT_CARD,
+            cls.URL,
+            cls.IP_ADDRESS,
+        ])
 
     @classmethod
     def locators(cls) -> frozenset["EntityType"]:
@@ -147,11 +161,11 @@ class EntityConfig:
 
         Args:
             enabled_types: Set of entity types to detect and cloak.
-                          If None, all types are enabled by default.
+                          If None, default PII types are enabled.
 
         """
         self.enabled_types = (
-            enabled_types if enabled_types is not None else EntityType.all()
+            enabled_types if enabled_types is not None else EntityType.default_types()
         )
 
     def is_enabled(self, entity_type: EntityType) -> bool:
@@ -190,6 +204,65 @@ class EntityConfig:
     def only_financial(cls) -> "EntityConfig":
         """Create config with only financial entities enabled."""
         return cls().with_enabled(EntityType.CREDIT_CARD)
+
+    def without_locations(self) -> "EntityConfig":
+        """Disable location-based entities."""
+        return self.with_disabled(
+            EntityType.PLACE, EntityType.IP_ADDRESS, EntityType.URL
+        )
+
+    def without_persons(self) -> "EntityConfig":
+        """Disable person entities."""
+        return self.with_disabled(EntityType.PERSON)
+
+    def without_contacts(self) -> "EntityConfig":
+        """Disable contact information."""
+        return self.with_disabled(EntityType.EMAIL, EntityType.PHONE)
+
+    def without_organisations(self) -> "EntityConfig":
+        """Disable organisation entities."""
+        return self.with_disabled(EntityType.ORGANISATION)
+
+    def without_concepts(self) -> "EntityConfig":
+        """Disable concept entities."""
+        return self.with_disabled(EntityType.CONCEPT)
+
+    def without_credit_cards(self) -> "EntityConfig":
+        """Disable credit card entities."""
+        return self.with_disabled(EntityType.CREDIT_CARD)
+
+    def without_emails(self) -> "EntityConfig":
+        """Disable email entities."""
+        return self.with_disabled(EntityType.EMAIL)
+
+    def without_phones(self) -> "EntityConfig":
+        """Disable phone entities."""
+        return self.with_disabled(EntityType.PHONE)
+
+    def without_urls(self) -> "EntityConfig":
+        """Disable URL entities."""
+        return self.with_disabled(EntityType.URL)
+
+    def without_ips(self) -> "EntityConfig":
+        """Disable IP address entities."""
+        return self.with_disabled(EntityType.IP_ADDRESS)
+
+    def without_places(self) -> "EntityConfig":
+        """Disable place entities."""
+        return self.with_disabled(EntityType.PLACE)
+
+    def with_all_enabled(self) -> "EntityConfig":
+        """Enable all entity types."""
+        return EntityConfig(EntityType.all())
+
+    def with_only_financial(self) -> "EntityConfig":
+        """Enable only financial entities."""
+        return self.with_enabled(EntityType.CREDIT_CARD)
+
+    @classmethod
+    def enable_all(cls) -> "EntityConfig":
+        """Create config with all entity types enabled."""
+        return cls(EntityType.all())
 
 
 class EntityDetector:
@@ -429,15 +502,16 @@ class EntityDetector:
         if self._is_place(p_noun):
             return (clean_value(p_noun), EntityType.PLACE)
 
-        # 3. Check for persons.
+        # 3. Check for concepts (all uppercase, single word).
+        # Should be checked before persons.
+        if self._is_concept(p_noun):
+            return (clean_value(p_noun), EntityType.CONCEPT)
+
+        # 4. Check for persons.
         if self._is_person(p_noun):
             cleaned = self._clean_person_name(p_noun)
             final_value = clean_value(cleaned)
             return (final_value, EntityType.PERSON)
-
-        # 4. Check for concepts (e.g. all uppercase, one word, no punctuation).
-        if self._is_concept(p_noun):
-            return (clean_value(p_noun), EntityType.CONCEPT)
 
         # 5. Default to None.
         return None
@@ -448,35 +522,16 @@ class EntityDetector:
             all(word.isupper() for word in p_noun.split())
             and len(p_noun.split()) == 1
             and not any(c in p_noun for c in self.en_punctuation)
+            and not self.cache.is_english_word(p_noun.lower())
         )
 
     def _is_organisation(self, p_noun: str) -> bool:
-        """Check if proper noun is an organisation."""
-        # Case-insensitive check for organisation names
+        """Check if proper noun is an organisation.
+        
+        Uses the organisations.txt dictionary.
+        """
         p_noun_lower = p_noun.lower()
-
-        # Add checks for organisations with numbers
-        if any(char.isdigit() for char in p_noun) and re.match(
-            r"^\d+[A-Z].*|.*-.*\d+.*", p_noun
-        ):
-            return True
-
-        # Check for multi-word organisations like "New York Times"
-        if len(p_noun.split()) > 2:  # noqa: PLR2004
-            last_word = p_noun.split()[-1]
-            if last_word in {
-                "Times",
-                "News",
-                "Corporation",
-                "Inc",
-                "Corp",
-                "Co",
-            }:
-                return True
-
-        return self.cache.is_organisation(p_noun_lower) or any(
-            comp in p_noun for comp in self.en_org_components
-        )
+        return self.cache.is_organisation(p_noun_lower)
 
     def _is_place(self, p_noun: str) -> bool:
         """Check if proper noun is a place."""

@@ -8,7 +8,7 @@ Description:
 Test Classes:
     - TestLRUCache: Tests LRU cache operations and eviction
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 from unittest import TestCase, main

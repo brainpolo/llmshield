@@ -8,7 +8,7 @@ Description:
 Test Classes:
     - TestProviderFactory: Tests provider registration and retrieval
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 # Standard library imports

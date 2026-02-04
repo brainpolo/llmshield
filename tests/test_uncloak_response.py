@@ -14,7 +14,7 @@ Test Classes:
     - MockFunction: Mock function object
     - TestUncloakResponse: Tests response uncloaking logic
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

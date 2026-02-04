@@ -3797,7 +3797,6 @@ Arzignano
 Arzni
 Arzon
 Arzua
-As
 As Saff
 As Saffaniyah
 As Salimiyah
@@ -6613,7 +6612,6 @@ Beallsville
 Beaman
 Beaminster
 Bean Station
-Bear
 Bear Creek
 Bear Creek Village
 Bear Grass
@@ -7643,7 +7641,6 @@ Bessines-sur-gartempe
 Besskorbnaya
 Bessmay
 Bessonovka
-Best
 Bestensee
 Bestobe
 Bestovje
@@ -8361,7 +8358,6 @@ Bishkek
 Bishkul
 Bishnah
 Bishnupur
-Bishop
 Bishop Auckland
 Bishop Hill
 Bishop Hills
@@ -8451,7 +8447,6 @@ Bjornevatn
 Bjuv
 Blaby
 Blachownia
-Black
 Black Canyon City
 Black Creek
 Black Diamond
@@ -8725,7 +8720,6 @@ Blum
 Blumberg
 Blumenau
 Blumenthal
-Blunt
 Bly
 Blyn
 Blyth
@@ -9365,7 +9359,6 @@ Borlesti
 Bormes-les-mimosas
 Bormio
 Bormujos
-Born
 Borna
 Borne
 Borne Sulinowo
@@ -10395,7 +10388,6 @@ Brossard
 Brosteni
 Brosville
 Brotas
-Brothers
 Brothertown
 Brotterode
 Brou
@@ -12172,7 +12164,6 @@ Camrose
 Camudmud
 Camugnano
 Camuy
-Can
 Can Duoc
 Can Gio
 Can Tho
@@ -17962,7 +17953,6 @@ Dangeni
 Danghara
 Dangriga
 Dania Beach
-Daniel
 Daniel Flores
 Daniels
 Danielskuil
@@ -18156,7 +18146,6 @@ Daventry
 Daverio
 Davey
 Davezieux
-David
 David City
 Davidesti
 Davidson
@@ -18201,7 +18190,6 @@ Dax
 Daxbet
 Daxi
 Daxing
-Day
 Day Heights
 Day Valley
 Dayal Bagh
@@ -22227,7 +22215,6 @@ Eyak
 Eybens
 Eydelstedt
 Eydhafushi
-Eye
 Eyemouth
 Eygalieres
 Eyguieres
@@ -22921,7 +22908,6 @@ Finchville
 Finderne
 Findlay
 Findon
-Fine
 Finedon
 Fines
 Finestrat
@@ -25627,7 +25613,6 @@ Goch
 Gochsheim
 Gocoton
 Goczalkowice Zdroj
-God
 Goda
 Godalming
 Godda
@@ -26127,7 +26112,6 @@ Grabownica Starzenska
 Grabs
 Gracac
 Gracanica
-Grace
 Grace City
 Gracemont
 Graces
@@ -26322,7 +26306,6 @@ Granollers
 Granowo
 Grans
 Gransee
-Grant
 Grant Center
 Grant City
 Grant Park
@@ -27739,7 +27722,6 @@ Haltwhistle
 Halvad
 Halver
 Halwan
-Ham
 Ham Lake
 Ham-sous-varsberg
 Hamada
@@ -30183,7 +30165,6 @@ Hurstbourne
 Hurstpierpoint
 Hurstville
 Hurstville Grove
-Hurt
 Hurtgenwald
 Hurth
 Huruesti
@@ -41637,7 +41618,6 @@ Maldegem
 Malden
 Maldon
 Maldonado
-Male
 Maleevsk
 Malegaon
 Malegno
@@ -41855,7 +41835,6 @@ Mamuju
 Mamungan
 Mamunit
 Mamurras
-Man
 Mana
 Manacapuru
 Manack
@@ -46165,7 +46144,6 @@ Mossoro
 Mossville
 Mossy Head
 Mossyrock
-Most
 Mosta
 Mostaganem
 Mostar
@@ -46493,7 +46471,6 @@ Mubende
 Mubi
 Muborak
 Mucarabones
-Much
 Much Hadham
 Much Wenlock
 Muchamiel
@@ -50369,7 +50346,6 @@ Oettingen In Bayern
 Oetwil Am See
 Oetz
 Oeversee
-Of
 Ofaqim
 Ofeherto
 Offa
@@ -51648,7 +51624,6 @@ Ovaro
 Ovca
 Ovejas
 Ovelgonne
-Over
 Overath
 Overbrook
 Overcombe
@@ -56001,7 +55976,6 @@ Priceville
 Prichard
 Prichsenstadt
 Priddy
-Pride
 Pridgen
 Pridonskoy
 Priego De Cordoba
@@ -66047,7 +66021,6 @@ Somovo
 Sompeta
 Sompolno
 Somvarpet
-Son
 Son La
 Son Servera
 Son Tay
@@ -75392,7 +75365,6 @@ Walkersville
 Walkerton
 Walkertown
 Walkerville
-Wall
 Wall Lake
 Walla Walla
 Wallace
@@ -75557,8 +75529,6 @@ Wapinitia
 Wapiti
 Wappingers Falls
 Waqqas
-War
-War Eagle
 Warabi
 Warah
 Warang
@@ -75574,7 +75544,6 @@ Ward Ridge
 Ward Springs
 Warda
 Wardell
-Warden
 Wardenburg
 Wardensville
 Wardha
@@ -75831,7 +75800,6 @@ Wayzata
 Waziers
 Wazirabad
 Wazirganj
-We
 Weallup Lake
 Weare
 Weatherby
@@ -76572,7 +76540,6 @@ Whitakers
 Whitburn
 Whitby
 Whitchurch
-White
 White Apple
 White Ash
 White Bead
@@ -77073,8 +77040,6 @@ Wisches
 Wischhafen
 Wisconsin Dells
 Wisconsin Rapids
-Wisdom
-Wise
 Wiseman
 Wiset Chaichan
 Wishaw
@@ -77244,7 +77209,6 @@ Wonopringgo
 Wonosari
 Wonosobo
 Wonsan
-Wood
 Wood Dale
 Wood Lake
 Wood River
@@ -77324,7 +77288,6 @@ Woodway
 Woodworth
 Woody Creek
 Woody Point
-Wool
 Wool Market
 Woolavington
 Wooldridge
@@ -77358,7 +77321,6 @@ Wormleysburg
 Worms
 Worpswede
 Worrstadt
-Worth
 Worth Am Main
 Worth Am Rhein
 Worth An Der Donau
@@ -78130,7 +78092,6 @@ Youghal
 Youhao
 Youkaichi
 Youkounkoun
-Young
 Young America
 Young Harris
 Young Inn

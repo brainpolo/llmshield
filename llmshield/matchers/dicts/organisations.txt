@@ -29,35 +29,18 @@ AA Insurance
 AAA
 AAA 01 Center WS
 AAdvantage
-AB-inBev
-ABB
-ABB Grain Limited
-ABC
-ABC Learning
-ABN Amro
-ACE
-ADInstruments
-AFLAC
-AGL Energy
-AIG
-AIS
-AMG
-AMI
-AMP Limited
-ANCA
-ANT1 Group
-ASB
-ASM International
-ASX
-AT&T
-AWB Limited
-AXA
 Aalberts Industries
 Aamco
 Aavin
+AB-inBev
+ABB
+ABB Grain Limited
 Abbott Laboratories
+ABC
+ABC Learning
 AbeBooks
 Abercrombie & Fitch
+ABN Amro
 About Us
 Abreva
 Absolut
@@ -66,6 +49,7 @@ Accent
 Accenture
 Accord
 Accu-Chek
+ACE
 Ace Hardware
 Ace Radio
 Acer
@@ -83,6 +67,7 @@ Acuvue
 Adam Internet
 Adecco
 Adidas
+ADInstruments
 Adobe
 Advair
 Advanced Auto Parts
@@ -98,14 +83,17 @@ Aerosoles
 Aerosonde Ltd
 Aetna
 Affin Bank
+AFLAC
 Afrin
 After Thoughts
 Agip
+AGL Energy
 Agrale
 Agrichar
 Agricultural Bank of China
 Aguas Cordobesas
 Ahold
+AIG
 Air Australia
 Air Canada
 Air China
@@ -114,11 +102,12 @@ Air India
 Air Jordan
 Air New Zealand
 AirAsia
-AirElite
-AirTran
 Airbus
+AirElite
 Airtel
+AirTran
 Airwalk
+AIS
 Aji Ichiban
 Ajinomoto
 Ajisen Ramen
@@ -141,7 +130,6 @@ Alitalia
 Ality
 Alka-Seltzer
 Alkane Exploration
-All
 All Star
 Allegra
 Allens
@@ -164,11 +152,10 @@ Altria
 Altronics Australia
 Alumet
 Alumina Limited
-Always
-AmBev
 Amana
 Amazon.com
 Ambank
+AmBev
 Ambien
 Amcor
 America Online
@@ -180,14 +167,17 @@ American Express
 American Heart Association
 American Idol
 AmerisourceBergen
+AMG
 Amgen
 Amoco
 Amoy Food
+AMP Limited
 Amstel
 Amstel Light
 Amtrak
 Amul
 AmÃ©rica Latina LogÃ­stica
+ANCA
 Anchor
 Andrade Gutierrez
 Andritz
@@ -198,6 +188,7 @@ Ann Taylor
 Anne Klein
 Annedd'ale
 Ansell
+ANT1 Group
 Anta
 Antarchile
 Antarctica
@@ -209,8 +200,9 @@ Apivit
 Apivita
 Apollo
 Apple
+Apple Inc
 Apple Jacks
-Applebee's
+Applebee's
 Appliances Online
 Aprilla
 Aqua Net
@@ -219,11 +211,10 @@ Aquafresh
 Aracruz Celulose
 Aral
 Aramark
-Arby's
+Arby's
 Arcadis
 ArcelorMittal
 Arcon
-Ariel
 Arirang
 Aristocrat Leisure Limited
 Ariston
@@ -235,9 +226,11 @@ Armol All
 Arnott's Biscuits Holdings
 Art Institute International
 Arun
+ASB
 Ashley Furniture
 Asiana Airlines
 Asics
+ASM International
 Aspirin
 Aston Martin
 Astra International
@@ -245,6 +238,8 @@ Astra Zeneca
 AstralSat
 Astro
 Asus
+ASX
+AT&T
 Atari
 Atkins
 Atlas Pacific Limited
@@ -273,9 +268,9 @@ Australian Securities Exchange
 Australian Submarine Corporation
 Austrend International
 Ausway
+Autogrill
 AutoTrader
 AutoZone
-Autogrill
 Avalanche
 Avalon
 Aveda
@@ -290,30 +285,14 @@ Avis
 Aviva
 Avon
 Avonmore
+AWB Limited
+AXA
 Axe
 Axis Bank
 Azercell
 Azul Brazilian Airlines
 A|Wear
 B2W Varejo
-BAE Systems Australia
-BASDF SE
-BASF
-BBC
-BBVA
-BCBG
-BCE
-BCI-Banco Credito
-BHP Billiton
-BIC
-BM&F Bovespa
-BMW
-BNP Paribas
-BOSE
-BOTOX
-BP
-BPCL
-BYD
 Babcock & Brown
 Baby Bjorn
 Baby Mild
@@ -325,33 +304,33 @@ Back to Nature
 Baconator
 Badan Baden
 Badoit
+BAE Systems Australia
 Bahama Breeze
 Baidu
 Baileys
 Bajaj
 Baker Hughes
+Baker's Choice
 Bakers Delight
-Baker's Choice
 Baleno
 Bally
 Bally Total Fitness
 Baloise
 Banana Boat
 Banana Republic
+Banco de Chile
+Banco de Galicia y Buenos Aires SA
+Banco de la Nacion Argentina
+Banco do Brasil
 Banco Frances SA
 Banco Gradesco
 Banco Nossa Caixa
 Banco Popular
 Banco Rio de la Plata SA
 Banco Safra
-Banco de Chile
-Banco de Galicia y Buenos Aires SA
-Banco de la Nacion Argentina
-Banco do Brasil
 Band-Aid
 Banestes
 Bang & Olufsen
-Bank One
 Bank of America
 Bank of China
 Bank of Communications
@@ -360,6 +339,7 @@ Bank of Greece
 Bank of Montreal
 Bank of Nova Scotia
 Bank of Queensland
+Bank One
 Banrisul
 Banyan Tree Holdings
 Barbie
@@ -369,21 +349,28 @@ Barilla
 Barnes & Noble
 Baron Otard Cognacs
 Barrick Gold
-Barry's Tea
+Barry's Tea
+BASDF SE
+BASF
 Baskin-Robbins
 Bausch & Lomb
 Bavaria
 Baxter
 Bayer
 Bazooka
+BBC
+BBVA
+BCBG
+BCE
+BCI-Banco Credito
 Bean Media Group
 Beanie Babies
 Beano
 Beaurepaires
 Beaver Buzz
 Bebe
+Beck's
 Becker Entertainment
-Beck's
 Bed Head
 Bed, Bath & Beyond
 Beeline
@@ -394,7 +381,7 @@ Belco
 Belgacom
 Bell Atlantic
 Bellsouth
-Ben & Jerry's
+Ben & Jerry's
 Ben-Gay
 Benadryl
 Bendigo Bank
@@ -407,7 +394,9 @@ Bertolli Olive Oil
 Best Buy
 Best Western
 Betty Crocker
+BHP Billiton
 Bianchi
+BIC
 Bic
 Big Bazaar
 Big Lots
@@ -434,9 +423,8 @@ Blaupunkt
 Blistex
 Blockbuster
 Blog
-Bloomingdale's
+Bloomingdale's
 Blow Pop
-Blue
 Blue Cross
 Blue Dart
 Blue Ribbon
@@ -445,10 +433,13 @@ Bluefish Communications
 Bluescope
 Blumarine
 Blundstone Footwear
+BM&F Bovespa
+BMW
+BNP Paribas
 Boag's Brewery
 Bob the Builder
+Bob's
 Bobcat
-Bob's
 Boeing
 Boggle
 Bohae
@@ -460,7 +451,6 @@ Bonduelle
 Bonia
 Bonne Bell
 Bonox
-Book
 Boomer
 Boost Juice
 Boost Mobile
@@ -470,17 +460,21 @@ Boral Limited
 Borders
 Borealis
 Bosch
+BOSE
 Bossa Nova
 Boston Market
 Boston Scientific
+BOTOX
 Bottega Veneta
 Boucheron
 Bounty
 Bouygues Telecom
 Bowflex
 Boxster
+BP
+BPCL
 Brabus
-Brach's
+Brach's
 Bradesco
 Bradespar
 Brahma
@@ -497,10 +491,10 @@ Bravox
 Brawny
 BreadTalk Group
 Breitling
-Brennan's
+Brennan's
 Brequet
 Breville
-Breyer's
+Breyer's
 Bridgestone
 Bright
 Brioni
@@ -513,7 +507,6 @@ British Rail
 British Sky Broadcasting Group plc
 Broadview Home Security
 Brookfield Asset Management
-Brother
 Brown Brothers Milawa Vineyard
 Brugse Straffe Hendrik
 Brush-Ups
@@ -538,46 +531,27 @@ Burberry
 Burger King
 Burlington Coat Factory
 Burns, Philp & Company Ltd.
-Burt's Bees
+Burt's Bees
 Busan Bank
 Busch
 Busch Gardens
 Bush
+Bush's Beans
 Bushmills Irish Whiskey
-Bush's Beans
 Business Week
 Busscar
 Butterball
 Butterfinger
+BYD
 BÃ¶hler-Uddeholm
 C&A
-CAP Gemini
-CBS
-CC's
-CCR
-CDW
-CESP
-CHEP
-CIMB
-CJ
-CMBC
-CMPC
-CNN
-CNP Assurances
-CPFL
-CPIC
-CR-V
-CRSanjiu
-CSL Limited
-CSR Limited
-CVS
 Cabbage Patch Kids
 Caboodles
 Cacharel
 Cadbury
 Cadence Capital Limited
 Cadillac
-Caesar's Entertainment
+Caesar's Entertainment
 Cafe Coffee Day
 Cafe de Coral
 Caffarel
@@ -588,7 +562,7 @@ Camargo CorrÃªa
 Camel
 Camero
 Campari
-Campbell's
+Campbell's
 Camry
 Camus
 Canada Dry
@@ -600,12 +574,13 @@ Canal Plus
 Candy
 Candy Land
 Canon
+CAP Gemini
+Cap'n Crunch
 Capezio
 Capital Dynamics
 Capital One
 Capri Sun
 Captain Morgan
-Cap'n Crunch
 Caracu
 Caramello Koala
 Caravan
@@ -615,11 +590,11 @@ Carefree
 Caress
 Carfax
 Cargill
+Carl's Jr.
 Carling
 Carling Black Label
 Carlsberg
 Carlton & United Breweries
-Carl's Jr.
 Carmax
 Carnation
 Carnegie
@@ -628,13 +603,13 @@ Carnival Cruise Lines
 Carrefour
 Carroten
 Carte Noire
-Carter's
+Carter's
 Cartier
 Casas Bahia
 Cascade Brewery
 Cascadian Farm
 Cascina Verdesole
-Casey's General Store
+Casey's General Store
 Casino
 Casio
 Cass
@@ -644,7 +619,11 @@ Cat Chow
 Catena
 Caterpillar
 Cathay Pacific
+CBS
 Cbus
+CC's
+CCR
+CDW
 Ceat
 Celcom
 Celebrex
@@ -664,6 +643,7 @@ Century 21
 Cerpa
 Cerpinha
 Cerruti
+CESP
 Challenger
 Champion
 Chanel
@@ -675,7 +655,6 @@ Charmin
 Chase
 Chaumet
 Cheap Monday
-Cheer
 Cheerios
 Cheesecake Factory
 Cheetos
@@ -685,13 +664,14 @@ Cheezels
 Chef
 Chef Boyardee
 Chemeq
+CHEP
 Cheung Kong Holdings
 Chevrolet
 Chevron
 Chex
 Chicco
 Chiko Roll
-Chili's
+Chili's
 Chimay
 Chimei
 China Citic Bank
@@ -705,8 +685,8 @@ China Southern Airlines
 China Telecom
 China Unicom
 Chinachem Group
+Chip's Ahoy
 Chipotle
-Chip's Ahoy
 Chiquita
 Chivas
 ChloÃ©
@@ -721,6 +701,7 @@ Chupa Chups
 Cialis
 Cielo
 Cif
+CIMB
 Cindor
 Cinemax
 Cinnabon
@@ -734,8 +715,10 @@ Citigroup
 Citizens Bank
 CitroÃ«n
 City Telecom
+city'super
 CityRail
 Civic
+CJ
 Clag
 Claire's Stores, Inc.
 Clairol
@@ -753,6 +736,10 @@ Clinic
 Clinique
 Clorox
 Clue
+CMBC
+CMPC
+CNN
+CNP Assurances
 Co-op
 Coach
 Cobalt
@@ -786,7 +773,6 @@ Commonwealth Bank
 Company Naming
 Compaq
 Compass Resources
-Complete
 Computershare
 ConAgra
 Conair
@@ -835,6 +821,9 @@ Courvoisier
 Coventry Health Care
 Cover Girl
 Cox Communications
+CPFL
+CPIC
+CR-V
 Cracker Barrel
 Cracker Jack
 Craigslist
@@ -849,34 +838,27 @@ Crestor
 Crisco
 Crispix
 Crocodile Garments
-Crown
 Crown Lager
 Crown Limited
 Crown Pilsner
 Crown Royal
+CRSanjiu
 Crumpler
 Crunch ân Munch
 Crystal Light
 Crystal Spring Tea
+CSL Limited
+CSR Limited
 Ctrip
 Cub Foods
 Cummins
 Curves
+CVS
 Cyber-Shot
 CyberLink
 Cyrela
 CÃ©line
 D-Link
-DBS Bank
-DHL
-DHL Express
-DIA
-DKNY
-DSM
-DTDC
-DYMO
-DZ Bank AG
-DaKine
 Dabur
 Daewoo
 Daffy Duck
@@ -885,6 +867,7 @@ Daimler
 Dairy Farmers
 Dairy Queen
 Daisy
+DaKine
 Dakota
 Dallmayr
 Danone
@@ -897,18 +880,19 @@ Datacom
 Dave & Busters
 David Jones Limited
 David Stubbs & Partners Consulting Engineers Pty Ltd
+David's Bridal
 Davidoff
-David's Bridal
 Dawn
 DayQuil
 Days Inn
+DBS Bank
 De Bortoli Wines
 De Koninck
+De'Longhi
 DeBeers
-DeVry
-DeWALT
 Deborah Milano
 Degree
+deGrisogono
 Del Monte
 Delirium Tremens
 Dell
@@ -917,8 +901,8 @@ Delta Air Lines
 Delta Electricity
 Delta Lloyd Group
 Delta Projects
+Denny's
 DenTek
-Denny's
 Dentyne
 Denver Hayes
 Depo
@@ -928,22 +912,26 @@ Dettol
 Deutsche Bank
 Deutsche Post
 Devassa
+DeVry
+DeWALT
 Dexia
-De'Longhi
-DiGi
+DHL
+DHL Express
+DIA
 Diadora
 Diageo
 Dial
 Diaper Genie
 Dick Smith Electronics
 Dick Smith Foods
+Dick's Sporting Goods
 Dickies
-Dick's Sporting Goods
 Diesel
 Diet Coke
 Diet Pepsi
+DiGi
 Digiorno
-Dillard's
+Dillard's
 Dilmah
 Dinty Moore
 Dior
@@ -959,6 +947,7 @@ Dish Network
 Disney
 Divella
 Dixie
+DKNY
 Doc Martin
 Dockers
 Dodge
@@ -971,7 +960,7 @@ Dollar Rent A Car
 Dollar Tree Stores
 Dom Perignon
 Dom Preignon
-Domino's Pizza
+Domino's Pizza
 Don de Dieu
 Dorf Clark Industries Limited
 Doritos
@@ -985,7 +974,7 @@ Downy
 Dr Pepper
 Dr. Denim Jeansmakers
 Dr. Oetker
-Dr. Scholl's
+Dr. Scholl's
 Dragon Bleu
 Dragonair
 Draka
@@ -995,11 +984,13 @@ DreamWorks
 Drewry's
 Driza-Bone
 Drpers
+DSM
+DTDC
 Du Maurier
-DuPont
 Ducati
 Dulux
 Dunkin Donuts
+DuPont
 Duracell
 Duraflame
 Durango
@@ -1008,23 +999,15 @@ Durex
 Dusit Thani
 DustBuster
 Dutch Lady
+DYMO
 Dymocks
 Dynamotive Energy Systems
 Dyson
+DZ Bank AG
 E! Entertainment Television
 E-Trade
 E.Leclerc
 E.ON
-EBX Group
-EDF Electric
-EFG Bank
-EFTel
-EHarmony.com
-EMQ Pty Ltd
-ENBW
-EOS
-ESPN
-EVA Air
 Eagle Boys
 Easy Jet
 Easy Spirit
@@ -1032,12 +1015,18 @@ Easy-Bake
 Easy-Off
 EasyShare
 Eaton
+eBay
+EBX Group
 Ecco
 Eclipse
-Edy's
+EDF Electric
+Edy's
 Effigy Press
+EFG Bank
+EFTel
 Egg Beaters
 Eggo
+EHarmony.com
 Eight O'Clock Coffee Company
 El Corte InglÃ©s
 El Mercio SAP
@@ -1053,7 +1042,7 @@ Eli Lilly
 Elion
 Ellininki Radiofonia Tileoriasi
 Elmer Fudd
-Elmer's
+Elmer's
 Elvo
 Email Limited
 Embraco
@@ -1062,10 +1051,12 @@ Emerson Electric
 Emerus
 Empire State Building
 Emporiki Bank
+EMQ Pty Ltd
 EmtÃ©
 Emu Brewery
-EnCana
 Enbridge
+ENBW
+EnCana
 Energex
 Energizer
 EnergyAustralia
@@ -1076,6 +1067,7 @@ Entel PCS
 Enterprise Rent-A-Car
 EnviroMission
 Envoy
+EOS
 Epcot
 Epson
 Equal
@@ -1090,11 +1082,11 @@ Ernst & Young
 Erste Group
 Esanda Finance Corporation Ltd
 Escalade
-Escape
 Escondida
 Eskimo Pie
 Esky
 Espirit
+ESPN
 EspÃ­rito Santo Financial Group
 Estee Lauder
 Estrela
@@ -1105,6 +1097,7 @@ Ethical Ocean
 Etienne Aigner
 Etos
 Eucerin
+EVA Air
 Evenflo
 Eveready
 Everlast
@@ -1122,8 +1115,6 @@ Extra
 Exxon Mobil
 Ezine
 F. Whitlock & Sons Ltd
-FLO
-FX
 Fabral
 Facebook
 Fage
@@ -1164,13 +1155,13 @@ FirstEnergy
 Fischer
 Fisher & Paykel
 Fisher-Price
-Fiskar's
-Five
-Flahavan's
+Fiskar's
+Flahavan's
 Fleet Farm
 Fletcher Jones
 Flextronics
 Flight Centre
+FLO
 Flonase
 Florena
 Florida Orange Juice
@@ -1195,8 +1186,8 @@ Fortis
 Fortwo
 Fossil
 Foster's Lager
+Foster's
 Fosters
-Foster's
 Four Loko
 Four'N Twenty Pie
 Fox
@@ -1209,12 +1200,12 @@ FreeCreditReport.com
 Freehand Group
 Freeserve
 Freestyle
-French's
+French's
 Fresca
 Fresenius Medical Care
 Fresh Steps
-Freshlook
 Fresh'n Fruity
+Freshlook
 Fridgidaire
 Friesland Bank
 Friskies
@@ -1234,16 +1225,9 @@ Funnelback
 Funyuns
 Fusion
 Fuzion
+FX
 G2000
 G6
-GAS
-GCP Australia Ltd
-GM
-GMAC
-GNC
-GT
-GTO
-GWA International Limited
 Gafisa
 Gagfah
 Galant
@@ -1253,11 +1237,13 @@ Gallina Blanca
 Game Boy
 Gammon Construction
 Gap
-Gardetto's
+Gardetto's
 Garmin
 Garnier
+GAS
 Gatorade
 Gauloises
+GCP Australia Ltd
 Geico
 Gen-i
 General Electric
@@ -1287,50 +1273,54 @@ GlashÃ¼tte
 GlaxoSmithKline
 Global Linguistics
 Global TÃ¡xi AÃ©reo
+GM
+GMAC
+GNC
 Godiva
 Godrej
 Gol Transportes AÃ©reos
 Gold Flake
 Gold Medal
+Gold'n Plump
 Golden Gaytime
 Golden Grahams
 Golden Harvest
 Golden North
 Goldfish
 Goldman Sachs
-Gold'n Plump
 Gome
-Good
 Good & Plenty
 Good Housekeeping
 Good Humor
 Goodman Fielder
 Goody
+Goody's
 Goodyear
-Goody's
 Google
-Gordon's
+Google Inc
+Gordon's
 Gore-Tex
 Gouden Carolus
 Graco
 Gradiente
-GranTurismo
-Grand
 Granini
+GranTurismo
 Grape Nuts
 Gree
 Green Giant
 Green Island Cement
 Greenpeace
-Gregg's
+Gregg's
 Grey Goose
 Greyhound
-Griffin's
+Griffin's
 Grocon
 Group Sense PDA
 Grupo Folha
 Grupo Schincariol
 Gruppo Generali
+GT
+GTO
 Guararapes
 Gucci
 Guerlain
@@ -1339,18 +1329,13 @@ Gueuze
 Guinness
 Gunns
 Guylian
+GWA International Limited
 H&M
 H&R Block
 H-E-B
 H2
-HBO
-HDFC Bank
-HIH Insurance
-HKR International
-HSBC
-HTC
 Haagen-Dazs
-Habib's
+Habib's
 Hacky Sack
 Hahn Brewery
 Haier
@@ -1363,7 +1348,6 @@ Halls
 Hamburger Helper
 Hampton Inn
 Hana Bank
-Hanes
 Hang Seng Bank
 Hanjin
 Hankook
@@ -1371,7 +1355,7 @@ Hannah Montana
 Hansol
 Harcourts
 Hard Rock CafÃ©
-Hardee's
+Hardee's
 Haribo
 Harley-Davidson
 Harp
@@ -1385,6 +1369,8 @@ HasserÃ¶der
 Havainas
 Hawaiian Tropic
 Haywards
+HBO
+HDFC Bank
 Head & Shoulders
 Health2000
 Healtheries
@@ -1398,7 +1384,7 @@ Heinz
 Helene Curtis
 Hell Pizza
 Hellenic Petroleum
-Hellman's
+Hellman's
 Hello Kitty
 Helzberg Diamond
 Henkel
@@ -1412,19 +1398,21 @@ Hermes Paris
 HermÃ©s
 Hero Honda
 Herron
-Hershey's
+Hershey's
 Hertz
 Heungkuk
 Hewlett-Packard
 Hidden Valley
 High Valley
 Highlander
+HIH Insurance
 Hills Hoist
 Hillshire Farm
 Hilton
 Himalaya
 Hitachi
 Hitejinro
+HKR International
 Hobby Lobby
 Hoegaarden
 Hofer
@@ -1457,6 +1445,8 @@ Hotmail
 Hotwire.com
 Hoveround
 Hovis
+HSBC
+HTC
 Hua Xia Bank
 Hublot
 HubSpot
@@ -1466,8 +1456,8 @@ Hula-Hoop
 Humana
 Hummer
 Hungry-Man
+Hunt's
 Hunter Douglas
-Hunt's
 Hush Puppies
 Husky Energy
 Hutchison Whampoa
@@ -1479,39 +1469,33 @@ Hynix
 Hypermarcas
 HypoVereinsbank
 Hyundai
-I Can't Believe It's Not Butter
+I Can't Believe It's Not Butter
 I Love Biscuits
+Iams
 IBENOX
+Iberia
 IBK
 IBM
 ICBC
-ICICI Bank
-IFB
-IHOP
-IKEA
-IMAX
-ING
-IOOF Funds
-IOPE
-IT Company Pty Ltd.
-ITC
-ITT Technical Institute
-IWC
-Iams
-Iberia
 Ice Breakers
 Iced VoVo
 Icee
+ICICI Bank
 Ideal Bikes
+IFB
 Igloo
+IHOP
+iiNet
+IKEA
+iLANs Integrated LAN Services
 Illy
+IMAX
 Imodium
 Impala
 Imperial Oil
 Imtech
 In the News
 In.gr
-InStyle
 Inalca
 Incat
 Inco Rogers Communications Empire
@@ -1520,10 +1504,12 @@ Indian Oil Corporation
 Industrial Bank
 Infiniti
 Infosys
+ING
 Ingham
 Innocent
 Inraero
 Inspiration
+InStyle
 Insurance Australia Group
 Intel
 Inter
@@ -1541,21 +1527,28 @@ Invisalign
 Inxmail Australia Pty Limited
 Iochpe-Maxion
 Ion
+IOOF Funds
+IOPE
+iPad
+iPhone
+iPod
 Irish Spring
 Isotoner
+IT Company Pty Ltd.
 Itaipava
 Itautec
 ItaÃº Unibanco
 ItaÃºsa
+ITC
+ITT Technical Institute
+iTunes
 Iveco
 Ivory
+IWC
 J. Lindeberg
 J.C. Penney
 J.Crew
 J.P. Morgan
-JBS S.A.
-JLeutenegger Pty Ltd
-JVC
 Jaan Paan Liquer
 Jabra
 Jack Daniels
@@ -1569,6 +1562,7 @@ Jameson
 Jardine Matheson Holdings
 Jared Galleria
 Jazzercise
+JBS S.A.
 Jeep
 Jell-O
 Jelly Belly
@@ -1585,9 +1579,10 @@ Jiffy
 Jil
 Jim Beam
 Jimmy Dean
+JLeutenegger Pty Ltd
 JobStreet.com
 Jockey
-Joe's Crab Shack
+Joe's Crab Shack
 John Deere
 John Fairfax Holdings
 John Frida
@@ -1596,8 +1591,8 @@ Johnnie Walker
 Johnson
 Johnson & Johnson
 Johnson Controls
+Johnson's Baby
 Johnsonville Foods
-Johnson's Baby
 Jolly Rancher
 Jones New York
 Jordache
@@ -1611,20 +1606,13 @@ Jumbo S.A.
 JumboTron
 Just For Men
 Juventus
+JVC
 Jyske Bank
 JÃ¤germeister
 K-Swiss
 K-Y
 K2
 K9 Advantix
-KBC
-KBS
-KEB
-KFC
-KGI
-KIA
-KPMG
-KT
 KahlÃºa
 Kaiser
 Kaiser Permanente
@@ -1633,18 +1621,24 @@ Kapiti Fine Foods
 Kappa
 Karo
 Kashi
+KBC
+KBS
 Kcel
+KEB
 Keds
 Keebler
 Keemann
 Keglevich
 Kelkoo
-Kellogg's
-Kellogg's Nestle
+Kellogg's
+Kellogg's Nestle
 Kelvinator
 Kenmore
 Kenneth Cole
 Keuhne + Nagel
+KFC
+KGI
+KIA
 Kia
 Kibbles ân Bits
 Kids âRâ Us
@@ -1657,11 +1651,10 @@ Kingfisher
 Kinley
 Kiss My Face
 Kissan
-Kisses
 Kit Kat
 KitchenAid
-KiwiRail
 Kiwibank
+KiwiRail
 Kix
 Kixstaart
 Klabin
@@ -1671,8 +1664,8 @@ Klondike
 Kmart
 Knorr
 Kodak
+Kohl's
 Kohler
-Kohl's
 Kokanee Beer
 Komatsu
 Konica Minolta
@@ -1682,6 +1675,7 @@ Korean Air
 Korres
 Kotex
 Kotsovolos
+KPMG
 Krackel
 Kraft
 Krazy Glue
@@ -1692,6 +1686,7 @@ Krombacher
 Kronenbier
 Kronenbourg1664
 Krug
+KT
 Kuemmerling
 Kuhne
 Kumho
@@ -1700,23 +1695,22 @@ Kwak
 Kwality
 Kyobo
 KÃ¤rcher
+L'Occitane
+L'Oreal
+L'Oréal
 L.A. Gear
 L.A. Weightloss Center
 L.J. Hooker
 L.L. Bean
-LAN Airlines
-LEGO
-LG
-LIC
 La
 La Caixa
 La Chouffe
 La Choy
 La Fin du Monde
 La-Z-Boy
-LaCoste
-Labatt's
+Labatt's
 Lacoste
+LaCoste
 Lactalis
 Lactis
 Lady Speed Stick
@@ -1725,6 +1719,7 @@ Lakeport Brewing Company
 Lakme
 Lambic
 Lamborghini
+LAN Airlines
 Lancer
 Lancia
 Lancome
@@ -1738,7 +1733,7 @@ Language History
 Latex Gloves
 LavAzza
 Lavipharm
-Lay's
+Lay's
 Lazzaroni
 Le CrÃ©dit Lyonnais
 Le Figaro
@@ -1752,6 +1747,7 @@ Lee
 Lee Kim Kee
 Leffe
 Lego
+LEGO
 Legrand
 Leighton Holdings
 Lend Lease Corporation
@@ -1761,25 +1757,25 @@ LensCrafters
 Leo Beer
 Leonida
 Leroy Merlin
+Levi's
 Leviathan
-Levi's
 Lexus
+LG
 Li & Fung
 Li-Ning
 Libertad
 Liberty
 Liberty Medical
 Liberty Mutual
+LIC
 Lider
 Lidl
 Liebherr
 Life Savers
 Life Time Fitness
 Lifestyle Clotheslines
-Light
 Lik Sang
 Lili Diamonds
-Limited
 Lincoln
 Lincoln Logs
 Lindt
@@ -1810,13 +1806,13 @@ Lolly Gobble Bliss Bombs
 London Drugs
 London Fog
 London Stock Exchange
-Long John Silver's
+Long John Silver's
 Longines
 Looney Tunes
 Lotto Sport Italia
 Louis Vuitton
+Lowe's
 Lowes Menswear
-Lowe's
 Lubriderm
 Lucky
 Lucky Charms
@@ -1838,23 +1834,10 @@ Lycos
 Lycra
 Lysol
 LÃ¶wenbrÃ¤u
-L'Occitane
-L'Oreal
-L'Oréal
-M&M's
+M&M's
 M&S
-MAB Corporation
-MAN
-MDX
-MEA Advisory
-MECWA
-MFS Limited
-MGM
-MSN
-MTS
-MTV
-MYOB
 Maalox
+MAB Corporation
 Macaroni Grill
 Mach3
 Mack
@@ -1862,16 +1845,16 @@ Macleans
 Macquarie Bank
 Macquarie Infrastructure Group
 Macrovita
-Macy's
+Macy's
 Madeco SA
 Madrigal Shipping Lines
 Maersk
 Magazine LuÃ­za
 Maggi
-MagiKLEEN Premium Products
 Magic
 Magic Chef
 Magic Marker
+MagiKLEEN Premium Products
 Magna Doodle
 Magna International
 Magnavox
@@ -1881,7 +1864,7 @@ Mahou
 Mainland
 Major League Baseball
 Make-up Art Cosmetics
-Maker's Mark
+Maker's Mark
 Malaysia Airline
 Malee
 Malibu
@@ -1905,7 +1888,6 @@ Marks & Spencer
 Marlboro
 Marmot
 Marriott
-Mars
 Marshall Fields
 Marshalls
 Martell
@@ -1927,9 +1909,9 @@ Mattel
 Mattress Giant
 Maudite
 Max Factor
-MaxMara
+Maxim's Catering
 Maxima
-Maxim's Catering
+MaxMara
 Maxwell House
 Maxxis
 Maybach
@@ -1939,11 +1921,14 @@ Mayo Clinic
 Maytag
 Mazda
 McAfee
-McDonald's
+McDonald's
 McKesson
+MDX
+MEA Advisory
 Mead
 Meadow Fresh
 Meadow Lea
+MECWA
 Media Markt & Saturn
 Mediobanca
 Medtronic
@@ -1952,35 +1937,37 @@ Meijer
 Melbourne IT
 Mello Yello
 Memorex
-Menard's
+Men's Warehouse
+Menard's
 Mengniu
 Mentos
-Men's Warehouse
 Mercadona
 Mercedes-Benz
 Mercedez-Benz
 Mercury Insurance
 Merida
 Merrill Lynch
-Mervyn's
-MetLife
+Mervyn's
 Metal Storm
 Metaxa
 Metcash
 Meteor
 Metersbonwe
+MetLife
 Metro
 Metro Cash and Carry
 Metrogames
 Metters
 Mevgal
+MFS Limited
+MGM
 Michael Kors
 Michaels Stores
 Michelin
 Michelob
 Microsoft
-Microsoft Office
 Microsoft Corporation
+Microsoft Office
 Midas
 Midea
 Midol
@@ -2028,7 +2015,6 @@ Monte
 Monterey
 Moosehead Brewery
 Mop & Glo
-More
 Moretti
 Morgan Stanley
 Mortein
@@ -2055,6 +2041,9 @@ Mr. Sub
 Mr. Tayto
 Mrs Mac's Pies
 Mrs. Fields
+MSN
+MTS
+MTV
 Mulino Bianco
 Multiplex
 Munchkin
@@ -2065,23 +2054,13 @@ Murrays
 Must See TV
 Mustang
 My Little Pony
-MySpace
 Myer
 Mylanta
+MYOB
 Myojo
+MySpace
 Mytilineos
 MÃ¡quina de Vendas
-NAPA Auto Parts
-NASA
-NASCAR
-NASDAQ
-NBC
-NCR Systems
-NFL
-NRMA
-NTUC Fairprice
-NXP Semiconductors
-NZ Post
 Nabisco
 Nair
 Name DNA Detection
@@ -2089,7 +2068,11 @@ Name DNA Validation
 Naming Articles
 Naming Resources
 Nanyang Commercial Bank
+NAPA Auto Parts
 Naraya
+NASA
+NASCAR
+NASDAQ
 Nash Timbers
 Nastro Azzuro
 National Australia Bank
@@ -2102,10 +2085,12 @@ Natura
 Naturalizer
 Nature Valley
 Nature's Path
-Nature's Way
+Nature's Way
 Nautica
 Navigator
+NBC
 Ncell
+NCR Systems
 Needs Convenience
 Neiman Marcus
 Neoplan
@@ -2129,22 +2114,22 @@ Neutrogena
 New Balance
 New World
 New York Life Insurance
+New York Times
 Newcastle Port Corporation
 Newcrest Mining
 News Corporation
 Newsletter
 Newsweek
-Newton's
+Newton's
 Nexen
 Nexis
 Nextel
 Nexxus
-Nice
+NFL
 Nickelodeon
 Nicoderm
 Nicorette
 Niederegger
-Night
 Nike
 Nikon
 Nina Ricci
@@ -2161,8 +2146,8 @@ Nokia
 Nomis
 Nomura
 Nordea
-NordicTrack
 Nordica
+NordicTrack
 Nordstrom
 Norelco
 Norma
@@ -2176,6 +2161,8 @@ Nova Schin
 Novartis
 Novogen
 Noxzema
+NRMA
+NTUC Fairprice
 Nu Skin
 Nudie Jeans
 Nufarm
@@ -2187,12 +2174,11 @@ Nutri-Grain
 Nutrisse
 Nuvaring
 Nvidia
-NyQuil
+NXP Semiconductors
 Nykredit
+NyQuil
+NZ Post
 O boticÃ¡rio
-OMO
-OMV
-OXO
 Ocean
 Ocean & Earth
 Ocean Pacific
@@ -2221,6 +2207,8 @@ Olympus
 Omega
 OmniPro
 Omnitel
+OMO
+OMV
 One-A-Day
 OneSteel
 Onex
@@ -2241,12 +2229,11 @@ Oreo
 Orica
 Origin Energy
 Original Ranch
-Orion
 Orkin
 Orocobre
 Ortho Tri-Cyclen
 Orval
-Orville Redenbacher's
+Orville Redenbacher's
 Oscar Mayer
 OshKosh B'Gosh
 Osim
@@ -2262,20 +2249,9 @@ Outlook
 Ovaltine
 Overstock
 Oxiclean
+OXO
 Ozinode Technologies Pte Ltd
-P.F. Chang's
-PAK ân SAVE
-PARKnSHOP
-PBS
-PCCW
-PEZ
-PG&E Corp.
-PIPE Networks
-PNC Financial
-POSCO
-PTT
-PUMA
-PUR
+P.F. Chang's
 Pabst
 Pac-Man
 Pace Salsa
@@ -2286,23 +2262,25 @@ Pacifico
 Pacsafe
 Paddle Pop
 Padini
+PAK ân SAVE
 Palm
 Pampers
 Pams
-PanAm Airlines
 Panadol
 Panalpina
+PanAm Airlines
 Panasonic
 Panera Bread
 Pantanal Linhas AÃ©reas
 Pantene
-Papa John's
-Papa Murphy's
+Papa John's
+Papa Murphy's
 Paper Mate
 Paper Plus Group
 Paramount
 Park Avenue
 Parker Hannifin
+PARKnSHOP
 Parkson
 Parle
 Parmalat
@@ -2322,6 +2300,8 @@ Paxil
 PayDay
 Payless Entertainment
 Payless Shoe Source
+PBS
+PCCW
 Pearl
 Pearl Vision
 Pearson
@@ -2350,18 +2330,20 @@ Peroni
 Perrier
 Persil
 Pert
-PetMed Express
 Petco
 Peter Lehmann Wines
 Peter Pan
 Peters Ice Cream
+PetMed Express
 Petro Canada
-PetroChina
 Petrobras
+PetroChina
 Petronas
 Petsmart
 Peugeot
+PEZ
 Pfizer
+PG&E Corp.
 Phat Farm
 Philadelphia Cream Cheese
 Philip Morris
@@ -2370,8 +2352,8 @@ Phillips
 Photoshop
 Physicians Formula
 Piaget
-PicNet Pty Ltd
 Picaroons Traditional Ales
+PicNet Pty Ltd
 Piggly Wiggly
 Pillsbury
 Pilot
@@ -2380,6 +2362,7 @@ Pine-Sol
 Pineapple Lumps
 Ping An
 Pioneer
+PIPE Networks
 Piping
 PiratfÃ¶rlaget
 Pirelli
@@ -2396,20 +2379,21 @@ Planned Parenthood
 Planters
 Plavix
 Play-Doh
+Playboy
 PlaySkool
 PlayStation
-Playboy
 Playtex
 Pledge
 Plus
 Plymouth
+PNC Financial
 Pokemon
 Polar
 Polaroid
 Polly Pocket
 Polo Ralph Lauren
 Pompui
-Pond's
+Pond's
 Pontiac
 Ponto Frio
 Pop Rocks
@@ -2418,6 +2402,7 @@ Popeyes
 Porr
 Porsche
 Porta Potti
+POSCO
 Post-it
 Pound Puppies
 Power Computers
@@ -2449,11 +2434,13 @@ Proton Bank
 Proximus
 Prozac
 Prudential
+PTT
 Public Bank
 Publishers Clearing House
 Publix
 Puffs
 Pull-Ups
+PUMA
 Pupa
 Purell
 Purex
@@ -2462,12 +2449,11 @@ PwC
 Pyrex
 PÃ£o de AÃ§Ãºcar
 Q-tips
+Qantas
 QMI Solutions Limited
 QNX
-QR
-QX56
-Qantas
 Qorison
+QR
 Quake
 Quaker
 Qualcomm
@@ -2481,24 +2467,14 @@ Quebecor
 Queiroz GalvÃ£
 Quest
 Quick Books
-Quicken
 Quicksilver
 Quiksilver
 Quilted Northern
 Quiznos
 Qvale
 Qwest
+QX56
 R. M. Williams
-RAZR
-RBS
-RCA
-RE/MAX
-RHB Bank
-RL
-RTL
-RVCA
-RWE
-RX330
 Rabobank
 Radeberger
 Radio Shack
@@ -2510,7 +2486,6 @@ Rail Control Systems Australia
 Rail Infrastructure Corporation
 Rainbow Brite
 Raisinets
-Ram
 Ramsay Health Care
 Randstad
 Range
@@ -2522,8 +2497,11 @@ Ray-Ban
 Raymonds
 Rayovac
 Raytheon
-Reader's Digest
-Real
+RAZR
+RBS
+RCA
+RE/MAX
+Reader's Digest
 Rebel
 Recaro
 Red Bull
@@ -2534,13 +2512,13 @@ Red Rooster
 Red Rose Tea
 Reddi-wip
 Rede Record
-RedeTV!
 Redecard
+RedeTV!
 Redheads
 Redken
 Reebok
 Reef
-Reese's
+Reese's
 Regent
 Reload
 Rembrandt
@@ -2551,9 +2529,10 @@ Renner
 Renren
 Rent-A-Center
 Repsol
-ResMed
 Research in Motion
 Resene
+ResMed
+resQ
 Retriever Communications
 Reuters
 Revlon
@@ -2561,6 +2540,7 @@ Rewe
 Reynolds
 Reynolds Stockbrokers
 Rhapsody
+RHB Bank
 Ricard
 Rice Krispies
 Rice-A-Roni
@@ -2583,13 +2563,14 @@ Rite Aid
 Ritz
 Ritz-Carlton
 Rivers Australia
+RL
 Road Runner
 Roberto Cavalli
 Robin's Donuts
 Robitussin
 Rochefort
-RockStar Energy Drink
 Rockport
+RockStar Energy Drink
 Rodenbach
 Rogaine
 Rogers
@@ -2598,16 +2579,16 @@ Rolaids
 Rolex
 Rollerblade
 Rolling Rock
-Rolls-Royce
 Rolls Royce
+Rolls-Royce
 Rolodex
 Roma
 Roots Canada
-Rose's
+Rose's
 Rosneft
 Ross Stores
 Rossi Residencial
-Roundy's
+Roundy's
 Routan
 Rover
 Rowenta
@@ -2617,37 +2598,20 @@ Royal BAM Group
 Royal Bank of Canada
 Royal Bank of Scotland
 Royal Caribbean
+RTL
 Rubbermaid
 Ruby Tuesday
 Ruffles
 Rummo
 Russel Stover
+RVCA
+RWE
+RX330
 Ryanair
 Ryman Healthcare
 S. Pellegrino
 S.T. Dupont
 S40
-SAO
-SAP
-SAS
-SBT
-SEAT
-SEB
-SES
-SF BIO
-SFR
-SK Telecom
-SKC
-SKF
-SLK
-SME Secrets
-SNS REAAL
-SPAM
-SPC Ardmona
-SPD Bank
-SQM
-SRX
-STS
 Saab
 Sabesp
 Safe Auto Insurance
@@ -2667,8 +2631,8 @@ Samby
 Samsonite
 Samsung
 San Benedetto
-SanDisk
 Sandals
+SanDisk
 Sandman Hotels
 Sandvik
 Sanford
@@ -2682,19 +2646,22 @@ Santander
 Sante
 Santos
 Sanyo
+SAO
+SAP
 Sara Lee
 Saracakis
 Sarotti
+SAS
 Sass & bide
-Saturn
 Sausage Software
 Save-On-Foods
+SBT
 Schick
 Schincoariol
 Schindler
 Scholastic
 Schooner Lager
-Schwan's
+Schwan's
 Schwarzkopf
 Schweppes
 Schwinn
@@ -2710,12 +2677,14 @@ Scottrade
 Scrabble
 Scrubbing Bubbles
 Sea World
-Seagram's
+Seagram's
 Sealy
 Seamless CMS
 Sean John
 Sears
 Seasonale
+SEAT
+SEB
 Sebring
 Second Cup
 Secret
@@ -2733,14 +2702,15 @@ Septwolves
 Sequoia
 Seratec Pty Ltd
 Serta
+SES
 Sesame Street
-Seven
+SF BIO
 Sfakianakis
+SFR
 Shake ân Bake
 Shane Co.
 Shanghai Tang
 Shangri-La
-Sharp
 Sharper Image
 Sharpie
 Shell
@@ -2755,9 +2725,8 @@ Shinsegae
 Shiseido
 Shivam Technologies
 Shop Rite
-ShopNBC
 Shopko
-Shout
+ShopNBC
 Shuanghui
 Sidchrome
 Siemens
@@ -2775,16 +2744,19 @@ Simply Market
 Simpson
 Sin Chew
 Sina
-SingTel
 Singapore Airlines
 Singha
 Singles
+SingTel
 Sino Gold
 Sinopec
 Sirius
 Six Apart
 Six Flags
+SK Telecom
+SKC
 Skechers
+SKF
 Skin Food
 Skippy
 Skittles
@@ -2798,26 +2770,29 @@ Slim Jim
 Slim-Fast
 SlimFast
 Slinky
+SLK
 Slumberland
 Slurpee
 Smacks
 Smart
 Smart Ones
 Smart Start
-SmartNS
 Smarties
+SmartNS
+SME Secrets
 Smirnoff
 Smith & Wesson
 Smorgon Steel
-Smucker's
+Smucker's
 Snack Brands Australia
 Snack Pack
-SnackWell's
+SnackWell's
 Snapple
 Snappy Tom
 Snickers
 Snow
 Snowy Hydro Limited
+SNS REAAL
 Snuggle
 SoBe
 Socedad QuÃ­mica y Minera de Chile
@@ -2845,11 +2820,14 @@ Southwest Airlines
 Spa Espirit Group
 Spaceframe Construction & Engineering
 SpaghettiOs
+SPAM
 Spanx
 Spar Group
 Spar Nord
 Sparco
 Spark Notes
+SPC Ardmona
+SPD Bank
 Special K
 Spectra
 Speed Stick
@@ -2870,10 +2848,12 @@ Spray ân Wash
 Springland International
 Sprint
 Sprite
+SQM
 Squirt
+SRX
 St John
 St. George Bank
-St. Ive's
+St. Ive's
 Stain Stick
 StairMaster
 Staminade
@@ -2886,9 +2866,9 @@ Staples
 Star Channel
 Star Wars
 Star-Kist
-StarHub
 Starbucks
 Starburst
+StarHub
 State
 State Farm
 Statesman
@@ -2901,7 +2881,7 @@ Sticky Johnson
 Stihl
 Stop & shop
 Stora Enso
-Stouffer's
+Stouffer's
 Stove Top
 Strabag
 Straits Times
@@ -2909,7 +2889,7 @@ Strategic Marine
 Streets
 Stri-Dex
 Stride
-SuJon Berries
+STS
 Suave
 Subaru
 Subway
@@ -2917,6 +2897,7 @@ Sucrets
 Sudafed
 Sudzucker
 Suez Environnment
+SuJon Berries
 Sun Chips
 Sun Life Financial Services
 Sunbeam
@@ -2936,7 +2917,6 @@ Super Soaker
 SuperAmerica
 Supertest Petroleum
 Supervalu
-Sure
 Suzano Papel e Celulose
 Suzuki
 Svenska Handelsbanken
@@ -2961,33 +2941,9 @@ Synnex
 T Rowe Price
 T-Mobile
 T-Systems
-T.G.I. Friday's
+T.G.I. Friday's
 T.J. Maxx
 TAA-Australian Airlines
-TAM Airlines
-TBS
-TCell
-TDC
-TELUS
-TI-nspire
-TIM
-TJ Maxx
-TJX
-TKH Group
-TLC
-TNT
-TNT Express
-TOM Group
-TOZ Rum
-TUI Group
-TV Cultura
-TV Guide
-TV3
-TV5 Monde
-TVN
-TVS
-TWA
-TWG Tea Company
 Tabasco
 Tabcorp Holdings
 Taco Bell
@@ -3003,6 +2959,7 @@ Take5
 Talbots
 Talisman Energy
 Tally-Ho
+TAM Airlines
 Tang
 Tangy Fruits
 Tanishq
@@ -3011,11 +2968,14 @@ Tarax
 Target
 Target Market Focused
 Tarocash
-Taster's Choice
+Taster's Choice
 Tata
 Tatyo
 Taurus
+TBS
+TCell
 Tchibo
+TDC
 Team and Concepts Limited
 Technicolor
 Teck Cominco
@@ -3038,6 +2998,7 @@ Telequartz
 Telesp
 Telia
 Telstra
+TELUS
 Temax
 TempurPedic
 Tenaris
@@ -3076,7 +3037,7 @@ Thomson Reuters
 Three Threes
 Thums Up
 ThyssenKrupp
-TiVo
+TI-nspire
 Tia Supermercados
 Tic Tac
 Ticketmaster
@@ -3084,10 +3045,10 @@ Tide
 Tidy Cats
 Tiffany & Co.
 Tilex
+TIM
 Tim Hortons
 Tim Tam
 Timberland
-Time
 Time Warner
 Timex
 Tiny Teddy
@@ -3096,17 +3057,25 @@ Tipco
 Tiscali
 Tissot
 Titan
+TiVo
+TJ Maxx
+TJX
+TKH Group
+TLC
+TNT
+TNT Express
 To Vima
 Toblerone
 Toll Holdings
 Toll House
+TOM Group
 Tom Tailor
 Tom Tom
-TomTom
 Tommy Hilfiger
+TomTom
 Tong Ren Tang
 Tonka
-Tony Roma's
+Tony Roma's
 Tooheys Brewery
 Tooheys Extra Dry
 Tooheys New
@@ -3119,29 +3088,29 @@ Tostitos
 Total
 Total Linhas AÃ©reas
 Total Peripherals Group
-Totino's
-Town
+Totino's
 Town House
 Toy Kingdom
 Toy Story
 Toyota
-Toys âRâ Us
+Toys R Us
+TOZ Rum
 TracFone
 Track7
 Trademark Resources
-Trader Joe's
+Trader Joe's
 Trading Spaces
 Trailblazer
 Trans Canada
-TransPerth
 Transcend
 Transitions Lenses
+TransPerth
 Transportadora de Gas del sur
 Transurban
 Trapiche Roble
 Trapper Keeper
-TraveLodge
 Travelocity
+TraveLodge
 Traynor Amplifiers
 Trend Micro
 Tresemme
@@ -3157,6 +3126,7 @@ Tropicana
 True Value
 Tsingtao
 Tucson
+TUI Group
 Tums
 Tuna Helper
 Tundra
@@ -3166,6 +3136,14 @@ TurboTax
 Turners & Growers
 Turtle Wax
 Tux
+TV Cultura
+TV Guide
+TV3
+TV5 Monde
+TVN
+TVS
+TWA
+TWG Tea Company
 Twingly
 Twinkies
 Twitter
@@ -3183,28 +3161,23 @@ U.S. Bancorp
 U.S. Marines
 U.S. Navy
 UBS
+Ucell
 UDL
 UGG
-UGL Limited
-UPM-Kymmene
-UPS
-USA Today
-USG People
-USPS
-Ucell
 Ugg Boots
+UGL Limited
 Ulsse Nardin
 Ultra
 Ultra Brite
 Ultrapar
 Ultrasone
-Uncle Ben's
-Uncle Toby's
+Uncle Ben's
+Uncle Toby's
 Under Armour
 UNESCO
 Uni-President
-UniCredit Group
 Unicharm
+UniCredit Group
 Unilever
 Union Pacific
 United Airlines
@@ -3217,14 +3190,16 @@ Universal Studios
 University Games
 Universo Online
 Uno
-Up
 Uplifting Solutions
+UPM-Kymmene
+UPS
 Urban Outfitters
+USA Today
+USG People
 Usiminas
+USPS
 V05
 V8
-VTR
-VTech
 Vacheron Constantin
 Vagisil
 Vale
@@ -3258,7 +3233,7 @@ Vicks
 Vicodin
 Victa lawn mower
 Victoria Bitter
-Victoria's Secret
+Victoria's Secret
 Victrex
 Vidal Sassoon
 Videocon
@@ -3293,43 +3268,44 @@ Vonage
 Vopak
 Votorantim
 Voyage
+VTech
+VTR
 Vue
-WB
-WC SA
-WD-40
-WEG Industries
-WWE
-WaMu
 Waitrose
-WalMart
 Waldenbooks
 Walgreens
 Walkabout
+WalMart
 Walt Disney
+WaMu
 Want-Want
 Warner Brothers
 Warsteiner
 Water Mission
 Watsons Water
-Watti's
+Watti's
 Wattyl
 Wave Runner
 Wavin
+WB
+WC SA
+WD-40
 WebJect Linhas AÃ©read
 WebMD
 Weed Eater
+WEG Industries
 Weight Watchers
-Welch's
+Welch's
 WellPoint
 Wells Fargo
-Wendy's
+Wendy's
 Wesfarmers
 Wesson
-WestJet
 Western Union
 Westfield Group
 Westin Hotels
 Westinghouse
+WestJet
 Westmalle
 Westnet
 Westpac New Zealand
@@ -3341,10 +3317,10 @@ Wheat Thins
 Wheatables
 Wheaties
 Whirlpool
+Whiska's
 Whiskas
-Whiska's
 Whitestrips
-Whittaker's
+Whittaker's
 Whole Foods Markets
 Whyred
 Wienerberger
@@ -3376,10 +3352,11 @@ Wooribank
 World Wildlife Fund
 WorleyParsons
 Wrangler
-Wrigley's
+Wrigley's
 Wrx
 Wu Liang Ye
 Wuliangye
+WWE
 Wyeth
 X-Acto
 X-Factor
@@ -3388,25 +3365,22 @@ X-Men
 X3M
 X5
 X6
-XC90
-XF
-XFX
-XM Radio
-XO Interior Systems
-XXXX
 Xandros
 Xbox
+XC90
 Xcel Energy
 Xerox
+XF
+XFX
 Xhilaration
 Xigmatek
 Xilence
 Xingu
+XM Radio
+XO Interior Systems
 Xterra
+XXXX
 Xypex
-YPFB SA
-YTL
-YTN
 Yahoo!
 Yahtzee
 Yamaha
@@ -3420,17 +3394,18 @@ Yoigo
 Yoo-hoo
 Yoplait
 York
-YouTube
 Yousee
+YouTube
+YPFB SA
 Ypsilon S.A.
+YTL
+YTN
 Yukon
 Yum Brands
 Yum Yum!
 Yunnan Baiyao
 Yves Rocher
 Yves Saint Laurent
-ZEV Markant
-ZIC
 Zaffari
 Zagori
 Zales Jewelry
@@ -3444,6 +3419,8 @@ Zenith
 Zenon S.A.
 Zespri
 Zeta
+ZEV Markant
+ZIC
 Zimmer
 Zinifex Limited
 Zip Industries
@@ -3453,15 +3430,5 @@ Zodac
 Zoloft
 Zurich
 Zurich Cantonal Bank
-ZyXE
 Zyrtec
-city'super
-deGrisogono
-eBay
-iLANs Integrated LAN Services
-iPad
-iPhone
-iPod
-iTunes
-iiNet
-resQ
+ZyXE

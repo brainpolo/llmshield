@@ -13,7 +13,7 @@ Lists:
     EN_PLACE_COMPONENTS: Street and place name components
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 # * Punctuation

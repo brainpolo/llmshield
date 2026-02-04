@@ -11,7 +11,7 @@ Test Classes:
     - TestSelectivePIIIntegration: Tests integration with LLMShield
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 import unittest
@@ -153,11 +153,17 @@ class TestSelectivePIIDetection(unittest.TestCase):
         self.assertFalse(config.is_enabled(EntityType.ORGANISATION))
 
     def test_entity_config_default_all_enabled(self):
-        """Test EntityConfig defaults to all entities enabled."""
+        """Test EntityConfig defaults to default entity types."""
         config = EntityConfig()
 
-        # All entity types should be enabled by default
-        for entity_type in EntityType:
+        num_default_types = len(EntityType.default_types())
+        types_enabled = config.enabled_types
+
+        # Verify number of enabled types matches default types
+        self.assertEqual(num_default_types, len(types_enabled))
+
+        # Default entity types should be enabled
+        for entity_type in EntityType.default_types():
             self.assertTrue(config.is_enabled(entity_type))
 
     @parameterized.expand(
@@ -582,6 +588,13 @@ class TestSelectivePIIDetection(unittest.TestCase):
                     EntityType.ORGANISATION,
                 ],
             ),
+            (
+                "enable_all_config",
+                "enable_all",
+                [],
+                list(EntityType.all()),
+                [],
+            ),
         ]
     )
     def test_factory_config_methods(
@@ -608,6 +621,84 @@ class TestSelectivePIIDetection(unittest.TestCase):
                 config.is_enabled(entity_type),
                 f"{entity_type} should be disabled in {config_method}",
             )
+
+    def test_llmshield_fluent_chaining_accumulation(self):
+        """Test that LLMShield chaining correctly accumulates state."""
+        # Start with all enabled, then remove
+        shield = (
+            LLMShield.enable_all()
+            .without_locations()
+            .without_persons()
+            .without_concepts()
+        )
+
+        conf = shield.entity_config
+        # Accumulated disabled items
+        self.assertFalse(conf.is_enabled(EntityType.PLACE))
+        self.assertFalse(conf.is_enabled(EntityType.IP_ADDRESS))
+        self.assertFalse(conf.is_enabled(EntityType.URL))
+        self.assertFalse(conf.is_enabled(EntityType.PERSON))
+        self.assertFalse(conf.is_enabled(EntityType.CONCEPT))
+
+        # Items that should still be enabled
+        self.assertTrue(conf.is_enabled(EntityType.ORGANISATION))
+        self.assertTrue(conf.is_enabled(EntityType.EMAIL))
+        self.assertTrue(conf.is_enabled(EntityType.PHONE))
+        self.assertTrue(conf.is_enabled(EntityType.CREDIT_CARD))
+
+    def test_llmshield_chaining_preserves_config(self):
+        """Test that chaining preserves other LLMShield settings."""
+
+        def mock_llm(p):
+            return p
+
+        original = LLMShield(
+            start_delimiter="[[",
+            end_delimiter="]]",
+            llm_func=mock_llm,
+            max_cache_size=42,
+        )
+
+        # Chain a config change
+        chained = original.without_persons().without_emails()
+
+        # Check config
+        self.assertEqual(chained.start_delimiter, "[[")
+        self.assertEqual(chained.end_delimiter, "]]")
+        self.assertEqual(chained.llm_func, mock_llm)
+        self.assertEqual(chained._cache.capacity, 42)
+
+        # Check entity toggles
+        self.assertFalse(chained.entity_config.is_enabled(EntityType.PERSON))
+        self.assertFalse(chained.entity_config.is_enabled(EntityType.EMAIL))
+        self.assertTrue(chained.entity_config.is_enabled(EntityType.PLACE))
+
+    def test_llmshield_chaining_granular_detection(self):
+        """Rigorous test of granular detection after chaining."""
+        shield = (
+            LLMShield.enable_all()
+            .without_locations()  # PLACE, IP, URL
+            .without_organisations()
+        )
+
+        text = (
+            "John Smith from Apple visited London. "
+            "Email him at john@example.com or visit 1.1.1.1. "
+            "Internal project X-PROXIMA is active."
+        )
+
+        cloaked, emap = shield.cloak(text)
+        entities = list(emap.values())
+
+        # Should detect: PERSON, EMAIL, CONCEPT
+        self.assertIn("John Smith", entities)
+        self.assertIn("john@example.com", entities)
+        self.assertIn("X-PROXIMA", entities)
+
+        # Should NOT detect: ORGANISATION, PLACE, IP_ADDRESS
+        self.assertNotIn("Apple", entities)
+        self.assertNotIn("London", entities)
+        self.assertNotIn("1.1.1.1", entities)
 
 
 if __name__ == "__main__":

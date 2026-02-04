@@ -21,6 +21,9 @@ wheels/
 *.egg
 .ruff_cache/
 
+# LLMShield
+tests/texts/*
+
 # Virtual Environment
 venv/
 env/

@@ -12,7 +12,7 @@ Test Classes:
     - TestShouldCloakInput: Tests input cloaking logic
     - TestProcessAskHelperInput: Tests input processing helpers
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 # Standard library Imports

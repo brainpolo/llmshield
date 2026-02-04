@@ -9,7 +9,7 @@ Functions:
     _luhn_check: Validates card numbers using the Luhn algorithm
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 

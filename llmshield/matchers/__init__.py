@@ -12,5 +12,5 @@ Submodules:
     dicts: Dictionary data files for known entities
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """

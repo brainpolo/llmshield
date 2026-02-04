@@ -30,7 +30,7 @@ Example:
     ... )
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 
 """
 
@@ -44,7 +44,7 @@ from .detection_utils import (
     extract_response_content,
     is_chatcompletion_like,
 )
-from .entity_detector import EntityConfig
+from .entity_detector import EntityConfig, EntityType
 from .error_handling import (
     validate_delimiters,
     validate_entity_map,
@@ -66,6 +66,9 @@ from .utils import (
 
 DEFAULT_START_DELIMITER = "<"
 DEFAULT_END_DELIMITER = ">"
+DEFAULT_MAX_CACHE_SIZE = 10_000
+
+__version__ = "2.0.0"
 
 
 class LLMShield:
@@ -105,7 +108,7 @@ class LLMShield:
             | Callable[[str], Generator[str, None, None]]
             | None
         ) = None,
-        max_cache_size: int = 1_000,
+        max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
         entity_config: EntityConfig | None = None,
     ) -> None:
         """Initialise LLMShield with selective entity protection.
@@ -118,7 +121,7 @@ class LLMShield:
             llm_func: Optional function that calls your LLM (enables direct
                 usage)
             max_cache_size: Maximum number of items to cache in the LRUCache
-                (default: 1_000)
+                (default: DEFAULT_MAX_CACHE_SIZE)
             entity_config: Configuration for selective entity detection.
                 If None, all entity types are enabled.
 
@@ -143,7 +146,7 @@ class LLMShield:
 
         self.start_delimiter = start_delimiter
         self.end_delimiter = end_delimiter
-        self.entity_config = entity_config
+        self.entity_config = entity_config if entity_config is not None else EntityConfig()
 
         self.llm_func = llm_func
 
@@ -435,7 +438,7 @@ class LLMShield:
             | Callable[[str], Generator[str, None, None]]
             | None
         ) = None,
-        max_cache_size: int = 1_000,
+        max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
     ) -> "LLMShield":
         """Create LLMShield with location-based entities disabled.
 
@@ -459,7 +462,7 @@ class LLMShield:
             | Callable[[str], Generator[str, None, None]]
             | None
         ) = None,
-        max_cache_size: int = 1_000,
+        max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
     ) -> "LLMShield":
         """Create LLMShield with person entities disabled.
 
@@ -483,7 +486,7 @@ class LLMShield:
             | Callable[[str], Generator[str, None, None]]
             | None
         ) = None,
-        max_cache_size: int = 1_000,
+        max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
     ) -> "LLMShield":
         """Create LLMShield with contact information disabled.
 
@@ -507,7 +510,7 @@ class LLMShield:
             | Callable[[str], Generator[str, None, None]]
             | None
         ) = None,
-        max_cache_size: int = 1_000,
+        max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
     ) -> "LLMShield":
         """Create LLMShield with only financial entities enabled.
 
@@ -519,6 +522,100 @@ class LLMShield:
             llm_func=llm_func,
             max_cache_size=max_cache_size,
             entity_config=EntityConfig.only_financial(),
+        )
+
+    @classmethod
+    def enable_all(
+        cls,
+        start_delimiter: str = DEFAULT_START_DELIMITER,
+        end_delimiter: str = DEFAULT_END_DELIMITER,
+        llm_func: (
+            Callable[[str], str]
+            | Callable[[str], Generator[str, None, None]]
+            | None
+        ) = None,
+        max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
+    ) -> "LLMShield":
+        """Create LLMShield with all entity types enabled."""
+        return cls(
+            start_delimiter=start_delimiter,
+            end_delimiter=end_delimiter,
+            llm_func=llm_func,
+            max_cache_size=max_cache_size,
+            entity_config=EntityConfig.enable_all(),
+        )
+
+    # Chaining methods
+    def _with_config(self, config: EntityConfig) -> "LLMShield":
+        """Internal helper to create a new shield with updated config."""
+        return LLMShield(
+            start_delimiter=self.start_delimiter,
+            end_delimiter=self.end_delimiter,
+            llm_func=self.llm_func,
+            max_cache_size=self._cache.capacity,
+            entity_config=config,
+        )
+
+    def without_locations(self) -> "LLMShield":
+        """Disable location detection."""
+        return self._with_config(self.entity_config.without_locations())
+
+    def without_persons(self) -> "LLMShield":
+        """Disable person detection."""
+        return self._with_config(self.entity_config.without_persons())
+
+    def without_contacts(self) -> "LLMShield":
+        """Disable contact (email/phone) detection."""
+        return self._with_config(self.entity_config.without_contacts())
+
+    def without_organisations(self) -> "LLMShield":
+        """Disable organisation detection."""
+        return self._with_config(self.entity_config.without_organisations())
+
+    def without_concepts(self) -> "LLMShield":
+        """Disable concept detection."""
+        return self._with_config(self.entity_config.without_concepts())
+
+    def without_credit_cards(self) -> "LLMShield":
+        """Disable credit card detection."""
+        return self._with_config(self.entity_config.without_credit_cards())
+
+    def without_emails(self) -> "LLMShield":
+        """Disable email detection."""
+        return self._with_config(self.entity_config.without_emails())
+
+    def without_phones(self) -> "LLMShield":
+        """Disable phone detection."""
+        return self._with_config(self.entity_config.without_phones())
+
+    def without_urls(self) -> "LLMShield":
+        """Disable URL detection."""
+        return self._with_config(self.entity_config.without_urls())
+
+    def without_ips(self) -> "LLMShield":
+        """Disable IP detection."""
+        return self._with_config(self.entity_config.without_ips())
+
+    def without_places(self) -> "LLMShield":
+        """Disable place detection."""
+        return self._with_config(self.entity_config.without_places())
+
+    def with_all_enabled(self) -> "LLMShield":
+        """Enable all entity types."""
+        return self._with_config(self.entity_config.with_all_enabled())
+
+    def with_only_financial(self) -> "LLMShield":
+        """Enable only financial detection."""
+        return self._with_config(self.entity_config.with_only_financial())
+
+    def with_cache_size(self, size: int) -> "LLMShield":
+        """Update the conversation history cache capacity."""
+        return LLMShield(
+            start_delimiter=self.start_delimiter,
+            end_delimiter=self.end_delimiter,
+            llm_func=self.llm_func,
+            max_cache_size=size,
+            entity_config=self.entity_config,
         )
 
     def ask(

@@ -8,7 +8,7 @@ Description:
 Test Classes:
     - TestConversationHashObjects: Tests conversation hash with objects
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

@@ -9,7 +9,7 @@ Test Classes:
     - TestEntityDetectorMissingLines: Tests previously uncovered code paths
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

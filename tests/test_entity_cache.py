@@ -10,7 +10,7 @@ Test Classes:
     - TestGetEntityCache: Tests cache retrieval function
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 # Standard Library Imports

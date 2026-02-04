@@ -13,5 +13,5 @@ Data Files:
     - english_corpus.txt: Common English words for filtering
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """

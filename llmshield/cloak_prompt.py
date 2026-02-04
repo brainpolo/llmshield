@@ -13,7 +13,7 @@ Note:
     with the LLMShield class rather than calling these functions directly.
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 
 """
 

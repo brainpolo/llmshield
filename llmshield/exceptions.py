@@ -16,7 +16,7 @@ Classes:
     ProviderError: Raised when LLM provider operations fail
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 

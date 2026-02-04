@@ -11,7 +11,7 @@ Test Classes:
     - TestProviderProtocol: Tests provider protocol compliance
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

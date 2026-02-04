@@ -9,7 +9,7 @@ Description:
 Test Classes:
     - TestPackageInstallation: Tests package build and resource access
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 import subprocess

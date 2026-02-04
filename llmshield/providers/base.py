@@ -9,7 +9,7 @@ Classes:
     BaseProvider: Abstract base class for LLM provider implementations
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 # Standard Library Imports

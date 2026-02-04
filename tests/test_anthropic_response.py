@@ -7,7 +7,7 @@ Description:
 Test Classes:
     - TestAnthropicResponse: Tests Anthropic response uncloaking
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

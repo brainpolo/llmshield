@@ -1,7 +1,7 @@
 """Comprehensive integration test for tool call support.
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 import json

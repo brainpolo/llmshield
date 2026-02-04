@@ -45,14 +45,14 @@ Examples:
     ... )
 
 Author:
-    LLMShield by brainpolo, 2025
-
+    LLMShield by brainpolo, 2025-2026
 """
 
 from .core import LLMShield
 from .entity_detector import EntityConfig, EntityType
 
-__all__ = ["LLMShield", "EntityConfig", "EntityType"]
+__version__ = "2.0.0"
+__all__ = ["LLMShield", "EntityConfig", "EntityType", "__version__"]
 
 
 def create_shield(**kwargs) -> LLMShield:  # noqa: ANN003

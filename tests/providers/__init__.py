@@ -8,5 +8,5 @@ Description:
 Test Modules:
     - test_openai: OpenAI API integration tests
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """

@@ -10,7 +10,7 @@ Test Classes:
     - TestEntityDetectorEdgeCases: Tests edge cases and special scenarios
     - TestEntityDetectorRegexCompilation: Tests regex pattern compilation
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 # Standard library Imports
@@ -131,21 +131,11 @@ class TestEntityDetector(unittest.TestCase):
 
     @parameterized.expand(
         [
-            # Basic organisation tests
             ("known_org", "Microsoft", True),
-            ("org_with_component", "Google Inc", True),
             ("regular_name", "John Smith", False),
-            # Regex pattern tests (consolidating lines 339, 343)
-            ("org_with_numbers_dash", "3M-2024", True),  # ^\d+[A-Z].* pattern
-            (
-                "org_complex_pattern",
-                "IBM-Solutions-2024",
-                True,
-            ),  # .*-.*\d+.* pattern
-            ("org_number_prefix", "2024Tech", True),  # ^\d+[A-Z].* pattern
-            # Multi-word organisation tests
-            ("multi_word_times", "New York Times", True),
-            ("multi_word_corporation", "Microsoft Corporation", True),
+            ("google_inc", "Google Inc", True),
+            ("microsoft_corp", "Microsoft Corporation", True),
+            ("multi_word_times", "New York Times", True)
         ]
     )
     def test_organisation_detection_comprehensive(
@@ -191,10 +181,10 @@ class TestEntityDetector(unittest.TestCase):
 
     @parameterized.expand(
         [
-            # Consolidating all concept detection tests (lines 287)
-            ("uppercase_single_word", "API", True),
-            ("rest_concept", "REST", True),
-            ("http_concept", "HTTP", True),
+            # Non-technical all-caps words not in dictionary
+            ("custom_acronym", "XYZ", True),
+            ("custom_concept", "BAZ", True),
+            # Other test cases
             ("lowercase_single", "api", False),
             ("multi_word", "API KEY", False),
             ("with_punctuation", "API!", False),

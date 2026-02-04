@@ -10,7 +10,7 @@ Functions:
     extract_chatcompletion_content: Extract content from ChatCompletion
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 from typing import Any

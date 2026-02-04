@@ -9,7 +9,7 @@ Test Classes:
     - TestUncloakStreamMissingLine: Tests edge cases in streaming uncloaking
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

@@ -8,7 +8,7 @@ Description:
 Test Classes:
     - TestAnthropicToolResults: Tests for tool result message handling
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

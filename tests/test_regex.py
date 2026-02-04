@@ -8,7 +8,7 @@ Description:
 Test Classes:
     - TestRegexMatchers: Tests all regex pattern matching
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 from unittest import TestCase

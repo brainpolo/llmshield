@@ -14,7 +14,7 @@ Functions:
     get_entity_cache: Factory function to get the singleton instance
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 import threading

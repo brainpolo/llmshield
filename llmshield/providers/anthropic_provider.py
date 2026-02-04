@@ -10,7 +10,7 @@ Classes:
     AnthropicProvider: Specialised provider for Anthropic API integration
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 # Standard Library Imports

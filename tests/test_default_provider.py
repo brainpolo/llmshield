@@ -8,7 +8,7 @@ Description:
 Test Classes:
     - TestDefaultProvider: Tests generic provider functionality
 
-Author: LLMShield by brainpolo, 2025
+Author: LLMShield by brainpolo, 2025-2026
 """
 
 import unittest

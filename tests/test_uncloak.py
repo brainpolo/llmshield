@@ -9,7 +9,7 @@ Test Classes:
     - TestUncloak: Tests uncloaking edge cases and validation
 
 Author:
-    LLMShield by brainpolo, 2025
+    LLMShield by brainpolo, 2025-2026
 """
 
 from unittest import TestCase
