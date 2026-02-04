@@ -1,10 +1,9 @@
-"""Zero-dependency PII protection for LLM applications.
+"""Provides zero-dependency PII protection for LLM applications.
 
-Description:
-    llmshield is a lightweight Python library that automatically detects and
-    protects personally identifiable information (PII) in prompts sent to
-    language models. It replaces sensitive data with placeholders before
-    processing and seamlessly restores the original information in responses.
+llmshield is a lightweight Python library that automatically detects and
+protects personally identifiable information (PII) in prompts sent to
+language models. It replaces sensitive data with placeholders before
+processing and seamlessly restores the original information in responses.
 
 Classes:
     LLMShield: Main interface for prompt cloaking and response uncloaking
@@ -46,6 +45,7 @@ Examples:
 
 Author:
     LLMShield by brainpolo, 2025-2026
+
 """
 
 from .core import LLMShield

@@ -3,16 +3,16 @@
 
 import sys
 from pathlib import Path
+from llmshield import LLMShield
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from llmshield import LLMShield
 
 
 def analyse_in_chunks(file_path: str, chunk_size: int = 50000):
     """Analyse text file in chunks."""
     print(f"Reading: {file_path}")
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding="utf-8") as f:
         text = f.read()
     
     print(f"File size: {len(text):,} characters")
@@ -68,11 +68,15 @@ def analyse_in_chunks(file_path: str, chunk_size: int = 50000):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python scripts/analyze_chunks.py <text_file>")
+    MIN_ARGS = 2
+    if len(sys.argv) < MIN_ARGS:
+        print("Usage: python scripts/analyse_chunks.py <text_file>")
         print()
         print("Example:")
-        print("  python scripts/analyze_chunks.py tests/text_samples/KingJamesBible.txt")
+        print(
+            "  python scripts/analyse_chunks.py "
+            "tests/text_samples/KingJamesBible.txt"
+        )
         sys.exit(1)
     
     file_path = sys.argv[1]

@@ -44,7 +44,7 @@ from .detection_utils import (
     extract_response_content,
     is_chatcompletion_like,
 )
-from .entity_detector import EntityConfig, EntityType
+from .entity_detector import EntityConfig
 from .error_handling import (
     validate_delimiters,
     validate_entity_map,
@@ -146,7 +146,9 @@ class LLMShield:
 
         self.start_delimiter = start_delimiter
         self.end_delimiter = end_delimiter
-        self.entity_config = entity_config if entity_config is not None else EntityConfig()
+        self.entity_config = (
+            entity_config if entity_config is not None else EntityConfig()
+        )
 
         self.llm_func = llm_func
 
@@ -547,7 +549,7 @@ class LLMShield:
 
     # Chaining methods
     def _with_config(self, config: EntityConfig) -> "LLMShield":
-        """Internal helper to create a new shield with updated config."""
+        """Create a new shield with updated configuration."""
         return LLMShield(
             start_delimiter=self.start_delimiter,
             end_delimiter=self.end_delimiter,

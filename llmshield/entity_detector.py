@@ -25,7 +25,6 @@ Author:
 """
 
 # Standard Library Imports
-import re
 from dataclasses import dataclass
 from enum import Enum
 
@@ -165,7 +164,9 @@ class EntityConfig:
 
         """
         self.enabled_types = (
-            enabled_types if enabled_types is not None else EntityType.default_types()
+            enabled_types
+            if enabled_types is not None
+            else EntityType.default_types()
         )
 
     def is_enabled(self, entity_type: EntityType) -> bool:
@@ -251,13 +252,13 @@ class EntityConfig:
         """Disable place entities."""
         return self.with_disabled(EntityType.PLACE)
 
-    def with_all_enabled(self) -> "EntityConfig":
+    def with_all_enabled(self) -> "EntityConfig":  # skipcq: PYL-R0201
         """Enable all entity types."""
         return EntityConfig(EntityType.all())
 
-    def with_only_financial(self) -> "EntityConfig":
-        """Enable only financial entities."""
-        return self.with_enabled(EntityType.CREDIT_CARD)
+    def with_only_financial(self) -> "EntityConfig":  # skipcq: PYL-R0201
+        """Enable only financial detection."""
+        return EntityConfig(frozenset([EntityType.CREDIT_CARD]))
 
     @classmethod
     def enable_all(cls) -> "EntityConfig":
