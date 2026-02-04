@@ -27,16 +27,16 @@ def analyse_in_chunks(file_path: str, chunk_size: int = 50000):
 
     for i in range(0, len(text), chunk_size):
         chunk_num = i // chunk_size + 1
-        chunk = text[i:i + chunk_size]
+        chunk = text[i : i + chunk_size]
 
-        print(f"Processing chunk {chunk_num}/{num_chunks}...", end='\r')
+        print(f"Processing chunk {chunk_num}/{num_chunks}...", end="\r")
 
         _, entity_map = shield.cloak(chunk)
 
         # Merge entities
         for placeholder, value in entity_map.items():
             if value not in all_entities:
-                entity_type = placeholder.split('_')[0].replace('<', '')
+                entity_type = placeholder.split("_")[0].replace("<", "")
                 all_entities[value] = entity_type
 
     print(f"\nFound {len(all_entities)} unique entities across all chunks")

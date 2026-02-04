@@ -44,8 +44,8 @@ class TestCoreFunctionality(TestCase):
         """Set up test cases."""
         self.start_delimiter = "["
         self.end_delimiter = "]"
-        self.llm_func = (
-            lambda prompt: "Thanks [PERSON_0], I'll send details to [EMAIL_0]"
+        self.llm_func = lambda prompt: (
+            "Thanks [PERSON_0], I'll send details to [EMAIL_0]"
         )
         self.shield = LLMShield(
             llm_func=self.llm_func,
