@@ -178,7 +178,7 @@ class EntityConfig:
         new_enabled = self.enabled_types - frozenset(disabled_types)
         return EntityConfig(new_enabled)
 
-    def with_enabled( # skipcq: PYL-R0201
+    def with_enabled(  # skipcq: PYL-R0201
         self, *enabled_types: EntityType
     ) -> "EntityConfig":
         """Create new config with only specified types enabled."""

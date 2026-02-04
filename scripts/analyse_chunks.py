@@ -4,15 +4,15 @@
 import sys
 from pathlib import Path
 
-from llmshield import LLMShield
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from llmshield import LLMShield
 
 
 def analyse_in_chunks(file_path: str, chunk_size: int = 50000):
     """Analyse text file in chunks."""
     print(f"Reading: {file_path}")
-    with open(file_path, encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:  # skipcq: PTC-W6004
         text = f.read()
 
     print(f"File size: {len(text):,} characters")
@@ -79,10 +79,11 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    input_path = sys.argv[1]
+    input_arg = sys.argv[1]
+    input_path = Path(input_arg).resolve()
 
-    if not Path(input_path).exists():
+    if not input_path.exists():
         print(f"Error: File not found: {input_path}")
         sys.exit(1)
 
-    analyse_in_chunks(input_path)
+    analyse_in_chunks(str(input_path))

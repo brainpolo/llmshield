@@ -687,7 +687,7 @@ class TestSelectivePIIDetection(unittest.TestCase):
             "Internal project X-PROXIMA is active."
         )
 
-        cloaked, emap = shield.cloak(text)
+        _, emap = shield.cloak(text)
         entities = list(emap.values())
 
         # Should detect: PERSON, EMAIL, CONCEPT
