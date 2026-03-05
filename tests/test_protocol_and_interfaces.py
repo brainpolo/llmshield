@@ -37,10 +37,12 @@ class TestProtocolAndInterfaces(unittest.TestCase):
             """A class that properly implements PydanticLike protocol."""
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {"id": 1, "name": "test", "active": True}
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 instance = cls()
                 return instance
 
@@ -69,6 +71,7 @@ class TestProtocolAndInterfaces(unittest.TestCase):
             """A more complex implementation of PydanticLike protocol."""
 
             def __init__(self, data=None):
+                """Initialise instance."""
                 self.data = data or {
                     "user": {
                         "id": 1,
@@ -84,10 +87,12 @@ class TestProtocolAndInterfaces(unittest.TestCase):
                 }
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return self.data
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 return cls(data)
 
         # Test with complex nested data
@@ -189,6 +194,7 @@ class TestProtocolAndInterfaces(unittest.TestCase):
             """Class with model_dump but no model_validate."""
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {}
 
         obj = IncompleteImplementation()
@@ -198,11 +204,15 @@ class TestProtocolAndInterfaces(unittest.TestCase):
         """Test minimal valid implementation satisfies PydanticLike."""
 
         class MinimalValid:
+            """Minimal PydanticLike protocol implementation."""
+
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {}
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 return cls()
 
         obj = MinimalValid()
@@ -228,27 +238,37 @@ class TestProtocolAndInterfaces(unittest.TestCase):
 
         # Functional style implementation
         class FunctionalStyle:
+            """Functional-style PydanticLike implementation."""
+
             def __init__(self, data=None):
+                """Initialise instance."""
                 self._data = data or {}
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return dict(self._data)
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 return cls(data.copy())
 
         # Class-based implementation with properties
         class PropertyBasedStyle:
+            """Property-based PydanticLike implementation."""
+
             def __init__(self):
+                """Initialise instance."""
                 self.id = 1
                 self.name = "test"
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {"id": self.id, "name": self.name}
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 instance = cls()
                 instance.id = data.get("id", 1)
                 instance.name = data.get("name", "default")
@@ -256,15 +276,20 @@ class TestProtocolAndInterfaces(unittest.TestCase):
 
         # Factory-based implementation
         class FactoryStyle:
+            """Factory-based PydanticLike implementation."""
+
             @staticmethod
             def create_from_dict(data: dict):
+                """Create instance from dictionary."""
                 return FactoryStyle()
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {"type": "factory", "created": True}
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 return cls.create_from_dict(data)
 
         # Create implementation based on test parameter
@@ -357,7 +382,10 @@ class TestProtocolAndInterfaces(unittest.TestCase):
         if obj_type == "custom_object_with_str":
             # Create custom object with __str__
             class CustomObject:
+                """Custom object with string representation."""
+
                 def __str__(self):
+                    """Return string representation."""
                     return "custom object"
 
             obj = CustomObject()

@@ -56,7 +56,10 @@ class TestEdgeCases(unittest.TestCase):
         """Test callable object separately due to complexity."""
 
         class CallableClass:
+            """Mock callable object for LLM function testing."""
+
             def __call__(self, **kwargs):
+                """Return a dummy response string."""
                 return "response"
 
         callable_obj = CallableClass()
@@ -138,6 +141,7 @@ class TestEdgeCases(unittest.TestCase):
         shield = LLMShield()
 
         def valid_generator():
+            """Yield chunks containing a cloaked entity."""
             yield "Hello"
             yield " <PERSON_0>"
 

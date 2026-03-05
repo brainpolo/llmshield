@@ -109,6 +109,7 @@ class TestCoreFunctionality(TestCase):
         """Test end-to-end flow with mock LLM function."""
 
         def mock_llm(prompt, stream=False, **kwargs):
+            """Return response echoing cloaked placeholders."""
             person_match = re.search(r"\[PERSON_\d+\]", prompt)
             email_match = re.search(r"\[EMAIL_\d+\]", prompt)
             return (
@@ -245,6 +246,7 @@ class TestCoreFunctionality(TestCase):
 
         # Test LLM errors
         def failing_llm(**kwargs):
+            """Raise ValueError to simulate LLM failure."""
             raise ValueError("LLM failed")  # Use specific exception type
 
         shield_with_failing_llm = LLMShield(
@@ -285,6 +287,7 @@ class TestCoreFunctionality(TestCase):
         # This LLM function raises the custom exception during processing
         # specifically to test lines 113-115
         def llm_with_specific_error(**kwargs):  # Accept keyword arguments
+            """Raise CustomError to test exception propagation."""
             raise CustomError("Test exception")
 
         shield = LLMShield(
@@ -295,6 +298,7 @@ class TestCoreFunctionality(TestCase):
 
         # This should propagate the exception through lines 113-115
         with self.assertRaises(CustomError):
+            """Raise CustomError to test exception propagation."""
             shield.ask(prompt="Test prompt")
 
     def test_constructor_validation(self):
@@ -382,6 +386,7 @@ class TestCoreFunctionality(TestCase):
 
         # Create a mock stream with cloaked content
         def mock_stream():
+            """Yield chunks containing cloaked placeholders."""
             chunks = [
                 "Hello ",
                 "[[PERSON_0]]",
@@ -408,6 +413,7 @@ class TestCoreFunctionality(TestCase):
 
         # Split placeholder across multiple chunks
         def mock_stream():
+            """Yield chunks with split placeholder tokens."""
             chunks = ["Hello ", "[[PER", "SON_0", "]]", " how are you?"]
             yield from chunks
 
@@ -424,6 +430,7 @@ class TestCoreFunctionality(TestCase):
         entity_map = {"[[PERSON_0]]": "John Doe"}
 
         def mock_stream():
+            """Yield chunks with no placeholders."""
             chunks = ["Hello ", "world! ", "No placeholders here."]
             yield from chunks
 
@@ -447,6 +454,7 @@ class TestCoreFunctionality(TestCase):
         }
 
         def mock_stream():
+            """Yield chunks with multiple placeholders."""
             chunks = [
                 "Meeting between ",
                 "[[PERSON_0]] and [[PERSON_1]]",
@@ -502,6 +510,7 @@ class TestCoreFunctionality(TestCase):
         shield_fresh = LLMShield(start_delimiter="[[", end_delimiter="]]")
 
         def mock_stream():
+            """Yield a single test chunk."""
             yield "test"
 
         with self.assertRaises(ValueError):
@@ -568,6 +577,7 @@ class TestCoreFunctionality(TestCase):
         """Test streaming ask with multiple entity types."""
 
         def mock_complex_streaming_llm(**kwargs):
+            """Return streaming response with multiple entity types."""
             # Extract the cloaked prompt
             cloaked_prompt = kwargs.get("message") or kwargs.get("prompt", "")
 
@@ -704,6 +714,7 @@ class TestCoreFunctionality(TestCase):
         """
 
         def mock_llm(messages, **kwargs):
+            """Return static response to test error case."""
             return "This should not be called."
 
         shield = LLMShield(
@@ -720,6 +731,7 @@ class TestCoreFunctionality(TestCase):
         """Test that `ask` caches the entity map for a conversation history."""
 
         def mock_llm(messages, **kwargs):
+            """Return acknowledgement response."""
             return "Acknowledged."
 
         shield = LLMShield(
@@ -764,6 +776,7 @@ class TestCoreFunctionality(TestCase):
             """A wrapper to track cloak calls."""
 
             def __init__(self, *args, **kwargs):
+                """Initialise with cloak call counter."""
                 super().__init__(*args, **kwargs)
                 self.cloak_call_count = 0
 
@@ -773,6 +786,7 @@ class TestCoreFunctionality(TestCase):
                 entity_map_param: dict[str, str] | None = None,
                 allowlist=None,
             ):
+                """Cloak prompt and increment call counter."""
                 self.cloak_call_count += 1
                 return super().cloak(
                     prompt,
@@ -781,6 +795,7 @@ class TestCoreFunctionality(TestCase):
                 )
 
         def mock_llm(messages, **kwargs):
+            """Return acknowledgement response."""
             return "Acknowledged."
 
         shield = ShieldWithTrackedCloak(
@@ -847,15 +862,20 @@ class TestCoreFunctionality(TestCase):
 
         # Create a proper Pydantic-like model
         class TestModel:
+            """Mock Pydantic-like model for testing."""
+
             def __init__(self, name: str, email: str):
+                """Initialise with name and email."""
                 self.name = name
                 self.email = email
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {"name": self.name, "email": self.email}
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create instance from dict."""
                 return cls(data["name"], data["email"])
 
         shield = LLMShield()
@@ -908,6 +928,7 @@ class TestCoreFunctionality(TestCase):
         """Test validation errors in ask method with parameterized cases."""
 
         def mock_llm(**kwargs):
+            """Return static response string."""
             return "response"
 
         shield = LLMShield(llm_func=mock_llm)
@@ -921,6 +942,7 @@ class TestCoreFunctionality(TestCase):
 
         # Helper to create ChatCompletion-like objects
         def mock_completion(content):
+            """Create mock ChatCompletion-like object."""
             return type(
                 "ChatCompletion",
                 (),
@@ -941,6 +963,7 @@ class TestCoreFunctionality(TestCase):
             )()
 
         def mock_llm(**_):
+            """Return mock ChatCompletion response."""
             return mock_completion("Hello John Doe!")
 
         shield = LLMShield(llm_func=mock_llm)
@@ -956,6 +979,7 @@ class TestCoreFunctionality(TestCase):
         """
 
         def mock_llm(**kwargs):
+            """Return plain string response."""
             # Return response WITHOUT placeholders - the LLM would receive
             # cloaked input
             # but return normal text
@@ -993,7 +1017,10 @@ class TestCoreFunctionality(TestCase):
 
         # Create mock ChatCompletion structure
         class MockChatCompletion:
+            """Mock ChatCompletion with choices structure."""
+
             def __init__(self, content: str):
+                """Initialise with content string."""
                 self.choices = [
                     type(
                         "MockChoice",
@@ -1008,6 +1035,7 @@ class TestCoreFunctionality(TestCase):
                 self.model = "gpt-4"
 
         def mock_llm(**kwargs):
+            """Return MockChatCompletion response."""
             return MockChatCompletion("Hello John!")
 
         shield = LLMShield(llm_func=mock_llm)
@@ -1031,6 +1059,7 @@ class TestCoreFunctionality(TestCase):
         """
 
         def mock_llm(**kwargs):
+            """Return static response string."""
             return "Response"
 
         shield = LLMShield(llm_func=mock_llm)
@@ -1061,7 +1090,10 @@ class TestCoreFunctionality(TestCase):
 
         # Create mock ChatCompletion with None content (simulating tool calls)
         class MockChatCompletionNoneContent:
+            """Mock ChatCompletion with None content."""
+
             def __init__(self):
+                """Initialise with None content."""
                 self.choices = [
                     type(
                         "MockChoice",
@@ -1076,6 +1108,7 @@ class TestCoreFunctionality(TestCase):
                 self.model = "gpt-4"
 
         def mock_llm_with_tool_calls(**kwargs):
+            """Return completion with None content."""
             return MockChatCompletionNoneContent()
 
         shield = LLMShield(llm_func=mock_llm_with_tool_calls)
@@ -1438,6 +1471,7 @@ class TestCoreFunctionality(TestCase):
         """Test ask method response type handling - parameterized."""
 
         def mock_llm(**kwargs):
+            """Return the provided llm_response."""
             return llm_response
 
         shield = LLMShield(llm_func=mock_llm)
@@ -1459,6 +1493,7 @@ class TestCoreFunctionality(TestCase):
         """Test _cloak_message passes through extra fields."""
 
         def mock_llm(**kwargs):
+            """Return static OK response."""
             return "OK"
 
         shield = LLMShield(llm_func=mock_llm)

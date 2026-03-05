@@ -25,9 +25,9 @@ from llmshield.uncloak_response import _uncloak_response
 class MockCohereContentBlock:
     """Mock Cohere content block."""
 
-    def __init__(self, text=None, type="text"):
+    def __init__(self, text=None, kind="text"):
         """Initialise mock content block."""
-        self.type = type
+        self.type = kind
         self.text = text
 
 
@@ -43,10 +43,10 @@ class MockCohereFunction:
 class MockCohereToolCall:
     """Mock Cohere tool call."""
 
-    def __init__(self, id, type, function):
+    def __init__(self, call_id, kind, function):
         """Initialise mock tool call."""
-        self.id = id
-        self.type = type
+        self.id = call_id
+        self.type = kind
         self.function = function
 
 
@@ -361,11 +361,13 @@ class TestCohereProviderExecute(unittest.TestCase):
         # Simulate SDK decorator: outer closes over inner,
         # inner closes over the bound method.
         def inner(**kwargs):
+            """Wrap the bound chat method."""
             return bound_chat(**kwargs)
 
         inner.__module__ = "cohere.v2.client"
 
         def outer(**kwargs):
+            """Wrap the inner closure."""
             return inner(**kwargs)
 
         outer.__module__ = "cohere.client"
@@ -377,6 +379,7 @@ class TestCohereProviderExecute(unittest.TestCase):
         """Test closure walk returns None for plain functions."""
 
         def plain_func(**kwargs):
+            """Return kwargs without closure binding."""
             return kwargs
 
         plain_func.__module__ = "cohere.v2.client"
@@ -522,8 +525,8 @@ class TestCohereResponseUncloaking(unittest.TestCase):
     def test_uncloak_tool_call_args(self):
         """Test tool call arguments are uncloaked."""
         tc = MockCohereToolCall(
-            id="call_1",
-            type="function",
+            call_id="call_1",
+            kind="function",
             function=MockCohereFunction(
                 name="send_email",
                 arguments='{"to": "<EMAIL_0>"}',

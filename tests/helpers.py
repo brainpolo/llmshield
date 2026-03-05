@@ -21,6 +21,7 @@ def make_capture_llm():
     captured = []
 
     def capture(**kwargs):
+        """Capture LLM call arguments."""
         captured.append(kwargs.get("messages", []))
         return "OK"
 

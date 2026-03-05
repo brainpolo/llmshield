@@ -107,10 +107,15 @@ class TestDetectionUtils(unittest.TestCase):
 
         # Create a proper object without content attribute
         class MessageWithoutContent:
+            """Mock message without content attribute."""
+
             pass
 
         class ChoiceWithMessage:
+            """Mock choice containing a message."""
+
             def __init__(self, message):
+                """Initialise instance."""
                 self.message = message
 
         message = MessageWithoutContent()
@@ -122,10 +127,15 @@ class TestDetectionUtils(unittest.TestCase):
 
         # Create delta without content attribute
         class DeltaWithoutContent:
+            """Mock delta without content attribute."""
+
             pass
 
         class ChoiceWithDelta:
+            """Mock choice containing a delta."""
+
             def __init__(self, delta):
+                """Initialise instance."""
                 self.delta = delta
 
         delta = DeltaWithoutContent()
@@ -139,12 +149,15 @@ class TestDetectionUtils(unittest.TestCase):
         """Test extract_anthropic_content with AttributeError."""
 
         class FailOnSecondAccess:
+            """Mock that fails on second content access."""
+
             role = "assistant"
             model = "claude-3"
             _count = 0
 
             @property
             def content(self):
+                """Return content once, then raise AttributeError."""
                 self._count += 1
                 if self._count > 1:
                     raise AttributeError("boom")
@@ -157,8 +170,11 @@ class TestDetectionUtils(unittest.TestCase):
         """Test extract_xai_content with broken content attr."""
 
         class BrokenXAI:
+            """Mock xAI response with broken content."""
+
             @property
             def content(self):
+                """Raise AttributeError to simulate broken access."""
                 raise AttributeError("boom")
 
         BrokenXAI.__module__ = "xai_sdk.response"
@@ -173,11 +189,14 @@ class TestDetectionUtils(unittest.TestCase):
         """Test extract_google_content with broken text attr."""
 
         class BrokenGoogle:
+            """Mock Google response with broken text."""
+
             candidates = []
             usage_metadata = {}
 
             @property
             def text(self):
+                """Raise ValueError to simulate missing text."""
                 raise ValueError("no text")
 
         result = extract_google_content(BrokenGoogle())
@@ -203,8 +222,11 @@ class TestDetectionUtils(unittest.TestCase):
         """Test extract_cohere_content with AttributeError."""
 
         class BrokenCohere:
+            """Mock Cohere response with broken message."""
+
             @property
             def message(self):
+                """Raise AttributeError to simulate failure."""
                 raise AttributeError("no message")
 
         BrokenCohere.__module__ = "cohere.types"

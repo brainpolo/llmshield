@@ -115,12 +115,16 @@ class TestUncloakResponse(unittest.TestCase):
         # Create a simple object that has model_dump method but not
         # choices/model
         class MockPydantic:
+            """Mock Pydantic-like object for testing."""
+
             @staticmethod
             def model_dump() -> dict:
+                """Serialise to dict."""
                 return {"name": "<PERSON_0>", "email": "<EMAIL_0>"}
 
             @classmethod
             def model_validate(cls, data):
+                """Create from dict."""
                 return cls()
 
         mock_pydantic = MockPydantic()
@@ -214,7 +218,10 @@ class TestUncloakResponse(unittest.TestCase):
 
         # Create choice without message attribute
         class MockChoiceNoMessage:
+            """Mock choice without message attribute."""
+
             def __init__(self):
+                """Initialise instance."""
                 self.index = 0
                 # Deliberately don't set message attribute
 
@@ -231,7 +238,10 @@ class TestUncloakResponse(unittest.TestCase):
 
         # Create message without content attribute
         class MockMessageNoContent:
+            """Mock message without content attribute."""
+
             def __init__(self):
+                """Initialise instance."""
                 self.role = "assistant"
                 # Deliberately don't set content attribute
 
@@ -249,7 +259,10 @@ class TestUncloakResponse(unittest.TestCase):
 
         # Create object with choices but no model attribute
         class MockObjectWithChoices:
+            """Mock object with choices but no model."""
+
             def __init__(self):
+                """Initialise instance."""
                 self.choices = []
                 # Deliberately don't set model attribute
 
@@ -611,6 +624,7 @@ class TestUncloakResponse(unittest.TestCase):
         """Test uncloaking Anthropic Message object."""
 
         def create_anthropic_message(content):
+            """Create mock Anthropic message object."""
             return type(
                 "AnthropicMessage",
                 (),

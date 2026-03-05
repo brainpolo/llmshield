@@ -40,6 +40,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test OpenAI ChatCompletionChunk content extraction."""
 
         def chunk_stream():
+            """Yield mock OpenAI chunks with mixed content."""
             yield MockChatCompletionChunk("Hello")
             yield MockChatCompletionChunk(None)
             yield MockChatCompletionChunk("<PERSON_0>")
@@ -51,6 +52,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test remaining buffer content is yielded at end of stream."""
 
         def chunk_stream():
+            """Yield a single text chunk for buffer testing."""
             yield "Remaining text"
 
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
@@ -60,6 +62,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test partial placeholder that completes across chunks."""
 
         def chunk_stream():
+            """Yield chunks with a split placeholder."""
             yield "<PERSON"
             yield "_0>"
             yield " additional content at end"
@@ -71,6 +74,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test incomplete placeholder followed by non-placeholder text."""
 
         def mock_stream():
+            """Yield an incomplete placeholder followed by text."""
             yield "<PERSON"
             yield "_incomplete and then regular text"
 
@@ -81,6 +85,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test placeholder that completes at the very end."""
 
         def mock_stream():
+            """Yield chunks completing a placeholder at end."""
             yield "Hello <PERSON_"
             yield "0>"
 
@@ -115,6 +120,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test various chunk processing scenarios."""
 
         def chunk_stream():
+            """Yield all chunks from the parameterised input."""
             yield from chunks
 
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
@@ -124,6 +130,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test stream with empty chunks interspersed."""
 
         def mock_stream():
+            """Yield text chunks interspersed with empties."""
             yield ""
             yield "Hello"
             yield ""
@@ -137,6 +144,7 @@ class TestStreamUncloaking(unittest.TestCase):
         """Test buffer with only whitespace content."""
 
         def mock_stream():
+            """Yield whitespace-only chunks then content."""
             yield "   "
             yield "\t\n"
             yield "actual content"

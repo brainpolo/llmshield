@@ -125,6 +125,7 @@ class TestToolCallValidation(unittest.TestCase):
         """Test messages with tool calls and tool responses."""
 
         def mock_llm(**kwargs):
+            """Return a plain text response."""
             return "The answer is 8"
 
         shield = LLMShield(llm_func=mock_llm)
@@ -166,6 +167,7 @@ class TestToolCallIntegration(unittest.TestCase):
         llm_received = []
 
         def mock_llm(**kwargs):
+            """Return a ChatCompletion with tool calls."""
             messages = kwargs.get("messages", [])
             llm_received.append(messages)
 
@@ -234,6 +236,7 @@ class TestToolCallIntegration(unittest.TestCase):
         call_count = 0
 
         def mock_llm(**kwargs):
+            """Return tool call on first call, text on second."""
             nonlocal call_count
             call_count += 1
 

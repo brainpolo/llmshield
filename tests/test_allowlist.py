@@ -25,7 +25,7 @@ class TestAllowlist(unittest.TestCase):
     def test_per_call_allowlist_via_cloak(self):
         """Test per-call allowlist on cloak() method."""
         shield = LLMShield()
-        cloaked, entity_map = shield.cloak(
+        cloaked, _ = shield.cloak(
             "Contact John at john@example.com",
             allowlist=["John"],
         )
@@ -37,6 +37,7 @@ class TestAllowlist(unittest.TestCase):
         captured = []
 
         def capture(**kwargs):
+            """Capture LLM call arguments."""
             captured.append(kwargs.get("messages", []))
             return "OK"
 
@@ -91,9 +92,7 @@ class TestAllowlist(unittest.TestCase):
     def test_chaining_preserves_allowlist(self):
         """Test that chaining methods preserve the allowlist."""
         shield = LLMShield(allowlist=["John"]).without_contacts()
-        cloaked, entity_map = shield.cloak(
-            "John at john@example.com called 555-1234"
-        )
+        cloaked, _ = shield.cloak("John at john@example.com called 555-1234")
         # John allowlisted, contacts disabled — nothing should be cloaked
         # except possibly other entity types
         self.assertIn("John", cloaked)
@@ -103,7 +102,7 @@ class TestAllowlist(unittest.TestCase):
     def test_empty_allowlist_no_effect(self):
         """Test that empty allowlist has no effect."""
         shield = LLMShield(allowlist=[])
-        cloaked, entity_map = shield.cloak("Contact John at john@example.com")
+        cloaked, _ = shield.cloak("Contact John at john@example.com")
         # Everything should be cloaked as normal
         self.assertNotIn("john@example.com", cloaked)
 
@@ -116,9 +115,7 @@ class TestAllowlist(unittest.TestCase):
     def test_allowlist_with_email(self):
         """Test allowlisting an email address."""
         shield = LLMShield(allowlist=["info@company.com"])
-        cloaked, entity_map = shield.cloak(
-            "Email info@company.com or john@example.com"
-        )
+        cloaked, _ = shield.cloak("Email info@company.com or john@example.com")
         self.assertIn("info@company.com", cloaked)
         self.assertNotIn("john@example.com", cloaked)
 
@@ -143,6 +140,7 @@ class TestAllowlist(unittest.TestCase):
         captured = []
 
         def capture(**kwargs):
+            """Capture LLM call arguments."""
             captured.append(kwargs.get("messages", []))
             return "OK"
 

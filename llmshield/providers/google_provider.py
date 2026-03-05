@@ -191,7 +191,7 @@ class GoogleProvider(BaseLLMProvider):
                     if isinstance(args, str):
                         try:
                             args = json.loads(args)
-                        except (json.JSONDecodeError, ValueError):
+                        except ValueError:
                             args = {}
                     parts.append(
                         _google_types.Part.from_function_response(

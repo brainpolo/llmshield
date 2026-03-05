@@ -47,6 +47,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         barrier = threading.Barrier(num_threads)
 
         def create_instance():
+            """Create a singleton instance after barrier sync."""
             barrier.wait()
             instances.append(EntityDictionaryCache())
 
@@ -78,6 +79,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         results = {}
 
         def detect(thread_id, text):
+            """Detect entities in text and store by thread ID."""
             entities = EntityDetector().detect_entities(text)
             results[thread_id] = entities
 
@@ -102,6 +104,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         loaded = {}
 
         def load_prop(name):
+            """Load a cache property by name concurrently."""
             loaded[name] = getattr(cache, name)
 
         with ThreadPoolExecutor(max_workers=4) as pool:
@@ -117,6 +120,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         instances = []
 
         def get_cache():
+            """Retrieve the entity cache singleton."""
             instances.append(get_entity_cache())
 
         with ThreadPoolExecutor(max_workers=8) as pool:
@@ -135,6 +139,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         stats_results = []
 
         def get_stats():
+            """Collect memory stats from the cache."""
             stats_results.append(cache.get_memory_stats())
 
         with ThreadPoolExecutor(max_workers=5) as pool:
@@ -157,6 +162,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         }
 
         def preload():
+            """Preload all dictionaries and return stats."""
             cache.preload_all()
             return cache.get_memory_stats()
 
@@ -186,6 +192,7 @@ class TestThreadingAndConcurrency(unittest.TestCase):
         all_results = []
 
         def process(worker_id):
+            """Run entity detection on a batch of texts."""
             detector = EntityDetector()
             batch = []
             for i in range(requests_per_worker):

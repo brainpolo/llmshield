@@ -217,11 +217,15 @@ class TestPydanticLikeProtocol(unittest.TestCase):
         """Test that complete implementation satisfies protocol."""
 
         class ValidModel:
+            """Minimal PydanticLike implementation."""
+
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {"test": "data"}
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 return cls()
 
         obj = ValidModel()
@@ -245,6 +249,7 @@ class TestPydanticLikeProtocol(unittest.TestCase):
         if has_dump:
 
             def model_dump(self) -> dict:
+                """Serialise to dict."""
                 return {}
 
             attrs["model_dump"] = model_dump
@@ -252,6 +257,7 @@ class TestPydanticLikeProtocol(unittest.TestCase):
 
             @classmethod
             def model_validate(cls, data: dict):
+                """Create from dict."""
                 return cls()
 
             attrs["model_validate"] = model_validate
@@ -390,6 +396,7 @@ class TestAskHelper(unittest.TestCase):
         """Test non-cloakable inputs are passed to execute_raw."""
 
         def mock_llm(**kwargs):
+            """Simulate an LLM response."""
             return f"Response to: {kwargs.get(param_name, 'unknown')}"
 
         shield = LLMShield(llm_func=mock_llm)

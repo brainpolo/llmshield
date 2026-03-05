@@ -273,7 +273,9 @@ def _uncloak_xai_response(response: Any, entity_map: dict[str, str]) -> Any:
 
     # Uncloak text content
     if hasattr(wrapper, "content") and wrapper.content is not None:
-        wrapper.content = _uncloak_response(wrapper.content, entity_map)
+        wrapper.content = _uncloak_response(  # skipcq: PYL-W0201
+            wrapper.content, entity_map
+        )
 
     # Uncloak tool call arguments
     _uncloak_function_tool_calls(

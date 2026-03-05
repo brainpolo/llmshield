@@ -539,8 +539,11 @@ class TestBaseLLMProviderDefaults(unittest.TestCase):
         self.mock_func.__module__ = "test"
 
         class MinimalProvider(BaseLLMProvider):
+            """Minimal provider subclass using base defaults."""
+
             @classmethod
             def can_handle(cls, llm_func):
+                """Return True for any LLM function."""
                 return True
 
         self.provider = MinimalProvider(self.mock_func)
