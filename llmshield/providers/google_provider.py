@@ -143,6 +143,54 @@ class GoogleProvider(BaseLLMProvider):
         return self.llm_func(**call_kwargs), False
 
     @staticmethod
+    def _convert_tool_calls(
+        msg: dict,
+        content: str,
+        tool_call_names: dict[str, str],
+    ) -> _google_types.Content:
+        """Convert assistant tool call message to Google Content."""
+        parts = []
+        if content:
+            parts.append(_google_types.Part.from_text(text=content))
+        for tc in msg["tool_calls"]:
+            func = tc.get("function", {})
+            tc_id = tc.get("id", "")
+            name = func.get("name", "")
+            tool_call_names[tc_id] = name
+            args = func.get("arguments", "{}")
+            if isinstance(args, str):
+                try:
+                    args = json.loads(args)
+                except ValueError:
+                    args = {}
+            parts.append(
+                _google_types.Part.from_function_response(
+                    name=name,
+                    response={"call": args},
+                )
+            )
+        return _google_types.Content(role="model", parts=parts)
+
+    @staticmethod
+    def _convert_tool_result(
+        msg: dict,
+        content: str,
+        tool_call_names: dict[str, str],
+    ) -> _google_types.Content:
+        """Convert tool result message to Google Content."""
+        tc_id = msg.get("tool_call_id", "")
+        name = msg.get("name") or tool_call_names.get(tc_id, "tool")
+        return _google_types.Content(
+            role="user",
+            parts=[
+                _google_types.Part.from_function_response(
+                    name=name,
+                    response={"result": content},
+                )
+            ],
+        )
+
+    @staticmethod
     def _convert_messages(
         messages: list[dict],
     ) -> tuple[list, str | None]:
@@ -162,8 +210,7 @@ class GoogleProvider(BaseLLMProvider):
         """
         contents = []
         system_parts: list[str] = []
-        # Track tool call names for tool result mapping
-        _tool_call_names: dict[str, str] = {}
+        tool_call_names: dict[str, str] = {}
 
         for msg in messages:
             role = msg.get("role", "user")
@@ -177,53 +224,23 @@ class GoogleProvider(BaseLLMProvider):
                     system_parts.append(content)
                 continue
 
-            # Assistant message with tool calls
             if role == "assistant" and msg.get("tool_calls"):
-                parts = []
-                if content:
-                    parts.append(_google_types.Part.from_text(text=content))
-                for tc in msg["tool_calls"]:
-                    func = tc.get("function", {})
-                    tc_id = tc.get("id", "")
-                    name = func.get("name", "")
-                    _tool_call_names[tc_id] = name
-                    args = func.get("arguments", "{}")
-                    if isinstance(args, str):
-                        try:
-                            args = json.loads(args)
-                        except ValueError:
-                            args = {}
-                    parts.append(
-                        _google_types.Part.from_function_response(
-                            name=name,
-                            response={"call": args},
-                        )
-                    )
                 contents.append(
-                    _google_types.Content(role="model", parts=parts)
+                    GoogleProvider._convert_tool_calls(
+                        msg, content, tool_call_names
+                    )
                 )
                 continue
 
-            # Tool result messages
             if role == "tool":
-                tc_id = msg.get("tool_call_id", "")
-                name = msg.get("name") or _tool_call_names.get(tc_id, "tool")
                 contents.append(
-                    _google_types.Content(
-                        role="user",
-                        parts=[
-                            _google_types.Part.from_function_response(
-                                name=name,
-                                response={"result": content},
-                            )
-                        ],
+                    GoogleProvider._convert_tool_result(
+                        msg, content, tool_call_names
                     )
                 )
                 continue
 
-            # Map roles: assistant -> model
             google_role = "model" if role == "assistant" else role
-
             contents.append(
                 _google_types.Content(
                     role=google_role,

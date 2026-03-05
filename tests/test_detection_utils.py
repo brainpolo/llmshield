@@ -109,8 +109,6 @@ class TestDetectionUtils(unittest.TestCase):
         class MessageWithoutContent:
             """Mock message without content attribute."""
 
-            pass
-
         class ChoiceWithMessage:
             """Mock choice containing a message."""
 
@@ -128,8 +126,6 @@ class TestDetectionUtils(unittest.TestCase):
         # Create delta without content attribute
         class DeltaWithoutContent:
             """Mock delta without content attribute."""
-
-            pass
 
         class ChoiceWithDelta:
             """Mock choice containing a delta."""

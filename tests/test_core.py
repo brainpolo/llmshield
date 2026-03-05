@@ -298,7 +298,6 @@ class TestCoreFunctionality(TestCase):
 
         # This should propagate the exception through lines 113-115
         with self.assertRaises(CustomError):
-            """Raise CustomError to test exception propagation."""
             shield.ask(prompt="Test prompt")
 
     def test_constructor_validation(self):
