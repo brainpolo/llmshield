@@ -47,74 +47,6 @@ class TestSelectivePIIDetection(unittest.TestCase):
             EntityType.ORGANISATION: ["Microsoft Corporation"],
         }
 
-    def test_factory_method_disable_locations(self):
-        """Test disable_locations factory method."""
-        shield = LLMShield.disable_locations()
-        config = shield.entity_config
-
-        # Should disable location-based entities
-        self.assertFalse(config.is_enabled(EntityType.PLACE))
-        self.assertFalse(config.is_enabled(EntityType.IP_ADDRESS))
-        self.assertFalse(config.is_enabled(EntityType.URL))
-
-        # Should keep other entities enabled
-        self.assertTrue(config.is_enabled(EntityType.PERSON))
-        self.assertTrue(config.is_enabled(EntityType.EMAIL))
-        self.assertTrue(config.is_enabled(EntityType.PHONE))
-        self.assertTrue(config.is_enabled(EntityType.CREDIT_CARD))
-        self.assertTrue(config.is_enabled(EntityType.ORGANISATION))
-
-    def test_factory_method_disable_persons(self):
-        """Test disable_persons factory method."""
-        shield = LLMShield.disable_persons()
-        config = shield.entity_config
-
-        # Should disable person entities
-        self.assertFalse(config.is_enabled(EntityType.PERSON))
-
-        # Should keep other entities enabled
-        self.assertTrue(config.is_enabled(EntityType.EMAIL))
-        self.assertTrue(config.is_enabled(EntityType.PHONE))
-        self.assertTrue(config.is_enabled(EntityType.PLACE))
-        self.assertTrue(config.is_enabled(EntityType.URL))
-        self.assertTrue(config.is_enabled(EntityType.IP_ADDRESS))
-        self.assertTrue(config.is_enabled(EntityType.CREDIT_CARD))
-        self.assertTrue(config.is_enabled(EntityType.ORGANISATION))
-
-    def test_factory_method_disable_contacts(self):
-        """Test disable_contacts factory method."""
-        shield = LLMShield.disable_contacts()
-        config = shield.entity_config
-
-        # Should disable contact information
-        self.assertFalse(config.is_enabled(EntityType.EMAIL))
-        self.assertFalse(config.is_enabled(EntityType.PHONE))
-
-        # Should keep other entities enabled
-        self.assertTrue(config.is_enabled(EntityType.PERSON))
-        self.assertTrue(config.is_enabled(EntityType.PLACE))
-        self.assertTrue(config.is_enabled(EntityType.URL))
-        self.assertTrue(config.is_enabled(EntityType.IP_ADDRESS))
-        self.assertTrue(config.is_enabled(EntityType.CREDIT_CARD))
-        self.assertTrue(config.is_enabled(EntityType.ORGANISATION))
-
-    def test_factory_method_only_financial(self):
-        """Test only_financial factory method."""
-        shield = LLMShield.only_financial()
-        config = shield.entity_config
-
-        # Should only enable financial entities
-        self.assertTrue(config.is_enabled(EntityType.CREDIT_CARD))
-
-        # Should disable all other entities
-        self.assertFalse(config.is_enabled(EntityType.PERSON))
-        self.assertFalse(config.is_enabled(EntityType.EMAIL))
-        self.assertFalse(config.is_enabled(EntityType.PHONE))
-        self.assertFalse(config.is_enabled(EntityType.PLACE))
-        self.assertFalse(config.is_enabled(EntityType.URL))
-        self.assertFalse(config.is_enabled(EntityType.IP_ADDRESS))
-        self.assertFalse(config.is_enabled(EntityType.ORGANISATION))
-
     def test_entity_config_with_disabled(self):
         """Test EntityConfig with_disabled method."""
         config = EntityConfig().with_disabled(
@@ -699,6 +631,64 @@ class TestSelectivePIIDetection(unittest.TestCase):
         self.assertNotIn("Apple", entities)
         self.assertNotIn("London", entities)
         self.assertNotIn("1.1.1.1", entities)
+
+    @parameterized.expand(
+        [
+            (
+                "without_credit_cards",
+                EntityType.CREDIT_CARD,
+            ),
+            ("without_emails", EntityType.EMAIL),
+            ("without_phones", EntityType.PHONE),
+            ("without_urls", EntityType.URL),
+            ("without_ips", EntityType.IP_ADDRESS),
+            ("without_places", EntityType.PLACE),
+        ]
+    )
+    def test_entity_config_without_builder_methods(
+        self, method_name, disabled_type
+    ):
+        """Test EntityConfig.without_* builder methods."""
+        config = getattr(EntityConfig(), method_name)()
+        self.assertFalse(config.is_enabled(disabled_type))
+        self.assertTrue(config.is_enabled(EntityType.PERSON))
+
+    def test_entity_config_with_all_enabled(self):
+        """Test EntityConfig.with_all_enabled restores all."""
+        config = (
+            EntityConfig().with_disabled(EntityType.EMAIL).with_all_enabled()
+        )
+        for t in EntityType.all():
+            self.assertTrue(config.is_enabled(t))
+
+    def test_entity_config_with_only_financial(self):
+        """Test EntityConfig.with_only_financial."""
+        config = EntityConfig().with_only_financial()
+        self.assertTrue(config.is_enabled(EntityType.CREDIT_CARD))
+        self.assertFalse(config.is_enabled(EntityType.EMAIL))
+
+    @parameterized.expand(
+        [
+            (
+                "without_credit_cards",
+                EntityType.CREDIT_CARD,
+            ),
+            ("without_emails", EntityType.EMAIL),
+            ("without_phones", EntityType.PHONE),
+            ("without_urls", EntityType.URL),
+            ("without_ips", EntityType.IP_ADDRESS),
+            ("without_places", EntityType.PLACE),
+            ("with_all_enabled", None),
+            ("with_only_financial", None),
+        ]
+    )
+    def test_llmshield_builder_methods(self, method_name, disabled_type):
+        """Test LLMShield.without_* builder methods."""
+        shield = LLMShield()
+        result = getattr(shield, method_name)()
+        self.assertIsInstance(result, LLMShield)
+        if disabled_type is not None:
+            self.assertFalse(result.entity_config.is_enabled(disabled_type))
 
 
 if __name__ == "__main__":

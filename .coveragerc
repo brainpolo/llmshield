@@ -2,7 +2,7 @@
 source = llmshield
 omit =
     tests/*
-    venv/*
+    .venv/*
     setup.py
     */__init__.py
 

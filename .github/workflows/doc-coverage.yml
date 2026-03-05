@@ -9,32 +9,22 @@ on:
 jobs:
   doc-coverage:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.14"]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
 
       - name: Check docstring coverage with Ruff (fail on any issues)
         run: |
           # Run ruff with docstring rules specifically
-          ruff check llmshield/ --select D --statistics
+          uv tool run ruff check llmshield/ --select D --statistics
 
           # Check for any docstring issues and fail if found
-          DOC_ISSUES=$(ruff check llmshield/ --select D --quiet | wc -l || echo 0)
+          DOC_ISSUES=$(uv tool run ruff check llmshield/ --select D --quiet | wc -l || echo 0)
           if [ "$DOC_ISSUES" -gt 0 ]; then
             echo "❌ Found $DOC_ISSUES docstring issues. Perfect documentation coverage required."
-            ruff check llmshield/ --select D  # Show the issues
+            uv tool run ruff check llmshield/ --select D  # Show the issues
             exit 1
           fi
           echo "✅ Perfect docstring coverage achieved (0 issues)"
@@ -43,6 +33,6 @@ jobs:
         if: always()
         run: |
           # Display summary
-          echo "## Docstring Coverage Summary - Python ${{ matrix.python-version }}"
+          echo "## Docstring Coverage Summary"
           echo "Files checked: $(find llmshield -name '*.py' -not -path '*/tests/*' | wc -l)"
-          echo "Docstring issues: $(ruff check llmshield/ --select D --quiet | wc -l || echo 0)"
+          echo "Docstring issues: $(uv tool run ruff check llmshield/ --select D --quiet | wc -l || echo 0)"

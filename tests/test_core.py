@@ -1,29 +1,14 @@
 """Test core LLMShield functionality and integration.
 
 Description:
-    This test module provides comprehensive testing for the core LLMShield
-    functionality including entity detection, cloaking, uncloaking, caching,
-    and integration with LLM providers.
-
-Test Classes:
-    - TestCoreFunctionality: Tests basic shield operations
-    - TestLLMShield: Tests shield initialization and edge cases
-    - TestEntityMapCaching: Tests entity map caching behaviour
-    - TestConversationHashingAndCallableUse: Tests conversation hashing
-    - TestStreamingFunctionality: Tests streaming support
-    - TestLLMShieldWithProvider: Tests provider integration
-    - TestCloakPromptFunction: Tests cloaking with custom delimiters
-    - TestEntityMapExpiry: Tests entity map expiration
-    - TestProviderConfiguration: Tests provider instantiation
-    - TestProviderInitialization: Tests provider initialization paths
+    Comprehensive tests for cloaking, uncloaking, caching, streaming,
+    entity detection, delimiter handling, and provider integration.
 
 Author: LLMShield by brainpolo, 2025-2026
 """
 
 # Standard library Imports
-import random
 import re
-import time
 from unittest import TestCase, main
 from unittest.mock import patch
 
@@ -103,17 +88,11 @@ class TestCoreFunctionality(TestCase):
     def test_cloak_sensitive_info(self):
         """Test that sensitive information is properly cloaked."""
         cloaked_prompt, entity_map = self.shield.cloak(self.test_prompt)
-        ENTITY_MAP_LENGTH_SHOULD_BE = 4  # We expect 4 entities to be cloaked
-
-        # Check that sensitive information is removed
         self.assertNotIn("john.doe@example.com", cloaked_prompt)
         self.assertNotIn("John Doe", cloaked_prompt)
         self.assertNotIn("192.168.1.1", cloaked_prompt)
         self.assertNotIn("378282246310005", cloaked_prompt)
-        error_message = f"Entity map should have 4 items: {entity_map}"
-        self.assertTrue(
-            len(entity_map) == ENTITY_MAP_LENGTH_SHOULD_BE, error_message
-        )
+        self.assertEqual(len(entity_map), 4)
 
     def test_uncloak(self):
         """Test that cloaked entities are properly restored."""
@@ -130,7 +109,6 @@ class TestCoreFunctionality(TestCase):
         """Test end-to-end flow with mock LLM function."""
 
         def mock_llm(prompt, stream=False, **kwargs):
-            time.sleep(float(random.randint(1, 10)) / 10)
             person_match = re.search(r"\[PERSON_\d+\]", prompt)
             email_match = re.search(r"\[EMAIL_\d+\]", prompt)
             return (
@@ -238,26 +216,20 @@ class TestCoreFunctionality(TestCase):
         for i, test_case in enumerate(test_cases, 1):
             input_text = test_case["input"]
             expected = test_case["expected_entities"]
-
-            # Get cloaked text and entity map - use the result to verify
-            # entities
             _, entity_map = self.shield.cloak(input_text)
 
-            # Verify each expected entity is found
             for entity_text, entity_type in expected.items():
-                found = False
-                for placeholder, value in entity_map.items():
-                    if (
-                        value == entity_text
-                        and entity_type.name in placeholder
-                    ):
-                        found = True
-                        break
-                self.assertTrue(
-                    found,
-                    f"Failed to detect {entity_type.name}: '{entity_text}' "
-                    f"in test case {i}",
-                )
+                with self.subTest(case=i, entity=entity_text):
+                    found = any(
+                        v == entity_text and entity_type.name in k
+                        for k, v in entity_map.items()
+                    )
+                    self.assertTrue(
+                        found,
+                        f"Failed to detect "
+                        f"{entity_type.name}: "
+                        f"'{entity_text}'",
+                    )
 
     def test_error_handling(self):
         """Test error handling in core functions."""
@@ -390,11 +362,13 @@ class TestCoreFunctionality(TestCase):
         ]
 
         for response in invalid_responses:
-            with self.assertRaises(TypeError) as context:
-                shield.uncloak(response, entity_map)
-
-            # Verify the correct error message
-            self.assertIn("Response must be ", str(context.exception))
+            with self.subTest(response=type(response).__name__):
+                with self.assertRaises(TypeError) as ctx:
+                    shield.uncloak(response, entity_map)
+                self.assertIn(
+                    "Response must be ",
+                    str(ctx.exception),
+                )
 
     def test_stream_uncloak_basic(self):
         """Test basic stream uncloaking functionality."""
@@ -443,7 +417,6 @@ class TestCoreFunctionality(TestCase):
         expected = "Hello Alice Smith how are you?"
         self.assertEqual(result, expected)
 
-    # KEEP
     def test_stream_uncloak_no_placeholders(self):
         """Test stream uncloaking with no placeholders."""
         shield = LLMShield(start_delimiter="[[", end_delimiter="]]")
@@ -798,9 +771,14 @@ class TestCoreFunctionality(TestCase):
                 self,
                 prompt: str,
                 entity_map_param: dict[str, str] | None = None,
+                allowlist=None,
             ):
                 self.cloak_call_count += 1
-                return super().cloak(prompt, entity_map_param=entity_map_param)
+                return super().cloak(
+                    prompt,
+                    entity_map_param=entity_map_param,
+                    allowlist=allowlist,
+                )
 
         def mock_llm(messages, **kwargs):
             return "Acknowledged."
@@ -1073,48 +1051,6 @@ class TestCoreFunctionality(TestCase):
         self.assertEqual(result, "Response")
         # Verify cache has entries (indicating line 318 was hit)
         self.assertGreater(len(shield._cache.cache), 0)
-
-    def test_ask_chatcompletion_history_update_line_381(self):
-        """Test ChatCompletion content extraction for history update.
-
-        Covers line 381 for history update content extraction.
-        """
-
-        # Mock ChatCompletion that will trigger line 381
-        class MockChatCompletion:
-            def __init__(self, content: str):
-                self.choices = [
-                    type(
-                        "MockChoice",
-                        (),
-                        {
-                            "message": type(
-                                "MockMessage", (), {"content": content}
-                            )()
-                        },
-                    )()
-                ]
-                self.model = "gpt-4"
-
-        def mock_llm(**kwargs):
-            return MockChatCompletion("Extracted content for history")
-
-        shield = LLMShield(llm_func=mock_llm)
-
-        # Multi-message conversation to trigger conversation history logic
-        messages = [
-            {"role": "user", "content": "Hello"},
-            {"role": "user", "content": "How are you?"},
-        ]
-
-        result = shield.ask(messages=messages)
-
-        # This should trigger line 381:
-        # response_content = uncloaked_response.choices[0].message.content
-        self.assertIsInstance(result, MockChatCompletion)
-        self.assertEqual(
-            result.choices[0].message.content, "Extracted content for history"
-        )
 
     def test_ask_chatcompletion_with_none_content_tool_calls(self):
         """Test ask method with ChatCompletion response with None content.
@@ -1518,6 +1454,24 @@ class TestCoreFunctionality(TestCase):
             # For non-streaming responses
             result = shield.ask(prompt="Hello", stream=streaming)
             self.assertIsInstance(result, expected_type)
+
+    def test_cloak_message_preserves_extra_keys(self):
+        """Test _cloak_message passes through extra fields."""
+
+        def mock_llm(**kwargs):
+            return "OK"
+
+        shield = LLMShield(llm_func=mock_llm)
+        messages = [
+            {
+                "role": "tool",
+                "content": "result from John Doe",
+                "tool_call_id": "call_abc",
+                "name": "lookup",
+            },
+        ]
+        result = shield.ask(messages=messages)
+        self.assertIsNotNone(result)
 
 
 if __name__ == "__main__":

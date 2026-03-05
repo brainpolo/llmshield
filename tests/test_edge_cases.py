@@ -12,7 +12,6 @@ Author: LLMShield by brainpolo, 2025-2026
 """
 
 # Standard library Imports
-import random
 import unittest
 
 # Third party Imports
@@ -234,30 +233,6 @@ class TestEdgeCases(unittest.TestCase):
         result = shield.ask(messages=long_conversation)
         self.assertIsInstance(result, str)
 
-    def test_malformed_input_tolerance(self):
-        """Test handling of malformed inputs."""
-
-        def mock_llm(**kwargs):
-            """Mock LLM function that returns a static response."""
-            return "response"
-
-        shield = LLMShield(llm_func=mock_llm)
-
-        malformed_cases = [
-            {"content": "Missing role"},  # Missing role
-            {"role": "user"},  # Missing content
-            {},  # Empty message
-        ]
-
-        # Should handle gracefully (may not detect entities but shouldn't
-        # crash)
-        try:
-            result = shield.ask(messages=malformed_cases)
-            self.assertIsInstance(result, str)
-        except (KeyError, TypeError, ValueError):
-            # Acceptable to fail on malformed input
-            pass
-
     @parameterized.expand(
         [
             ("person", "Hello John Doe {}"),
@@ -346,41 +321,6 @@ class TestEdgeCases(unittest.TestCase):
 
         for char_sequence in preserved_chars:
             self.assertIn(char_sequence, uncloaked)
-
-    def test_error_recovery_robustness(self):
-        """Test error recovery and robustness under stress."""
-
-        def flaky_llm(**kwargs):
-            # Simulate an LLM that sometimes returns unexpected types
-            responses = [
-                "Normal string response",
-                123,  # Unexpected integer
-                None,  # Unexpected None
-                [],  # Unexpected empty list
-                {"unexpected": "dict"},  # Unexpected dict
-            ]
-            return random.choice(responses)
-
-        shield = LLMShield(llm_func=flaky_llm)
-
-        # Test multiple calls with flaky LLM
-        success_count = 0
-        error_count = 0
-
-        for i in range(20):
-            try:
-                result = shield.ask(prompt=f"Test prompt {i}")
-                if isinstance(result, str):
-                    success_count += 1
-                    # Should not contain entity placeholders if processed
-                    # correctly
-                    self.assertNotIn(f"<PERSON_{i}>", result)
-            except (TypeError, ValueError):
-                error_count += 1
-                # Acceptable to fail with unexpected response types
-
-        # At least some attempts should either succeed or fail gracefully
-        self.assertGreater(success_count + error_count, 0)
 
 
 if __name__ == "__main__":

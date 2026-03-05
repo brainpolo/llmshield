@@ -42,10 +42,10 @@ LLMShield has been fully tested with these providers:
 |----------|--------|----------|
 | **OpenAI Chat Completions API** | Full Support | Chat, Structured Output, Streaming, Tools |
 | **Anthropic Messages API** | Full Support | Chat, Structured Output, Streaming, Tools |
-| **xAI Grok API** | Full Support | Chat, Structured Output, Streaming, Tools |
+| **Google Gemini API** | Full Support | Chat, Structured Output, Streaming, Tools |
+| **Cohere Chat API** | Full Support | Chat, Structured Output, Streaming, Tools |
+| **xAI Responses API** | Full Support | Chat, Structured Output, Streaming, Tools |
 | **OpenAI Compatibility Standard** | Full Support | Chat, Structured Output, Streaming, Tools |
-
-For providers not directly supported (Google, Cohere), use OpenAI-compatible wrappers.
 
 > **Note:** Due to model behaviour differences, slight performance variations may occur. Tune parameters and PII filtration levels based on your requirements.
 
@@ -108,6 +108,8 @@ restored_response = shield.uncloak(llm_response, entity_map)
 ```
 
 > **Important:** Individual `cloak()` and `uncloak()` methods support single messages only and do not maintain conversation history. For multi-turn conversations with entity consistency across messages, use the `ask()` method.
+
+> **Note:** PII cloaking only applies to text-based inputs (`str`, `list[str]`, and `messages`). Non-text inputs such as file paths, binary data, and Pydantic models are passed through to the LLM without cloaking, as PII detection requires scannable text content.
 
 ## High-Level Data Flow
 
@@ -296,7 +298,7 @@ for chunk in openai_shield.ask(model=OPENAI_MODEL, messages=messages, stream=Tru
 </details>
 
 <details>
-<summary><strong>xAI Grok Configuration</strong> - OpenAI-compatible with zero additional setup</summary>
+<summary><strong>xAI Configuration</strong> - OpenAI-compatible with zero additional setup</summary>
 
 ```python
 from openai import OpenAI  # xAI uses OpenAI SDK
@@ -322,7 +324,7 @@ xai_shield = llmshield.LLMShield(
     llm_func=xai_client.chat.completions.create
 )
 
-# Usage with Grok models
+# Usage with xAI models
 messages = [
     {"role": "user", "content": "Analyse customer data: John Smith, john@company.com, +1-555-0123"}
 ]
@@ -687,13 +689,15 @@ We plan to add support for other languages in the future.
 
 ### Setup
 
+Requires [uv](https://docs.astral.sh/uv/) for dependency management.
+
 ```bash
 git clone https://github.com/brainpolo/llmshield.git
 cd llmshield
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e ".[dev]"
+uv sync
 ```
+
+This creates a `.venv/` with Python 3.14 and installs all dev dependencies.
 
 ### Testing
 
@@ -714,9 +718,6 @@ make doc-coverage
 ### Building and Publishing
 
 ```bash
-# Install build dependencies
-make dev-dependencies
-
 # Build the package
 make build
 ```
@@ -736,7 +737,7 @@ make build
 
    ```bash
    make build
-   twine upload dist/*
+   uv run twine upload dist/*
    ```
 
 ## Security Considerations

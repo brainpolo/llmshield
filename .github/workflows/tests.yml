@@ -16,19 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up uv with Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v4
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: uv sync
 
       - name: Run tests
-        run: |
-          python -m unittest discover -v tests/
+        run: uv run python -m unittest discover -v tests/
 
       - name: Generate test report
         if: always()

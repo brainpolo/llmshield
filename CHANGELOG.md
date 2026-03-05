@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.1.0] - 2026-03-04
+
+**New Providers, Provider Transparency, and Bug Fixes**
+
+This release adds native support for Google Gemini and Cohere, exposes the detected provider for transparency, and fixes several correctness issues.
+
+### New Features
+- **Allowlist** - Instance-level and per-call allowlist for excluding specific terms from PII detection with case-insensitive matching
+- **Google Gemini Provider** - Native support for the Google GenAI API including function calls
+- **Cohere Provider** - Native support for the Cohere Chat API with closure-based client detection
+- **xAI Responses API Provider** - Native support for the xAI SDK, replacing OpenAI-compatible workaround with dedicated provider handling
+- **Provider Property** - `shield.provider` readonly property exposes the detected LLM provider for transparency and testability
+
+### Bug Fixes
+- **Conversation Hash Ordering** - Fixed `conversation_hash` using `frozenset` which ignored message order, causing potential cache collisions for reordered conversations
+- **Unicode-Escaped Placeholders** - Fixed uncloaking failure when providers (e.g. Cohere) return unicode-escaped delimiters (`\u003c` instead of `<`) in tool call arguments
+
+### Improvements
+- **Provider Detection Ordering** - Module-based detectors now run before duck-typing detectors, preventing false-positive provider matching from Pydantic `extra='allow'` attributes
+- **Shared Tool Call Uncloaking** - Extracted common `function.arguments` uncloaking pattern into shared helper, reducing duplication across providers
+- **Provider Caching** - Provider is now detected once at initialisation instead of on every `ask()` call
+
 ## [2.0.0] - 2026-02-04
 
 **Improved API, Reduced False Positives**

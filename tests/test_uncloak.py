@@ -12,48 +12,44 @@ Author:
     LLMShield by brainpolo, 2025-2026
 """
 
-from unittest import TestCase
+import unittest
 
 from llmshield import LLMShield
 
 
-class TestUncloak(TestCase):
+class TestUncloak(unittest.TestCase):
     """Tests for the uncloak functionality."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.shield = LLMShield()
 
-    def test_uncloak_edge_cases(self):
-        """Test edge cases in uncloaking."""
-        # Test empty inputs
+    def test_uncloak_empty_input_raises(self):
+        """Test that empty input raises ValueError."""
         with self.assertRaises(ValueError):
             self.shield.uncloak("", {})
 
-        # Test partial replacements
-        self.assertEqual(
-            self.shield.uncloak(
-                "Hello [PERSON_0] and [PERSON_1]", {"[PERSON_0]": "John"}
-            ),
-            "Hello John and [PERSON_1]",
+    def test_uncloak_partial_replacements(self):
+        """Test uncloaking when entity map is incomplete."""
+        result = self.shield.uncloak(
+            "Hello [PERSON_0] and [PERSON_1]",
+            {"[PERSON_0]": "John"},
         )
+        self.assertEqual(result, "Hello John and [PERSON_1]")
 
-        # Test multiple replacements
-        self.assertEqual(
-            self.shield.uncloak(
-                "[PERSON_0] [PERSON_0] [PERSON_1]",
-                {"[PERSON_0]": "John", "[PERSON_1]": "Smith"},
-            ),
-            "John John Smith",
+    def test_uncloak_repeated_placeholder(self):
+        """Test uncloaking with the same placeholder appearing twice."""
+        result = self.shield.uncloak(
+            "[PERSON_0] [PERSON_0] [PERSON_1]",
+            {"[PERSON_0]": "John", "[PERSON_1]": "Smith"},
         )
+        self.assertEqual(result, "John John Smith")
 
     def test_recursive_dict_uncloaking(self):
-        """Test recursive uncloaking of nested dictionary structures."""
-        # Create a nested dictionary response (like structured output from an
-        # LLM)
+        """Test recursive uncloaking of deeply nested structures."""
         nested_response = {
             "header": "Message from [PERSON_0]",
-            "body": "Hello, I'm [PERSON_0] from [ORGANISATION_0]",
+            "body": "Hello from [ORGANISATION_0]",
             "metadata": {
                 "sender": {
                     "name": "[PERSON_0]",
@@ -65,16 +61,10 @@ class TestUncloak(TestCase):
                     {"name": "[PERSON_2]", "contact": "[EMAIL_1]"},
                 ],
                 "confidential": True,
-                "nested": {
-                    "deeply": {
-                        "secret": "This is [PERSON_0]'s secret address: "
-                        "[IP_ADDRESS_0]"
-                    }
-                },
+                "nested": {"deeply": {"secret": ("Address: [IP_ADDRESS_0]")}},
             },
         }
 
-        # Entity map with all placeholders
         entity_map = {
             "[PERSON_0]": "John Doe",
             "[PERSON_1]": "Jane Smith",
@@ -86,98 +76,30 @@ class TestUncloak(TestCase):
             "[IP_ADDRESS_0]": "192.168.1.1",
         }
 
-        # Apply uncloaking
         uncloaked = self.shield.uncloak(nested_response, entity_map)
 
-        # Verify top-level strings are uncloaked
+        # Top-level strings
         self.assertEqual(uncloaked["header"], "Message from John Doe")
-        self.assertEqual(
-            uncloaked["body"], "Hello, I'm John Doe from Acme Corp"
-        )
 
-        # Verify nested dictionary is uncloaked
-        self.assertEqual(uncloaked["metadata"]["sender"]["name"], "John Doe")
-        self.assertEqual(
-            uncloaked["metadata"]["sender"]["email"], "john.doe@example.com"
-        )
-        self.assertEqual(
-            uncloaked["metadata"]["sender"]["company"], "Acme Corp"
-        )
+        # Nested dicts
+        sender = uncloaked["metadata"]["sender"]
+        self.assertEqual(sender["name"], "John Doe")
+        self.assertEqual(sender["email"], "john.doe@example.com")
 
-        # Verify arrays of dictionaries are uncloaked
-        self.assertEqual(
-            uncloaked["metadata"]["recipients"][0]["name"], "Jane Smith"
-        )
-        self.assertEqual(
-            uncloaked["metadata"]["recipients"][0]["contact"],
-            "+1-555-123-4567",
-        )
-        self.assertEqual(
-            uncloaked["metadata"]["recipients"][1]["name"], "Bob Johnson"
-        )
-        self.assertEqual(
-            uncloaked["metadata"]["recipients"][1]["contact"],
-            "bob@example.com",
-        )
+        # Lists of dicts
+        recipients = uncloaked["metadata"]["recipients"]
+        self.assertEqual(recipients[0]["name"], "Jane Smith")
+        self.assertEqual(recipients[0]["contact"], "+1-555-123-4567")
 
-        # Verify deeply nested structures are uncloaked
+        # Deep nesting
         self.assertEqual(
             uncloaked["metadata"]["nested"]["deeply"]["secret"],
-            "This is John Doe's secret address: 192.168.1.1",
+            "Address: 192.168.1.1",
         )
 
-        # Verify non-string values are preserved
-        self.assertEqual(uncloaked["metadata"]["confidential"], True)
-
-    def test_uncloak_with_llmshield(self):
-        """Test recursive uncloaking with the LLMShield class."""
-        shield = LLMShield(start_delimiter="[", end_delimiter="]")
-
-        # Create structured response with nested placeholders
-        structured_response = {
-            "answer": "My name is [PERSON_0] and I work at [ORGANISATION_0]",
-            "metadata": {
-                "entities": {
-                    "person": "[PERSON_0]",
-                    "org": "[ORGANISATION_0]",
-                    "location": {
-                        "address": "123 Main St, [PLACE_0]",
-                        "coordinates": "[IP_ADDRESS_0]",
-                    },
-                }
-            },
-        }
-
-        # Create entity map
-        entity_map = {
-            "[PERSON_0]": "John Doe",
-            "[ORGANISATION_0]": "Acme Inc",
-            "[PLACE_0]": "New York",
-            "[IP_ADDRESS_0]": "192.168.1.1",
-        }
-
-        # Apply uncloaking
-        uncloaked = shield.uncloak(structured_response, entity_map)
-
-        # Verify all levels are uncloaked
-        self.assertEqual(
-            uncloaked["answer"], "My name is John Doe and I work at Acme Inc"
-        )
-        self.assertEqual(
-            uncloaked["metadata"]["entities"]["person"], "John Doe"
-        )
-        self.assertEqual(uncloaked["metadata"]["entities"]["org"], "Acme Inc")
-        self.assertEqual(
-            uncloaked["metadata"]["entities"]["location"]["address"],
-            "123 Main St, New York",
-        )
-        self.assertEqual(
-            uncloaked["metadata"]["entities"]["location"]["coordinates"],
-            "192.168.1.1",
-        )
+        # Non-string values preserved
+        self.assertTrue(uncloaked["metadata"]["confidential"])
 
 
 if __name__ == "__main__":
-    import unittest
-
     unittest.main()

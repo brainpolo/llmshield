@@ -17,19 +17,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
         with:
           python-version: "3.14"
 
       - name: Install dependencies
-        run: | # Installs all dependencies including Sphinx
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: uv sync
 
       - name: Build documentation
-        run: |
-          make generate-docs # This assumes you have a Makefile with the generate-docs target
+        run: make generate-docs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

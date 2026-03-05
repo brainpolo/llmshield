@@ -40,6 +40,12 @@ class AnthropicProvider(BaseLLMProvider):
             {"role": "user", "content": cloaked_text}
         ]
 
+        # Convert OpenAI-style tools to Anthropic format
+        if "tools" in prepared_kwargs:
+            prepared_kwargs["tools"] = self._convert_tools(
+                prepared_kwargs["tools"]
+            )
+
         # Anthropic supports streaming
         prepared_kwargs["stream"] = stream
         return prepared_kwargs, stream
@@ -50,11 +56,30 @@ class AnthropicProvider(BaseLLMProvider):
         """Prepare parameters for Anthropic multi-message calls."""
         prepared_kwargs = kwargs.copy()
 
+        # Extract system messages as top-level parameter
+        system_parts = []
+        non_system = []
+        for msg in cloaked_messages:
+            if msg.get("role") == "system":
+                content = msg.get("content", "")
+                if content:
+                    system_parts.append(content)
+            else:
+                non_system.append(msg)
+        if system_parts:
+            prepared_kwargs.setdefault("system", "\n".join(system_parts))
+
         # Convert messages to Anthropic format
         anthropic_messages = self._convert_messages_to_anthropic_format(
-            cloaked_messages
+            non_system
         )
         prepared_kwargs["messages"] = anthropic_messages
+
+        # Convert OpenAI-style tools to Anthropic format
+        if "tools" in prepared_kwargs:
+            prepared_kwargs["tools"] = self._convert_tools(
+                prepared_kwargs["tools"]
+            )
 
         # Anthropic supports streaming
         prepared_kwargs["stream"] = stream
@@ -72,14 +97,15 @@ class AnthropicProvider(BaseLLMProvider):
         converted_messages = []
 
         for msg in messages:
+            role = msg.get("role", "user")
             converted_msg = {
-                "role": msg["role"],
+                "role": role,
                 "content": msg.get("content"),
             }
 
             # Handle tool calls for assistant messages
             if (
-                msg.get("role") == "assistant"
+                role == "assistant"
                 and "tool_calls" in msg
                 and msg["tool_calls"] is not None
             ):
@@ -94,13 +120,14 @@ class AnthropicProvider(BaseLLMProvider):
 
                 # Add tool use blocks
                 for tool_call in msg["tool_calls"]:
+                    func = tool_call.get("function", {})
                     content_blocks.append(
                         {
                             "type": "tool_use",
-                            "id": tool_call["id"],
-                            "name": tool_call["function"]["name"],
+                            "id": tool_call.get("id", ""),
+                            "name": func.get("name", ""),
                             "input": self._parse_tool_arguments(
-                                tool_call["function"]["arguments"]
+                                func.get("arguments", "")
                             ),
                         }
                     )
@@ -108,11 +135,11 @@ class AnthropicProvider(BaseLLMProvider):
                 converted_msg["content"] = content_blocks
 
             # Handle tool results
-            elif msg.get("role") == "user" and "tool_call_id" in msg:
+            elif role == "user" and "tool_call_id" in msg:
                 converted_msg["content"] = [
                     {
                         "type": "tool_result",
-                        "tool_use_id": msg["tool_call_id"],
+                        "tool_use_id": msg.get("tool_call_id", ""),
                         "content": msg.get("content", ""),
                     }
                 ]
@@ -120,6 +147,29 @@ class AnthropicProvider(BaseLLMProvider):
             converted_messages.append(converted_msg)
 
         return converted_messages
+
+    @staticmethod
+    def _convert_tools(tools: list[dict]) -> list[dict]:
+        """Convert OpenAI-style tool definitions to Anthropic format.
+
+        OpenAI: {"type": "function", "function": {"name": ...,
+                 "parameters": ...}}
+        Anthropic: {"name": ..., "input_schema": ...}
+        """
+        converted = []
+        for tool in tools:
+            if tool.get("type") == "function" and "function" in tool:
+                func = tool["function"]
+                converted.append(
+                    {
+                        "name": func["name"],
+                        "description": func.get("description", ""),
+                        "input_schema": func.get("parameters", {}),
+                    }
+                )
+            else:
+                converted.append(tool)
+        return converted
 
     # skipcq: PYL-R0201
     def _parse_tool_arguments(self, arguments: str) -> dict:

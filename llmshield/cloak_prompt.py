@@ -27,12 +27,13 @@ from .utils import wrap_entity
 
 
 # pylint: disable=too-many-locals
-def cloak_prompt(
+def cloak_prompt(  # noqa: PLR0913
     prompt: str,
     start_delimiter: str,
     end_delimiter: str,
     entity_map: dict[str, str] | None = None,
     entity_config: EntityConfig | None = None,
+    allowlist: frozenset[str] | None = None,
 ) -> tuple[str, dict[str, str]]:
     """Cloak sensitive entities in prompt with selective configuration.
 
@@ -42,6 +43,7 @@ def cloak_prompt(
         end_delimiter: Closing delimiter for placeholders
         entity_map: Existing placeholder mappings for consistency
         entity_config: Configuration for selective entity detection
+        allowlist: Terms to exclude from cloaking (case-insensitive)
 
     Returns:
         Tuple of (cloaked_prompt, entity_mapping)
@@ -61,6 +63,13 @@ def cloak_prompt(
 
     detector = EntityDetector(entity_config)
     entities: set[Entity] = detector.detect_entities(prompt)
+
+    # Filter out allowlisted terms (case-insensitive)
+    if allowlist:
+        allowlist_lower = {v.lower() for v in allowlist}
+        entities = {
+            e for e in entities if e.value.lower() not in allowlist_lower
+        }
 
     matches = []
     # The counter should start from the current size of the entity map

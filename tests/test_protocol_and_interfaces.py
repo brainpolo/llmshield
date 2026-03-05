@@ -17,7 +17,6 @@ Author:
 import unittest
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from parameterized import parameterized
 
@@ -183,51 +182,22 @@ class TestProtocolAndInterfaces(unittest.TestCase):
         result = _should_cloak_input(input_value)
         self.assertEqual(result, expected_result, description)
 
-    def test_type_checking_import_behavior(self):
-        """Test TYPE_CHECKING import behavior and conditional imports.
-
-        This ensures that TYPE_CHECKING conditional imports work correctly
-        and don't affect runtime behavior while enabling proper type hints.
-        """
-        # Verify TYPE_CHECKING is properly imported and used
-        self.assertIsInstance(TYPE_CHECKING, bool)
-
-        # During runtime, TYPE_CHECKING should be False
-        self.assertFalse(TYPE_CHECKING)
-
-        # Test that conditional imports don't break anything
-        try:
-            if TYPE_CHECKING:
-                # This code should not execute at runtime
-                # This import should not execute
-                raise AssertionError("TYPE_CHECKING should be False")
-
-        except ImportError:
-            # This shouldn't happen since the import is conditional
-            self.fail("Conditional import under TYPE_CHECKING failed")
-
-    def test_protocol_runtime_checking_edge_cases(self):
-        """Test edge cases in protocol runtime checking.
-
-        This validates the protocol's behavior with edge cases and
-        ensures proper error handling for invalid implementations.
-        """
+    def test_incomplete_protocol_implementation(self):
+        """Test class missing model_validate is not PydanticLike."""
 
         class IncompleteImplementation:
-            """Class missing required protocol methods."""
+            """Class with model_dump but no model_validate."""
 
             def model_dump(self) -> dict:
                 return {}
 
-            # Missing model_validate method
+        obj = IncompleteImplementation()
+        self.assertNotIsInstance(obj, PydanticLike)
 
-        # Test incomplete implementation
-        _ = IncompleteImplementation()  # Test incomplete implementation
-        # isinstance with Protocol checks for method existence, not signatures
-        # So this might still pass the isinstance check
+    def test_minimal_valid_protocol_implementation(self):
+        """Test minimal valid implementation satisfies PydanticLike."""
 
-        # Test that methods work as expected for protocol
-        class MinimalValidImplementation:
+        class MinimalValid:
             def model_dump(self) -> dict:
                 return {}
 
@@ -235,15 +205,10 @@ class TestProtocolAndInterfaces(unittest.TestCase):
             def model_validate(cls, data: dict):
                 return cls()
 
-        minimal_obj = MinimalValidImplementation()
-        self.assertIsInstance(minimal_obj, PydanticLike)
-
-        # Test method calls
-        result = minimal_obj.model_dump()
-        self.assertIsInstance(result, dict)
-
-        validated = MinimalValidImplementation.model_validate({})
-        self.assertIsInstance(validated, MinimalValidImplementation)
+        obj = MinimalValid()
+        self.assertIsInstance(obj, PydanticLike)
+        self.assertIsInstance(obj.model_dump(), dict)
+        self.assertIsInstance(MinimalValid.model_validate({}), MinimalValid)
 
     @parameterized.expand(
         [

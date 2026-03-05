@@ -42,7 +42,11 @@ from typing import Any
 from .cloak_prompt import cloak_prompt
 from .detection_utils import (
     extract_response_content,
+    is_anthropic_message_like,
     is_chatcompletion_like,
+    is_cohere_response_like,
+    is_google_response_like,
+    is_xai_response_like,
 )
 from .entity_detector import EntityConfig
 from .error_handling import (
@@ -53,6 +57,7 @@ from .error_handling import (
 from .exceptions import ValidationError
 from .lru_cache import LRUCache
 from .providers import get_provider
+from .providers.base import BaseLLMProvider
 from .uncloak_response import _uncloak_response
 from .uncloak_stream_response import uncloak_stream_response
 from .utils import (
@@ -99,7 +104,7 @@ class LLMShield:
 
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         start_delimiter: str = DEFAULT_START_DELIMITER,
         end_delimiter: str = DEFAULT_END_DELIMITER,
@@ -110,6 +115,7 @@ class LLMShield:
         ) = None,
         max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
         entity_config: EntityConfig | None = None,
+        allowlist: list[str] | None = None,
     ) -> None:
         """Initialise LLMShield with selective entity protection.
 
@@ -124,6 +130,9 @@ class LLMShield:
                 (default: DEFAULT_MAX_CACHE_SIZE)
             entity_config: Configuration for selective entity detection.
                 If None, all entity types are enabled.
+            allowlist: Terms to exclude from PII cloaking
+                (case-insensitive exact match). If None, nothing is
+                excluded.
 
         """
         # Validate delimiters
@@ -151,9 +160,21 @@ class LLMShield:
         )
 
         self.llm_func = llm_func
+        self._provider: BaseLLMProvider | None = (
+            get_provider(llm_func) if llm_func else None
+        )
+
+        self._allowlist: frozenset[str] = (
+            frozenset(allowlist) if allowlist else frozenset()
+        )
 
         self._last_entity_map = None
         self._cache: LRUCache[int, dict[str, str]] = LRUCache(max_cache_size)
+
+    @property
+    def provider(self) -> BaseLLMProvider | None:
+        """The detected LLM provider."""
+        return self._provider
 
     def _build_cloaked_messages(
         self,
@@ -161,6 +182,7 @@ class LLMShield:
         latest_message: Message,
         cloaked_latest_content: str | None,
         final_entity_map: dict[str, str],
+        allowlist: frozenset[str] | None = None,
     ) -> list[Message]:
         """Build cloaked message list for LLM.
 
@@ -169,6 +191,7 @@ class LLMShield:
             latest_message: Current message
             cloaked_latest_content: Already cloaked content for latest message
             final_entity_map: Entity mapping
+            allowlist: Terms to exclude from cloaking
 
         Returns:
             List of cloaked messages
@@ -178,7 +201,11 @@ class LLMShield:
 
         # Process history messages
         for msg in history:
-            cloaked_msg = self._cloak_message(msg, final_entity_map)
+            cloaked_msg = self._cloak_message(
+                msg,
+                final_entity_map,
+                allowlist=allowlist,
+            )
             cloaked_messages.append(cloaked_msg)
 
         # Process latest message
@@ -191,7 +218,9 @@ class LLMShield:
             if key not in ("role", "content"):
                 if key == "tool_calls" and latest_message[key] is not None:
                     final_msg[key] = self._cloak_tool_calls(
-                        latest_message[key], final_entity_map
+                        latest_message[key],
+                        final_entity_map,
+                        allowlist=allowlist,
                     )
                 else:
                     final_msg[key] = latest_message[key]
@@ -200,13 +229,17 @@ class LLMShield:
         return cloaked_messages
 
     def _cloak_message(
-        self, msg: Message, entity_map: dict[str, str]
+        self,
+        msg: Message,
+        entity_map: dict[str, str],
+        allowlist: frozenset[str] | None = None,
     ) -> Message:
         """Cloak a single message.
 
         Args:
             msg: Message to cloak
             entity_map: Entity mapping
+            allowlist: Terms to exclude from cloaking
 
         Returns:
             Cloaked message
@@ -218,7 +251,9 @@ class LLMShield:
             cloaked_content = msg["content"]
         else:
             cloaked_content, _ = self.cloak(
-                msg["content"], entity_map_param=entity_map
+                msg["content"],
+                entity_map_param=entity_map,
+                allowlist=allowlist,
             )
 
         cloaked_msg = {"role": msg["role"], "content": cloaked_content}
@@ -228,7 +263,9 @@ class LLMShield:
             if key not in ("role", "content"):
                 if key == "tool_calls" and msg[key] is not None:
                     cloaked_msg[key] = self._cloak_tool_calls(
-                        msg[key], entity_map
+                        msg[key],
+                        entity_map,
+                        allowlist=allowlist,
                     )
                 else:
                     cloaked_msg[key] = msg[key]
@@ -239,12 +276,14 @@ class LLMShield:
         self,
         tool_calls: list[Any],
         entity_map: dict[str, str],
+        allowlist: frozenset[str] | None = None,
     ) -> list[dict[str, Any]]:
         """Cloak PII in tool call arguments.
 
         Args:
             tool_calls: List of tool call objects
             entity_map: Entity mapping for cloaking
+            allowlist: Terms to exclude from cloaking
 
         Returns:
             List of cloaked tool calls
@@ -277,7 +316,9 @@ class LLMShield:
                 # Cloak the arguments JSON string
                 args_str = cloaked_tc["function"]["arguments"]
                 cloaked_args, _ = self.cloak(
-                    args_str, entity_map_param=entity_map
+                    args_str,
+                    entity_map_param=entity_map,
+                    allowlist=allowlist,
                 )
                 cloaked_tc["function"] = dict(cloaked_tc["function"])
                 cloaked_tc["function"]["arguments"] = cloaked_args
@@ -288,6 +329,7 @@ class LLMShield:
         self,
         prompt: str | None,
         entity_map_param: dict[str, str] | None = None,
+        allowlist: list[str] | frozenset[str] | None = None,
     ) -> tuple[str | None, dict[str, str]]:
         """Cloak sensitive information in the prompt.
 
@@ -295,6 +337,8 @@ class LLMShield:
             prompt: The original prompt containing sensitive information.
             entity_map_param: Optional existing entity map to maintain
                 consistency.
+            allowlist: Additional terms to exclude from cloaking
+                (merged with instance-level allowlist).
 
         Returns:
             Tuple of (cloaked_prompt, entity_mapping)
@@ -304,12 +348,19 @@ class LLMShield:
         if prompt is None:
             return None, entity_map_param or {}
 
+        effective_allowlist = (
+            self._allowlist | frozenset(allowlist)
+            if allowlist
+            else self._allowlist
+        )
+
         cloaked, entity_map = cloak_prompt(
             prompt=prompt,
             start_delimiter=self.start_delimiter,
             end_delimiter=self.end_delimiter,
             entity_map=entity_map_param,
             entity_config=self.entity_config,
+            allowlist=effective_allowlist or None,
         )
         self._last_entity_map = entity_map
         return cloaked, entity_map
@@ -347,11 +398,16 @@ class LLMShield:
         if not response:
             raise ValidationError("Response cannot be empty")
 
-        # Check if response is valid type or ChatCompletion-like
+        # Check if response is valid type or LLM response
         valid_types = (str, list, dict, PydanticLike)
-        if not isinstance(
-            response, valid_types
-        ) and not is_chatcompletion_like(response):  # type: ignore
+        if (
+            not isinstance(response, valid_types)  # type: ignore
+            and not is_chatcompletion_like(response)
+            and not is_anthropic_message_like(response)
+            and not is_xai_response_like(response)
+            and not is_google_response_like(response)
+            and not is_cohere_response_like(response)
+        ):
             raise TypeError(
                 f"Response must be in [str, list, dict] or a Pydantic model, "
                 f"but got: {type(response)}!"
@@ -364,6 +420,17 @@ class LLMShield:
             )
         except ValidationError as e:
             raise ValidationError(f"Uncloak failed: {e}") from e
+
+        # Check for LLM response objects before Pydantic,
+        # since some (e.g. ParsedChatCompletion) are both
+        if (
+            is_chatcompletion_like(response)
+            or is_anthropic_message_like(response)
+            or is_xai_response_like(response)
+            or is_google_response_like(response)
+            or is_cohere_response_like(response)
+        ):
+            return _uncloak_response(response, entity_map)
 
         if isinstance(response, PydanticLike):
             model_class = response.__class__
@@ -441,6 +508,7 @@ class LLMShield:
             | None
         ) = None,
         max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
+        allowlist: list[str] | None = None,
     ) -> "LLMShield":
         """Create LLMShield with location-based entities disabled.
 
@@ -452,6 +520,7 @@ class LLMShield:
             llm_func=llm_func,
             max_cache_size=max_cache_size,
             entity_config=EntityConfig.disable_locations(),
+            allowlist=allowlist,
         )
 
     @classmethod
@@ -465,6 +534,7 @@ class LLMShield:
             | None
         ) = None,
         max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
+        allowlist: list[str] | None = None,
     ) -> "LLMShield":
         """Create LLMShield with person entities disabled.
 
@@ -476,6 +546,7 @@ class LLMShield:
             llm_func=llm_func,
             max_cache_size=max_cache_size,
             entity_config=EntityConfig.disable_persons(),
+            allowlist=allowlist,
         )
 
     @classmethod
@@ -489,6 +560,7 @@ class LLMShield:
             | None
         ) = None,
         max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
+        allowlist: list[str] | None = None,
     ) -> "LLMShield":
         """Create LLMShield with contact information disabled.
 
@@ -500,6 +572,7 @@ class LLMShield:
             llm_func=llm_func,
             max_cache_size=max_cache_size,
             entity_config=EntityConfig.disable_contacts(),
+            allowlist=allowlist,
         )
 
     @classmethod
@@ -513,6 +586,7 @@ class LLMShield:
             | None
         ) = None,
         max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
+        allowlist: list[str] | None = None,
     ) -> "LLMShield":
         """Create LLMShield with only financial entities enabled.
 
@@ -524,6 +598,7 @@ class LLMShield:
             llm_func=llm_func,
             max_cache_size=max_cache_size,
             entity_config=EntityConfig.only_financial(),
+            allowlist=allowlist,
         )
 
     @classmethod
@@ -537,6 +612,7 @@ class LLMShield:
             | None
         ) = None,
         max_cache_size: int = DEFAULT_MAX_CACHE_SIZE,
+        allowlist: list[str] | None = None,
     ) -> "LLMShield":
         """Create LLMShield with all entity types enabled."""
         return cls(
@@ -545,6 +621,7 @@ class LLMShield:
             llm_func=llm_func,
             max_cache_size=max_cache_size,
             entity_config=EntityConfig.enable_all(),
+            allowlist=allowlist,
         )
 
     # Chaining methods
@@ -556,6 +633,7 @@ class LLMShield:
             llm_func=self.llm_func,
             max_cache_size=self._cache.capacity,
             entity_config=config,
+            allowlist=(list(self._allowlist) if self._allowlist else None),
         )
 
     def without_locations(self) -> "LLMShield":
@@ -618,12 +696,14 @@ class LLMShield:
             llm_func=self.llm_func,
             max_cache_size=size,
             entity_config=self.entity_config,
+            allowlist=(list(self._allowlist) if self._allowlist else None),
         )
 
     def ask(
         self,
         stream: bool = False,
         messages: list[Message] | None = None,
+        allowlist: list[str] | None = None,
         **kwargs,
     ) -> str | Generator[str, None, None]:
         """Complete end-to-end LLM interaction with automatic protection.
@@ -632,6 +712,12 @@ class LLMShield:
         do not contain PII and that any keys that may contain PII are either
         string, lists, or dicts. Other types like int, float, are unable to be
         cloaked and will be returned as is.
+
+        NOTE: Only text-based inputs (str, list[str]) are cloaked. Non-text
+        inputs such as file paths (Path), binary data (bytes, BinaryIO),
+        file tuples (tuple[str, bytes]), and Pydantic models are passed
+        through to the LLM without cloaking, as PII detection requires
+        scannable text content.
 
         Args:
             prompt/message: Original prompt with sensitive information. This
@@ -650,6 +736,9 @@ class LLMShield:
                     conversations.
             They must come in the form of a list of dictionaries,
             where each dictionary has keys like "role" and "content".
+            allowlist: Terms to exclude from PII cloaking for this
+                    call only (merged with instance-level allowlist).
+                    Case-insensitive exact match.
             **kwargs: Additional arguments to pass to your LLM function,
                     such as:
                     - model: The model to use (e.g., "gpt-4")
@@ -683,6 +772,13 @@ class LLMShield:
                 "constructor or use cloak/uncloak separately."
             )
 
+        # Merge per-call allowlist with instance-level
+        effective_allowlist: frozenset[str] | None = (
+            self._allowlist | frozenset(allowlist)
+            if allowlist
+            else self._allowlist or None
+        )
+
         # Extract prompt/message from kwargs for validation
         prompt = kwargs.get("prompt")
         message = kwargs.get("message")
@@ -698,6 +794,7 @@ class LLMShield:
             return ask_helper(
                 shield=self,
                 stream=stream,
+                allowlist=effective_allowlist,
                 **kwargs,
             )
 
@@ -718,7 +815,11 @@ class LLMShield:
                 # Skip cloaking for list content (Anthropic tool results)
                 if isinstance(message.get("content"), list):
                     continue
-                _, entity_map = self.cloak(message["content"], entity_map)
+                _, entity_map = self.cloak(
+                    message["content"],
+                    entity_map,
+                    allowlist=effective_allowlist,
+                )
                 # Each message is placed in the cache paired to their entity
                 # map
                 self._cache.put(conversation_hash(message), entity_map)
@@ -733,26 +834,24 @@ class LLMShield:
             final_entity_map = entity_map.copy()
         else:
             cloaked_latest_content, final_entity_map = self.cloak(
-                latest_message["content"], entity_map_param=entity_map.copy()
+                latest_message["content"],
+                entity_map_param=entity_map.copy(),
+                allowlist=effective_allowlist,
             )
 
         # 5. Reconstruct the full, cloaked message list to send to the LLM
         cloaked_messages = self._build_cloaked_messages(
-            history, latest_message, cloaked_latest_content, final_entity_map
+            history,
+            latest_message,
+            cloaked_latest_content,
+            final_entity_map,
+            allowlist=effective_allowlist,
         )
 
-        # 6. Call the LLM with the protected payload - with automatic
-        # provider detection
-        # Get the appropriate provider for this LLM function
-        provider = get_provider(self.llm_func)
-
-        # Let the provider prepare the parameters
-        prepared_params, actual_stream = provider.prepare_multi_message_params(
+        # 6. Call the LLM with the protected payload
+        llm_response, actual_stream = self.provider.execute_multi_message(
             cloaked_messages, stream, **kwargs
         )
-
-        # Call the LLM function
-        llm_response = self.llm_func(**prepared_params)
 
         # 7. Uncloak the response
         if actual_stream:

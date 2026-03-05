@@ -37,7 +37,6 @@ from typing import (
 )
 
 # Local imports
-from llmshield.providers import get_provider
 
 if TYPE_CHECKING:
     from llmshield.entity_detector import EntityType
@@ -59,12 +58,12 @@ class PydanticLike(Protocol):  # pylint: disable=unnecessary-ellipsis
     - model_validate(data: dict) -> Any
     """
 
-    def model_dump(self) -> dict:
+    def model_dump(self) -> dict:  # pragma: no cover
         """Convert the model to a dictionary."""
         ...  # pylint: disable=unnecessary-ellipsis
 
     @classmethod
-    def model_validate(cls, data: dict) -> Any:
+    def model_validate(cls, data: dict) -> Any:  # pragma: no cover
         """Create a model instance from a dictionary."""
         ...  # pylint: disable=unnecessary-ellipsis
 
@@ -180,7 +179,10 @@ def _should_cloak_input(input_data: Input) -> bool:
 
 
 def ask_helper(
-    shield, stream: bool, **kwargs
+    shield,
+    stream: bool,
+    allowlist: frozenset[str] | None = None,
+    **kwargs,
 ) -> str | Generator[str, None, None]:
     """Handle the ask method of LLMShield.
 
@@ -190,6 +192,7 @@ def ask_helper(
     Args:
         shield: The LLMShield instance.
         stream: Whether to stream the response.
+        allowlist: Terms to exclude from cloaking.
         **kwargs: Additional keyword arguments to pass to the LLM function.
 
     Returns:
@@ -202,20 +205,15 @@ def ask_helper(
 
     if _should_cloak_input(input_data=input_text):
         # * 2. Cloak the input text
-        cloaked_text, entity_map = shield.cloak(input_text)
-
-        # * 3. Get the appropriate provider for this LLM function
-        provider = get_provider(shield.llm_func)
-
-        # * 4. Let the provider prepare the parameters
-        prepared_params, actual_stream = (
-            provider.prepare_single_message_params(
-                cloaked_text, input_param, stream, **kwargs
-            )
+        cloaked_text, entity_map = shield.cloak(
+            input_text,
+            allowlist=allowlist,
         )
 
-        # * 5. Get response from LLM
-        llm_response = shield.llm_func(**prepared_params)
+        # * 3. Execute the LLM call via the provider
+        llm_response, actual_stream = shield.provider.execute_single_message(
+            cloaked_text, input_param, stream, **kwargs
+        )
 
         # * 6. Uncloak and return
         if actual_stream:
@@ -226,8 +224,8 @@ def ask_helper(
         # Non-streaming: uncloak complete response
         return shield.uncloak(llm_response, entity_map)
 
-    # No cloaking needed, call LLM directly
-    return shield.llm_func(**kwargs)
+    # No cloaking needed, call LLM directly via provider
+    return shield.provider.execute_raw(**kwargs)
 
 
 # Typedef for a hashable type used for conversation keys.
@@ -266,8 +264,7 @@ def conversation_hash(obj: Message | list[Message]) -> Hash:
             content = msg.get("content", "")
             if content is None:
                 content = ""
-            elif isinstance(content, list):
-                # Handle list content (Anthropic tool results)
+            elif not isinstance(content, str):
                 content = str(content)
             hash_items.append((msg.get("role", ""), content))
         else:
@@ -276,4 +273,4 @@ def conversation_hash(obj: Message | list[Message]) -> Hash:
             if content is None:
                 content = ""
             hash_items.append((getattr(msg, "role", ""), str(content)))
-    return hash(frozenset(hash_items))
+    return hash(tuple(hash_items))

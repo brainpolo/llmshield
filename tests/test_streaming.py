@@ -1,29 +1,22 @@
-"""Test streaming functionality and chunk processing.
+"""Test streaming response uncloaking and buffer handling.
 
 Description:
-    This test module provides testing for streaming response handling,
-    including chunk processing, buffer management, and proper uncloaking
-    of streamed content from LLM providers.
+    Tests for streaming response handling including chunk processing,
+    buffer management, partial placeholders, and edge cases.
 
-Test Classes:
-    - MockChatCompletionChunk: Mock OpenAI streaming chunk
-    - TestStreamingCoverage: Tests streaming response handling
-
-Author: LLMShield by brainpolo, 2025-2026
+Author:
+    LLMShield by brainpolo, 2025-2026
 """
 
-# Standard library Imports
 import unittest
 
-# Third party Imports
 from parameterized import parameterized
 
-# Local Imports
 from llmshield.uncloak_stream_response import uncloak_stream_response
 
 
 class MockChatCompletionChunk:
-    """Mock OpenAI ChatCompletionChunk for testing line 32."""
+    """Mock OpenAI ChatCompletionChunk for testing."""
 
     def __init__(self, content: str | None):
         """Initialise mock chunk with content."""
@@ -36,59 +29,71 @@ class MockChatCompletionChunk:
         ]
 
 
-class TestStreamingCoverage(unittest.TestCase):
-    """Targeted tests for missing lines in uncloak_stream_response.py."""
+class TestStreamUncloaking(unittest.TestCase):
+    """Test streaming response uncloaking."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.entity_map = {"<PERSON_0>": "John"}
 
-    def test_openai_chunk_content_extraction_line_32(self):
-        """Test OpenAI ChatCompletionChunk content extraction (line 32)."""
+    def test_openai_chunk_content_extraction(self):
+        """Test OpenAI ChatCompletionChunk content extraction."""
 
         def chunk_stream():
-            # This should trigger: text = chunk.choices[0].delta.content or ""
             yield MockChatCompletionChunk("Hello")
-            yield MockChatCompletionChunk(None)  # Tests the "or ''" part
+            yield MockChatCompletionChunk(None)
             yield MockChatCompletionChunk("<PERSON_0>")
 
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
-        expected = ["Hello", "John"]
-        self.assertEqual(result, expected)
+        self.assertEqual(result, ["Hello", "John"])
 
-    def test_final_buffer_yield_line_65(self):
-        """Test final buffer yield when stream ends (line 65)."""
+    def test_final_buffer_yield(self):
+        """Test remaining buffer content is yielded at end of stream."""
 
         def chunk_stream():
-            # Send incomplete content that stays in buffer
             yield "Remaining text"
 
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
-        # This should trigger: if buffer: yield buffer
         self.assertEqual(result, ["Remaining text"])
 
-    def test_final_buffer_yield_line_65_guaranteed(self):
-        """Test final buffer yield when stream ends with remaining content.
-
-        Covers line 65 for buffer handling validation.
-        """
+    def test_partial_placeholder_completes(self):
+        """Test partial placeholder that completes across chunks."""
 
         def chunk_stream():
-            # Send content that will remain in buffer at end without any
-            # placeholders
-            yield "This content stays in buffer"
-            # No more chunks - this should trigger the final:
-            # if buffer: yield buffer
+            yield "<PERSON"
+            yield "_0>"
+            yield " additional content at end"
 
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
+        self.assertEqual(result, ["John", " additional content at end"])
 
-        # This should trigger line 65: if buffer: yield buffer
-        expected = ["This content stays in buffer"]
-        self.assertEqual(result, expected)
+    def test_incomplete_placeholder_then_text(self):
+        """Test incomplete placeholder followed by non-placeholder text."""
+
+        def mock_stream():
+            yield "<PERSON"
+            yield "_incomplete and then regular text"
+
+        result = list(uncloak_stream_response(mock_stream(), self.entity_map))
+        self.assertEqual(result, ["<PERSON_incomplete and then regular text"])
+
+    def test_placeholder_at_end_of_stream(self):
+        """Test placeholder that completes at the very end."""
+
+        def mock_stream():
+            yield "Hello <PERSON_"
+            yield "0>"
+
+        result = list(uncloak_stream_response(mock_stream(), self.entity_map))
+        self.assertEqual(result, ["Hello ", "John"])
 
     @parameterized.expand(
         [
-            ("openai_chunk_with_none", [MockChatCompletionChunk(None)], []),
+            (
+                "openai_chunk_with_none",
+                [MockChatCompletionChunk(None)],
+                [],
+            ),
             (
                 "openai_chunk_with_content",
                 [MockChatCompletionChunk("Hello")],
@@ -99,12 +104,15 @@ class TestStreamingCoverage(unittest.TestCase):
                 [MockChatCompletionChunk("Hi "), "<PERSON_0>"],
                 ["Hi ", "John"],
             ),
+            (
+                "openai_none_then_text",
+                [MockChatCompletionChunk(None), "regular text"],
+                ["regular text"],
+            ),
         ]
     )
-    def test_chunk_processing_comprehensive(
-        self, description, chunks, expected
-    ):
-        """Test comprehensive chunk processing - parameterized."""
+    def test_chunk_processing(self, _name, chunks, expected):
+        """Test various chunk processing scenarios."""
 
         def chunk_stream():
             yield from chunks
@@ -112,45 +120,29 @@ class TestStreamingCoverage(unittest.TestCase):
         result = list(uncloak_stream_response(chunk_stream(), self.entity_map))
         self.assertEqual(result, expected)
 
-    def test_buffer_accumulation_and_final_yield_line_65(self):
-        """Test buffer accumulation with final yield.
+    def test_empty_chunks_in_stream(self):
+        """Test stream with empty chunks interspersed."""
 
-        Absolutely guaranteed to hit line 65 for comprehensive coverage.
-        """
+        def mock_stream():
+            yield ""
+            yield "Hello"
+            yield ""
+            yield " World"
+            yield ""
 
-        def partial_placeholder_stream():
-            # Start a placeholder but don't complete it, leaving content in
-            # buffer
-            yield "<PERSON"
-            yield "_0>"
-            yield " additional content at end"  # This will be in buffer at end
+        result = list(uncloak_stream_response(mock_stream(), entity_map={}))
+        self.assertEqual(result, ["Hello", " World"])
 
-        result = list(
-            uncloak_stream_response(
-                partial_placeholder_stream(), self.entity_map
-            )
-        )
+    def test_buffer_with_whitespace_only(self):
+        """Test buffer with only whitespace content."""
 
-        # Should uncloak the complete placeholder and yield remaining buffer
-        # This MUST hit line 65: if buffer: yield buffer
-        # Note: self.entity_map maps "<PERSON_0>" to "John" (not "John Doe")
-        expected = ["John", " additional content at end"]
-        self.assertEqual(result, expected)
+        def mock_stream():
+            yield "   "
+            yield "\t\n"
+            yield "actual content"
 
-    def test_empty_buffer_edge_case_line_65(self):
-        """Test empty buffer handling to potentially hit line 65."""
-
-        def empty_chunk_stream():
-            yield ""  # Empty chunk
-            yield "Final content"  # This should remain in buffer
-
-        result = list(
-            uncloak_stream_response(empty_chunk_stream(), self.entity_map)
-        )
-
-        # Final content should be yielded via line 65
-        expected = ["Final content"]
-        self.assertEqual(result, expected)
+        result = list(uncloak_stream_response(mock_stream(), entity_map={}))
+        self.assertEqual(result, ["   \t\nactual content"])
 
 
 if __name__ == "__main__":

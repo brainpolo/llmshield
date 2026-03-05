@@ -18,6 +18,7 @@ from unittest.mock import Mock, patch
 
 # Local Imports
 from llmshield.providers.openai_provider import OpenAIProvider
+from tests.helpers import make_mock_func
 
 
 class TestOpenAIProvider(unittest.TestCase):
@@ -25,17 +26,12 @@ class TestOpenAIProvider(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        # Mock standard OpenAI function
-        self.mock_standard_func = Mock()
-        self.mock_standard_func.__name__ = "create"
-        self.mock_standard_func.__qualname__ = "client.chat.completions.create"
-        self.mock_standard_func.__module__ = "openai.client"
-
-        # Mock beta OpenAI function
-        self.mock_beta_func = Mock()
-        self.mock_beta_func.__name__ = "parse"
-        self.mock_beta_func.__qualname__ = "client.beta.chat.completions.parse"
-        self.mock_beta_func.__module__ = "openai.beta.client"
+        self.mock_standard_func = make_mock_func()
+        self.mock_beta_func = make_mock_func(
+            name="parse",
+            qualname="client.beta.chat.completions.parse",
+            module="openai.beta.client",
+        )
 
     def test_init_standard_api(self):
         """Test initialization with standard API."""
@@ -269,52 +265,51 @@ class TestOpenAIProvider(unittest.TestCase):
 
     def test_can_handle_openai_standard_functions(self):
         """Test can_handle method for standard OpenAI functions."""
-        # Test with chat.completions.create in qualname
-        mock_func = Mock()
-        mock_func.__name__ = "create"
-        mock_func.__qualname__ = "client.chat.completions.create"
-        self.assertTrue(OpenAIProvider.can_handle(mock_func))
-
-        # Test with create in name
-        mock_func = Mock()
-        mock_func.__name__ = "create"
-        mock_func.__qualname__ = "some.function"
-        self.assertTrue(OpenAIProvider.can_handle(mock_func))
+        self.assertTrue(OpenAIProvider.can_handle(make_mock_func()))
+        self.assertTrue(
+            OpenAIProvider.can_handle(make_mock_func(qualname="some.function"))
+        )
 
     def test_can_handle_openai_beta_functions(self):
         """Test can_handle method for beta OpenAI functions."""
-        # Test with chat.completions.parse in qualname
-        mock_func = Mock()
-        mock_func.__name__ = "parse"
-        mock_func.__qualname__ = "client.chat.completions.parse"
-        self.assertTrue(OpenAIProvider.can_handle(mock_func))
-
-        # Test with parse in name
-        mock_func = Mock()
-        mock_func.__name__ = "parse"
-        mock_func.__qualname__ = "some.function"
-        self.assertTrue(OpenAIProvider.can_handle(mock_func))
+        self.assertTrue(
+            OpenAIProvider.can_handle(
+                make_mock_func(
+                    name="parse",
+                    qualname="client.chat.completions.parse",
+                )
+            )
+        )
+        self.assertTrue(
+            OpenAIProvider.can_handle(
+                make_mock_func(name="parse", qualname="some.function")
+            )
+        )
 
     def test_can_handle_non_openai_functions(self):
         """Test can_handle method for non-OpenAI functions."""
-        mock_func = Mock()
-        mock_func.__name__ = "unknown_function"
-        mock_func.__qualname__ = "some.module.unknown_function"
-        self.assertFalse(OpenAIProvider.can_handle(mock_func))
+        self.assertFalse(
+            OpenAIProvider.can_handle(
+                make_mock_func(
+                    name="unknown_function",
+                    qualname="some.module.unknown_function",
+                )
+            )
+        )
 
     def test_can_handle_missing_attributes(self):
         """Test can_handle method with missing function attributes."""
-        # Function with no __name__ attribute
-        mock_func = Mock()
-        delattr(mock_func, "__name__")
-        mock_func.__qualname__ = "some.function"
-        self.assertFalse(OpenAIProvider.can_handle(mock_func))
+        # No __name__
+        func = Mock()
+        delattr(func, "__name__")
+        func.__qualname__ = "some.function"
+        self.assertFalse(OpenAIProvider.can_handle(func))
 
-        # Function with no __qualname__ attribute
-        mock_func = Mock()
-        mock_func.__name__ = "create"
-        delattr(mock_func, "__qualname__")
-        self.assertTrue(OpenAIProvider.can_handle(mock_func))
+        # No __qualname__
+        func = Mock()
+        func.__name__ = "create"
+        delattr(func, "__qualname__")
+        self.assertTrue(OpenAIProvider.can_handle(func))
 
     def test_prepare_params_with_tool_calls(self):
         """Test parameter preparation preserves tool call message structure."""

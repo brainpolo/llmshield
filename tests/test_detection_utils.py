@@ -18,7 +18,9 @@ from unittest.mock import Mock
 from llmshield.detection_utils import (
     extract_anthropic_content,
     extract_chatcompletion_content,
-    is_anthropic_message_like,
+    extract_cohere_content,
+    extract_google_content,
+    extract_xai_content,
     is_chatcompletion_like,
 )
 
@@ -136,21 +138,95 @@ class TestDetectionUtils(unittest.TestCase):
     def test_extract_anthropic_content_attribute_error(self):
         """Test extract_anthropic_content with AttributeError."""
 
-        class BadAnthropicMessage:
+        class FailOnSecondAccess:
             role = "assistant"
             model = "claude-3"
-            content = None
+            _count = 0
 
-            def __getattribute__(self, name):
-                if name == "content" and hasattr(self, "_accessing_content"):
-                    raise AttributeError("content attribute error")
-                return object.__getattribute__(self, name)
+            @property
+            def content(self):
+                self._count += 1
+                if self._count > 1:
+                    raise AttributeError("boom")
+                return "initial"
 
-        bad_msg = BadAnthropicMessage()
-        self.assertTrue(is_anthropic_message_like(bad_msg))
+        obj = FailOnSecondAccess()
+        self.assertIsNone(extract_anthropic_content(obj))
 
-        bad_msg._accessing_content = True
-        self.assertIsNone(extract_anthropic_content(bad_msg))
+    def test_extract_xai_content_attribute_error(self):
+        """Test extract_xai_content with broken content attr."""
+
+        class BrokenXAI:
+            @property
+            def content(self):
+                raise AttributeError("boom")
+
+        BrokenXAI.__module__ = "xai_sdk.response"
+        result = extract_xai_content(BrokenXAI())
+        self.assertIsNone(result)
+
+    def test_extract_xai_content_not_xai(self):
+        """Test extract_xai_content returns None for non-xAI."""
+        self.assertIsNone(extract_xai_content("not xai"))
+
+    def test_extract_google_content_attribute_error(self):
+        """Test extract_google_content with broken text attr."""
+
+        class BrokenGoogle:
+            candidates = []
+            usage_metadata = {}
+
+            @property
+            def text(self):
+                raise ValueError("no text")
+
+        result = extract_google_content(BrokenGoogle())
+        self.assertIsNone(result)
+
+    def test_extract_google_content_not_google(self):
+        """Test extract_google_content returns None for non-Google."""
+        self.assertIsNone(extract_google_content("not google"))
+
+    def test_extract_cohere_content_string(self):
+        """Test extract_cohere_content with string content."""
+        obj = Mock()
+        obj.message = Mock()
+        obj.message.content = "Hello world"
+        obj.finish_reason = "COMPLETE"
+        del obj.choices
+        del obj.candidates
+        del obj.role
+        result = extract_cohere_content(obj)
+        self.assertEqual(result, "Hello world")
+
+    def test_extract_cohere_content_attribute_error(self):
+        """Test extract_cohere_content with AttributeError."""
+
+        class BrokenCohere:
+            @property
+            def message(self):
+                raise AttributeError("no message")
+
+        BrokenCohere.__module__ = "cohere.types"
+        result = extract_cohere_content(BrokenCohere())
+        self.assertIsNone(result)
+
+    def test_extract_cohere_content_not_cohere(self):
+        """Test extract_cohere_content returns None for non-Cohere."""
+        self.assertIsNone(extract_cohere_content("not cohere"))
+
+    def test_extract_anthropic_content_list_blocks(self):
+        """Test extract_anthropic_content with list content blocks."""
+        obj = Mock()
+        obj.role = "assistant"
+        obj.model = "claude-3"
+        block = Mock()
+        block.type = "text"
+        block.text = "Hello from blocks"
+        obj.content = [block]
+        del obj.choices
+        result = extract_anthropic_content(obj)
+        self.assertEqual(result, "Hello from blocks")
 
 
 if __name__ == "__main__":

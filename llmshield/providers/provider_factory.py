@@ -20,13 +20,21 @@ from collections.abc import Callable
 # Local Imports
 from .anthropic_provider import AnthropicProvider
 from .base import BaseLLMProvider
+from .cohere_provider import CohereProvider
 from .default_provider import DefaultProvider
+from .google_provider import GoogleProvider
 from .openai_provider import OpenAIProvider
+from .xai_provider import XAIProvider
 
 # Registry of available providers in priority order
 # Earlier providers are checked first
+# Non-OpenAI providers must precede OpenAI (OpenAI's
+# broad can_handle would match their SDK functions)
 PROVIDER_REGISTRY = [
     AnthropicProvider,
+    GoogleProvider,
+    XAIProvider,
+    CohereProvider,
     OpenAIProvider,
     DefaultProvider,  # Must be last as it's the fallback
 ]

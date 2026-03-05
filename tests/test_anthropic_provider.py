@@ -229,6 +229,53 @@ class TestAnthropicProvider(unittest.TestCase):
         args = provider._parse_tool_arguments("invalid json")
         self.assertEqual(args, {})
 
+    def test_prepare_single_message_with_tools(self):
+        """Test single message with OpenAI-style tools."""
+        provider = AnthropicProvider(self.mock_anthropic_func)
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get weather",
+                    "parameters": {"type": "object"},
+                },
+            }
+        ]
+        params, _ = provider.prepare_single_message_params(
+            "Hello", "prompt", False, prompt="x", tools=tools
+        )
+        self.assertEqual(len(params["tools"]), 1)
+        self.assertEqual(params["tools"][0]["name"], "get_weather")
+        self.assertIn("input_schema", params["tools"][0])
+
+    def test_prepare_multi_message_with_system_and_tools(self):
+        """Test multi-message with system messages and tools."""
+        provider = AnthropicProvider(self.mock_anthropic_func)
+        messages = [
+            {"role": "system", "content": "Be helpful"},
+            {"role": "system", "content": "Be concise"},
+            {"role": "user", "content": "Hello"},
+        ]
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "search",
+                    "parameters": {},
+                },
+            },
+            {"name": "passthrough_tool"},
+        ]
+        params, _ = provider.prepare_multi_message_params(
+            messages, False, tools=tools, model="claude-3"
+        )
+        self.assertEqual(params["system"], "Be helpful\nBe concise")
+        self.assertEqual(len(params["messages"]), 1)
+        self.assertEqual(len(params["tools"]), 2)
+        self.assertEqual(params["tools"][0]["name"], "search")
+        self.assertEqual(params["tools"][1]["name"], "passthrough_tool")
+
     def test_can_handle_anthropic_functions(self):
         """Test can_handle method for Anthropic functions."""
         # Test with anthropic in module

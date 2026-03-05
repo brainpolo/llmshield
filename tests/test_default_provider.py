@@ -16,6 +16,7 @@ from unittest.mock import Mock
 
 from parameterized import parameterized
 
+from llmshield.providers.base import BaseLLMProvider
 from llmshield.providers.default_provider import DefaultProvider
 
 
@@ -233,84 +234,6 @@ class TestDefaultProvider(unittest.TestCase):
         self.assertFalse(prepared_params["stream"])
         self.assertFalse(actual_stream)
 
-    def test_get_preferred_param_name_message_priority(self):
-        """Test 'message' preference over 'prompt' when both are available.
-
-        Validates parameter priority selection logic.
-        """
-        # Create mock function with both 'message' and 'prompt' in parameters
-        mock_func_both = Mock()
-        mock_func_both.__code__ = Mock()
-        mock_func_both.__code__.co_varnames = (
-            "self",
-            "prompt",
-            "message",
-            "model",
-        )
-
-        provider = DefaultProvider(mock_func_both)
-
-        # Should prefer 'message' over 'prompt'
-        result = provider._get_preferred_param_name()
-        self.assertEqual(result, "message")
-
-    def test_get_preferred_param_name_prompt_only(self):
-        """Test that 'prompt' is used when only 'prompt' is available."""
-        # Create mock function with only 'prompt' in parameters
-        mock_func_prompt = Mock()
-        mock_func_prompt.__code__ = Mock()
-        mock_func_prompt.__code__.co_varnames = ("self", "prompt", "model")
-
-        provider = DefaultProvider(mock_func_prompt)
-
-        result = provider._get_preferred_param_name()
-        self.assertEqual(result, "prompt")
-
-    def test_get_preferred_param_name_neither_available(self):
-        """Test fallback to 'prompt' when neither parameter is available.
-
-        Validates fallback behavior when neither 'message' nor 'prompt' exist.
-        """
-        # Create mock function with neither 'message' nor 'prompt' in
-        # parameters
-        mock_func_neither = Mock()
-        mock_func_neither.__code__ = Mock()
-        mock_func_neither.__code__.co_varnames = ("self", "text", "model")
-
-        provider = DefaultProvider(mock_func_neither)
-
-        result = provider._get_preferred_param_name()
-        self.assertEqual(result, "prompt")
-
-    def test_get_preferred_param_name_attribute_error(self):
-        """Test fallback behavior when AttributeError is raised."""
-        # Create mock function that raises AttributeError
-        mock_func_error = Mock()
-        del mock_func_error.__code__  # Remove __code__ attribute entirely
-
-        provider = DefaultProvider(mock_func_error)
-
-        result = provider._get_preferred_param_name()
-        self.assertEqual(result, "prompt")
-
-    def test_can_handle_any_function(self):
-        """Test that DefaultProvider can handle any function."""
-        # Test with various function types
-        self.assertTrue(DefaultProvider.can_handle(self.mock_func))
-        self.assertTrue(DefaultProvider.can_handle(lambda x: x))
-        self.assertTrue(DefaultProvider.can_handle(print))
-        self.assertTrue(DefaultProvider.can_handle(Mock()))
-
-    def test_can_handle_returns_true_always(self):
-        """Test that can_handle always returns True as fallback provider.
-
-        Validates the fallback provider behavior for all input types.
-        """
-        # Even with None or unusual objects
-        self.assertTrue(DefaultProvider.can_handle(None))
-        self.assertTrue(DefaultProvider.can_handle("not a function"))
-        self.assertTrue(DefaultProvider.can_handle(42))
-
     @parameterized.expand(
         [
             # (description, function_params, expected_preferred_param)
@@ -354,6 +277,13 @@ class TestDefaultProvider(unittest.TestCase):
         provider = DefaultProvider(mock_func)
         result = provider._get_preferred_param_name()
         self.assertEqual(result, expected)
+
+    def test_get_preferred_param_name_attribute_error(self):
+        """Test fallback when function has no __code__ attribute."""
+        mock_func_error = Mock()
+        del mock_func_error.__code__
+        provider = DefaultProvider(mock_func_error)
+        self.assertEqual(provider._get_preferred_param_name(), "prompt")
 
     @parameterized.expand(
         [
@@ -596,6 +526,106 @@ class TestDefaultProvider(unittest.TestCase):
         preferred_param = provider._get_preferred_param_name()
         if original_param != preferred_param:
             self.assertNotIn(original_param, prepared_params)
+
+
+class TestBaseLLMProviderDefaults(unittest.TestCase):
+    """Test BaseLLMProvider default prepare method implementations."""
+
+    def setUp(self):
+        """Set up a minimal subclass that uses base defaults."""
+        self.mock_func = Mock(return_value="response")
+        self.mock_func.__name__ = "test_func"
+        self.mock_func.__qualname__ = "test_func"
+        self.mock_func.__module__ = "test"
+
+        class MinimalProvider(BaseLLMProvider):
+            @classmethod
+            def can_handle(cls, llm_func):
+                return True
+
+        self.provider = MinimalProvider(self.mock_func)
+
+    def test_prepare_single_message_default(self):
+        """Test base prepare_single_message_params creates messages."""
+        params, stream = self.provider.prepare_single_message_params(
+            "Hello", "prompt", True, prompt="original", model="t"
+        )
+        self.assertEqual(
+            params["messages"],
+            [{"role": "user", "content": "Hello"}],
+        )
+        self.assertTrue(params["stream"])
+        self.assertNotIn("prompt", params)
+        self.assertEqual(params["model"], "t")
+        self.assertTrue(stream)
+
+    def test_prepare_multi_message_default(self):
+        """Test base prepare_multi_message_params passes through."""
+        msgs = [{"role": "user", "content": "Hi"}]
+        params, stream = self.provider.prepare_multi_message_params(
+            msgs, False, model="t"
+        )
+        self.assertEqual(params["messages"], msgs)
+        self.assertFalse(params["stream"])
+        self.assertEqual(params["model"], "t")
+        self.assertFalse(stream)
+
+
+class TestBaseProviderExecuteMethods(unittest.TestCase):
+    """Test execute methods inherited from BaseLLMProvider."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.mock_func = Mock(return_value="llm response")
+        self.mock_func.__name__ = "generic_llm_function"
+        self.mock_func.__qualname__ = "module.generic_llm_function"
+        self.mock_func.__module__ = "some.module"
+        self.provider = DefaultProvider(self.mock_func)
+
+    def test_execute_single_message(self):
+        """Test execute_single_message prepares and calls."""
+        response, actual_stream = self.provider.execute_single_message(
+            "Hello <PERSON_0>",
+            "prompt",
+            True,
+            prompt="original",
+            model="test",
+        )
+
+        self.assertEqual(response, "llm response")
+        self.assertTrue(actual_stream)
+        self.mock_func.assert_called_once()
+
+    def test_execute_multi_message(self):
+        """Test execute_multi_message prepares and calls."""
+        messages = [
+            {"role": "user", "content": "Hello <PERSON_0>"},
+        ]
+        response, actual_stream = self.provider.execute_multi_message(
+            messages,
+            False,
+            model="test",
+        )
+
+        self.assertEqual(response, "llm response")
+        self.assertFalse(actual_stream)
+        self.mock_func.assert_called_once()
+        call_kwargs = self.mock_func.call_args[1]
+        self.assertEqual(call_kwargs["messages"], messages)
+        self.assertFalse(call_kwargs["stream"])
+
+    def test_execute_raw(self):
+        """Test execute_raw passes kwargs directly."""
+        response = self.provider.execute_raw(
+            prompt="Hello",
+            model="test",
+        )
+
+        self.assertEqual(response, "llm response")
+        self.mock_func.assert_called_once_with(
+            prompt="Hello",
+            model="test",
+        )
 
 
 if __name__ == "__main__":

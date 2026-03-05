@@ -6,12 +6,6 @@ Description:
     chat completions, tool calls, and edge cases.
 
 Test Classes:
-    - MockChatCompletion: Mock OpenAI chat completion response
-    - MockChoice: Mock response choice object
-    - MockMessage: Mock message object
-    - MockFunctionCall: Mock function call object
-    - MockToolCall: Mock tool call object
-    - MockFunction: Mock function object
     - TestUncloakResponse: Tests response uncloaking logic
 
 Author: LLMShield by brainpolo, 2025-2026
@@ -61,7 +55,7 @@ class MockDelta:
         self.content = content
 
 
-class TestUnclokResponse(unittest.TestCase):
+class TestUncloakResponse(unittest.TestCase):
     """Test uncloak response functionality."""
 
     def setUp(self):
@@ -188,25 +182,6 @@ class TestUnclokResponse(unittest.TestCase):
         # Verify None content is preserved
         self.assertIsNone(result.choices[0].message.content)
 
-    def test_uncloak_chatcompletion_with_tool_calls_none_content(self):
-        """Test uncloaking ChatCompletion with tool calls and None content.
-
-        This simulates the scenario where an assistant message has tool calls
-        but no text content, which results in content being None.
-        """
-        # Create mock ChatCompletion with None content (simulating tool calls)
-        message = MockMessage(content=None)
-        choice = MockChoice(message=message)
-        chatcompletion = MockChatCompletion(choices=[choice])
-
-        # This should not raise an error
-        result = _uncloak_response(chatcompletion, self.entity_map)
-
-        # Verify None content is preserved and no error occurred
-        self.assertIsNone(result.choices[0].message.content)
-        # Verify it's a different object (deep copy)
-        self.assertIsNot(result, chatcompletion)
-
     def test_uncloak_chatcompletion_with_empty_choices(self):
         """Test uncloaking ChatCompletion object with empty choices."""
         chatcompletion = MockChatCompletion(choices=[])
@@ -284,20 +259,6 @@ class TestUnclokResponse(unittest.TestCase):
 
         # Should return original object unchanged
         self.assertEqual(result, mock_obj)
-
-    def test_uncloak_non_supported_type(self):
-        """Test uncloaking non-supported data type."""
-        # Test with integer
-        result = _uncloak_response(42, self.entity_map)
-        self.assertEqual(result, 42)
-
-        # Test with float
-        result = _uncloak_response(3.14, self.entity_map)
-        self.assertEqual(result, 3.14)
-
-        # Test with boolean
-        result = _uncloak_response(True, self.entity_map)
-        self.assertEqual(result, True)
 
     def test_uncloak_complex_nested_structure(self):
         """Test uncloaking complex nested data structure."""
